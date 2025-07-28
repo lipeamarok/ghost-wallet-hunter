@@ -110,6 +110,16 @@ except ImportError as e:
 except Exception as e:
     logger.error(f"[ERROR] Failed to register frontend API router: {e}")
 
+# Include Demo Investigation routes
+try:
+    from api.demo_investigation import router as demo_router
+    app.include_router(demo_router, tags=["demo-investigation"])
+    logger.info("[OK] Demo Investigation routes registered successfully")
+except ImportError as e:
+    logger.warning(f"[WARNING] Could not import demo investigation router: {e}")
+except Exception as e:
+    logger.error(f"[ERROR] Failed to register demo investigation router: {e}")
+
 
 @app.get("/")
 async def root():

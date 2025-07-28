@@ -70,11 +70,9 @@ export const detectiveService = {
       user_id = 'frontend_user'
     } = options;
 
-    return detectiveAPI.post('/api/v1/wallet/investigate', {
-      wallet_address: walletAddress,
-      investigation_type: 'comprehensive',
-      priority: 'normal',
-      notify_frontend: true
+    // Use demo endpoint for fast results in production
+    return detectiveAPI.post('/api/v1/wallet/investigate/demo', {
+      wallet_address: walletAddress
     });
   },
 

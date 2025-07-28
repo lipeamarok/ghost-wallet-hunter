@@ -5,7 +5,7 @@ const BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8001';
 // Create axios instance for detective API
 const detectiveAPI = axios.create({
   baseURL: BASE_URL,
-  timeout: 180000, // 3 minutes for AI operations (production needs more time)
+  timeout: 300000, // 5 minutes for real AI operations
   headers: {
     'Content-Type': 'application/json',
   },
@@ -70,9 +70,13 @@ export const detectiveService = {
       user_id = 'frontend_user'
     } = options;
 
-    // Use demo endpoint for fast results in production
-    return detectiveAPI.post('/api/v1/wallet/investigate/demo', {
-      wallet_address: walletAddress
+    // Use real investigation endpoint for actual analysis
+    return detectiveAPI.post('/api/v1/wallet/investigate', {
+      wallet_address: walletAddress,
+      depth,
+      include_metadata: includeMetadata,
+      budget_limit,
+      user_id
     });
   },
 

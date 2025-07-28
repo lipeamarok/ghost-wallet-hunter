@@ -1,60 +1,80 @@
-﻿# Ghost Wallet Hunter - UX Design Guide
+﻿# Ghost Wallet Hunter - Professional UX Design Guide
 
-## 1. Core Principles
+## 1. Core Design Philosophy
 
-Maximum simplicity: Clean interface with no visual clutter, focusing on core content
+**Cybersecurity Aesthetic**: Clean, terminal-inspired interface with subtle matrix-style elements
 
-Visual consistency: Harmonious color palette, elegant typography, and uniform spacing
+**Professional Minimalism**: Zero visual clutter, monospace typography, technical precision
 
-Instant feedback: Clear status indicators on all buttons and actions (loading, success, error)
+**Real-time Analysis Feedback**: Progressive disclosure showing investigation steps as they happen
 
-Accessibility: High-contrast colors and fonts, keyboard navigation, and legible text
+**Accessibility First**: High-contrast terminal colors, keyboard navigation, screen reader support
 
-Performance: Fast loading times, smooth animations, and zero lag
+**Performance Priority**: Instant feedback, smooth transitions, zero lag
 
-Advanced Accessibility Strategies
+**Hacker-Style Progression**: Analysis unfolds like a real cybersecurity investigation
 
-Detailed alt-text for all essential icons and graphics
+## 2. Visual Language
 
-Full keyboard and screen reader compatibility (ARIA labels in React)
+**Color Palette**:
 
-Regular testing with Lighthouse and axe-core for barrier detection
+- Background: Deep dark (#0a0a0a, #1a1a1a)
+- Primary: Electric cyan (#00ffff)
+- Success: Matrix green (#00ff41)
+- Warning: Amber (#ffb000)
+- Critical: Alert red (#ff3366)
+- Text: Cool gray (#e0e0e0)
 
-High contrast mode: Quick-toggle option on the site
+**Typography**:
 
-## 2. Recommended Structure (Pages & Components)
+- Primary: JetBrains Mono (monospace for technical feel)
+- Secondary: Inter (for readability)
+- Headers: Orbitron (futuristic, technical)
 
-Page 1: Landing / Input
+**Visual Elements**:
 
-Large central input field for wallet address or transaction ID
+- Subtle scan lines animation
+- Terminal cursor blinking
+- Progressive text reveal (typewriter effect)
+- Network graph with pulsing connections
+- ASCII art status indicators
 
-Prominent, clear "Analyze" button
+## 3. Investigation Flow UX
 
-Short intro text explaining the purpose
+### **Phase 1: Input Interface
 
-Example wallet pre-filled for testing
+```tex
+> ghost-wallet-hunter:~$ analyze [wallet_address]
+  Initializing blockchain forensics toolkit...
+  Loading detection algorithms...
+  [█████████░] 90% Ready
+```
 
-Footer with useful links (docs, GitHub, disclaimer)
+### **Phase 2: Progressive Analysis Steps**
 
-Page 2: Results & Dashboard
+```text
+[PHASE_0] Blacklist verification...........OK
+[PHASE_1] Transaction pattern analysis....OK
+[PHASE_2] Network topology mapping.......OK
+[PHASE_3] Risk assessment calculation.....OK
+[PHASE_4] Generating intelligence report..OK
+```
 
-Interactive graph (React Flow):
+### **Phase 3: Network Visualization**
 
-Highlighted central node
+- Start with single wallet node (zoom focus)
+- Gradually reveal connections with smooth animations
+- Branch out showing transaction paths
+- Color-code connections by risk level
+- Zoom out to show full network topology
+- Interactive nodes with detailed metadata
 
-Connected nodes colored by risk level
+### **Phase 4: Intelligence Report**
 
-Tooltips on hover explaining each node
-
-Sidebar or modal with AI-generated explanation:
-
-Clear, empathetic, educational language
-
-PDF report generation/download button
-
-Action buttons to re-analyze or return
-
-Animated loading indicator during processing
+- Terminal-style progressive text reveal
+- Technical analysis with detective reasoning
+- Risk score with confidence intervals
+- Actionable recommendations
 
 ## 3. Visual Design
 

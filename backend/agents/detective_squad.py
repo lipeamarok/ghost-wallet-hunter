@@ -18,6 +18,7 @@ from .dupin_agent import DupinAgent
 from .shadow_agent import ShadowAgent
 from .raven_agent import RavenAgent
 from .shared_models import AnalysisResult, RiskLevel
+from services.blacklist_checker import blacklist_checker, check_wallet_blacklist
 
 logger = logging.getLogger(__name__)
 
@@ -130,6 +131,38 @@ class DetectiveSquadManager:
                 "status": "IN_PROGRESS",
                 "detectives_assigned": ["Poirot", "Marple", "Spade", "Marlowe", "Dupin", "Shadow", "Raven"]
             }
+
+            # Phase 0: Blacklist Check - Critical Priority
+            logger.info(f"🛡️ Phase 0: Running blacklist verification...")
+            blacklist_result = await check_wallet_blacklist(wallet_address)
+
+            if blacklist_result['is_blacklisted']:
+                logger.warning(f"🚨 CRITICAL ALERT: Wallet {wallet_address} is BLACKLISTED!")
+                # Return immediate high-risk result for blacklisted addresses
+                return {
+                    "case_id": case_id,
+                    "wallet_address": wallet_address,
+                    "blacklist_alert": blacklist_result,
+                    "risk_assessment": {
+                        "risk_level": "CRITICAL",
+                        "risk_score": 1.0,
+                        "confidence": 0.95,
+                        "summary": f"🚨 ATENÇÃO CRÍTICA: Esta carteira está listada em bases públicas de scam/golpes. {blacklist_result['recommendation']}"
+                    },
+                    "detective_findings": {
+                        "blacklist_verification": {
+                            "specialist": "Blacklist Scanner",
+                            "confidence": 0.95,
+                            "risk_score": 1.0,
+                            "explanation": blacklist_result['warning'],
+                            "recommendation": blacklist_result['recommendation'],
+                            "sources_checked": blacklist_result['sources_checked'],
+                            "timestamp": blacklist_result['last_checked']
+                        }
+                    },
+                    "timestamp": datetime.now().isoformat(),
+                    "legendary_squad_signature": "🛡️ Blacklist verification by the legendary squad! 🛡️"
+                }
 
             # Phase 1: Core Investigation Trio
             logger.info(f"🕵️ Phase 1: Core detective trio begins investigation...")

@@ -1,8 +1,8 @@
-# 👻 Ghost Wallet Hunter
+# Ghost Wallet Hunter
 
 > **AI-powered blockchain analysis with a legendary detective squad. Detect suspicious wallet patterns on Solana using real AI intelligence – fast, secure and production-ready.**
 
-🌐 **Live Demo:** [https://ghostwallethunter.xyz](https://ghostwallethunter.xyz)
+🌐 **Live Demo:** [https://ghostwallethunter.xyz](https://www.ghostwallethunter.xyz)
 📚 **API Documentation:** [https://api.ghostwallethunter.xyz/docs](https://api.ghostwallethunter.xyz/docs)
 💰 **Cost Dashboard:** [https://api.ghostwallethunter.xyz/ai-costs/dashboard](https://api.ghostwallethunter.xyz/ai-costs/dashboard)
 
@@ -16,11 +16,11 @@
 
 ---
 
-## 🎯 Overview
+## Overview
 
 **Ghost Wallet Hunter** features a legendary detective squad of 7 specialized AI agents that work together to analyze blockchain transactions and detect suspicious wallet patterns. Each detective brings unique expertise powered by real AI integration (OpenAI + Grok fallback).
 
-### �️‍♂️ The Legendary Detective Squad
+### The Legendary Detective Squad
 
 1. **🕵️ Hercule Poirot** - Transaction Analysis & Behavioral Patterns
 2. **👵 Miss Jane Marple** - Pattern & Anomaly Detection
@@ -30,17 +30,18 @@
 6. **🌙 The Shadow** - Network Cluster Analysis
 7. **🐦‍⬛ Raven** - LLM Explanation & Communication
 
-### 🚨 What We Solve
+### What We Solve
 
-- 🔍 **Hidden wallet connections** across complex transaction networks
-- 📊 **Risk assessment** with AI-powered threat classification
-- 🧠 **Clear explanations** of suspicious patterns in plain language
-- ⚡ **Real-time analysis** of Solana blockchain transactions
-- � **Cost control** with comprehensive AI usage monitoring
+- **Hidden wallet connections** across complex transaction networks
+- **Risk assessment** with AI-powered threat classification
+- **Blacklist verification** against known scam/fraud addresses
+- **Clear explanations** of suspicious patterns in plain language
+- **Real-time analysis** of Solana blockchain transactions
+- **Cost control** with comprehensive AI usage monitoring
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -128,6 +129,12 @@ GET    /api/ai-costs/dashboard
 POST   /api/ai-costs/update-limits
 GET    /api/ai-costs/providers/status
 
+# Blacklist Security System
+GET    /api/v1/blacklist/check/{wallet_address}
+POST   /api/v1/blacklist/check-multiple
+GET    /api/v1/blacklist/stats
+POST   /api/v1/blacklist/force-update
+
 # Health & Testing
 GET    /api/health
 GET    /api/agents/test/real-ai
@@ -193,41 +200,43 @@ ghost-wallet-hunter/
 
 ---
 
-## 🌟 Key Features
+## Key Features
 
-### � **AI-Powered Cluster Analysis**
+### **AI-Powered Cluster Analysis**
 
 - **JuliaOS Agents** perform autonomous transaction analysis
 - **Pattern Recognition** identifies suspicious wallet behaviors
 - **Risk Scoring** provides clear threat assessment levels
 
-### 📊 **Interactive Visualization**
+### **Interactive Visualization**
 
 - **React Flow** based graph visualization
 - **Real-time Updates** as new connections are discovered
 - **Click-to-Explore** detailed explanations for each connection
 
-### 🧠 **Intelligent Explanations**
+### **Intelligent Explanations**
 
 - **OpenAI Integration** generates human-readable analysis
 - **Educational Focus** helps users understand blockchain patterns
 - **Empathetic Language** avoids technical jargon
 
-### ⚡ **High Performance**
+### **High Performance**
 
 - **FastAPI Backend** for rapid response times
 - **PostgreSQL** caching for repeated queries
 - **Solana RPC** optimized for minimal latency
 
-### 🔒 **Security & Privacy**
+### **Security & Privacy**
 
 - **Public Data Only** - no private key access required
+- **Blacklist Integration** - real-time verification against scam databases
+- **Multi-source Verification** - Solana Foundation & Chainabuse integration
 - **Ethical Guidelines** built into analysis algorithms
 - **Transparent Methods** - open source for community review
 
 ---
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 ### Backend Architecture
 
@@ -235,6 +244,7 @@ ghost-wallet-hunter/
 - **Framework:** FastAPI (REST API + WebSocket)
 - **AI Integration:** OpenAI GPT-3.5-turbo + Grok fallback
 - **Detective Squad:** 7 specialized AI agents
+- **Security:** Multi-source blacklist verification system
 - **Cost Tracking:** Real-time AI usage monitoring
 - **Blockchain:** Solana.py
 - **Database:** PostgreSQL + Redis cache
@@ -269,7 +279,7 @@ ghost-wallet-hunter/
 
 ---
 
-## 📚 Documentation
+## Documentation
 
 Comprehensive documentation is available in the `/docs` directory:
 
@@ -286,16 +296,17 @@ Comprehensive documentation is available in the `/docs` directory:
 
 ---
 
-## 🚨 How It Works
+## How It Works
 
 ### User Journey
 
 1. **Input Wallet Address** - Paste any Solana wallet address or transaction ID
-2. **AI Analysis** - JuliaOS agents analyze blockchain transactions in real-time
-3. **Pattern Detection** - System identifies suspicious clustering patterns
-4. **Visual Graph** - Interactive React Flow visualization shows wallet connections
-5. **AI Explanation** - OpenAI generates clear, educational explanations of findings
-6. **Risk Assessment** - Color-coded risk levels (Low/Medium/High) for each cluster
+2. **Blacklist Pre-Check** - Instant verification against known scam databases
+3. **AI Analysis** - JuliaOS agents analyze blockchain transactions in real-time
+4. **Pattern Detection** - System identifies suspicious clustering patterns
+5. **Visual Graph** - Interactive React Flow visualization shows wallet connections
+6. **AI Explanation** - OpenAI generates clear, educational explanations of findings
+7. **Risk Assessment** - Color-coded risk levels (Low/Medium/High) for each cluster
 
 ### Analysis Criteria
 
@@ -312,6 +323,22 @@ Comprehensive documentation is available in the `/docs` directory:
 Wallet A → 5 transactions with Wallet B in 12 hours, 10 SOL volume
 Result: Medium risk cluster detected
 ```
+
+### Blacklist Security System
+
+**Multi-Source Verification:**
+
+- **Solana Foundation Blacklist** - Official scam address registry
+- **Chainabuse Database** - Community-reported fraud addresses
+- **Real-time Updates** - Hourly synchronization with latest threat data
+- **Redis Caching** - Fast lookup performance for repeated checks
+
+**Protection Features:**
+
+- **Pre-Analysis Check** - Instant verification before full investigation
+- **Visual Warnings** - Clear alerts for blacklisted addresses
+- **Batch Verification** - Multiple wallet checking capability
+- **Force Updates** - Manual blacklist refresh on demand
 
 ### API Example
 
@@ -346,7 +373,7 @@ Result: Medium risk cluster detected
 
 ---
 
-## ⚠️ Important Disclaimers
+## Important Disclaimers
 
 ### Ethical Usage
 
@@ -363,7 +390,7 @@ Result: Medium risk cluster detected
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions from the community! Here's how you can help:
 
@@ -377,12 +404,12 @@ We welcome contributions from the community! Here's how you can help:
 
 ### Areas of Contribution
 
-- 🐛 **Bug Reports** - Help us identify and fix issues
-- ✨ **Feature Requests** - Suggest new capabilities
-- 📝 **Documentation** - Improve guides and explanations
-- 🎨 **UI/UX** - Enhance user experience
-- 🔧 **Performance** - Optimize algorithms and performance
-- 🌐 **Multi-chain** - Add support for other blockchains
+- **Bug Reports** - Help us identify and fix issues
+- **Feature Requests** - Suggest new capabilities
+- **Documentation** - Improve guides and explanations
+- **UI/UX** - Enhance user experience
+- **Performance** - Optimize algorithms and performance
+- **Multi-chain** - Add support for other blockchains
 
 ### Code Standards
 
@@ -393,30 +420,32 @@ We welcome contributions from the community! Here's how you can help:
 
 ---
 
-## 🗺️ Roadmap
+## Roadmap
 
-### 🎯 Current Phase: MVP (Q3 2025)
+### Current Phase: MVP (Q3 2025)
 
 - ✅ Basic Solana wallet cluster analysis
 - ✅ Interactive React visualization
 - ✅ AI-powered explanations
-- � Beta testing and community feedback
+- ✅ Multi-source blacklist verification system
+- 🔄 Beta testing and community feedback
 
-### 📈 Phase 2: Enhanced Analysis (Q4 2025)
+### Phase 2: Enhanced Analysis (Q4 2025)
 
 - 🔄 Advanced pattern detection (mixers, bridges)
 - 🔄 Risk scoring improvements
 - 🔄 Performance optimizations
-- 🔄 Redis caching implementation
+- ✅ Redis caching implementation
+- 🔄 Enhanced blacklist sources integration
 
-### 🚀 Phase 3: Multi-chain Support (Q1 2026)
+### Phase 3: Multi-chain Support (Q1 2026)
 
 - 📅 Ethereum integration
 - 📅 Binance Smart Chain support
 - 📅 Cross-chain analysis
 - 📅 Real-time alerts system
 
-### 💼 Phase 4: Commercialization (Q2 2026)
+### Phase 4: Commercialization (Q2 2026)
 
 - 📅 Freemium model
 - 📅 Enterprise API access
@@ -425,7 +454,7 @@ We welcome contributions from the community! Here's how you can help:
 
 ---
 
-## 📊 Performance & Metrics
+## Performance & Metrics
 
 ### Current Capabilities
 
@@ -443,7 +472,7 @@ We welcome contributions from the community! Here's how you can help:
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
@@ -451,27 +480,27 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 Ghost Wallet Hunter is committed to transparency and open-source development:
 
-- 🔓 **Full Source Code** available for review
-- 🤝 **Community Driven** development and governance
-- 📚 **Educational Focus** for blockchain security awareness
-- 🛡️ **Ethical AI** principles in all implementations
+- **Full Source Code** available for review
+- **Community Driven** development and governance
+- **Educational Focus** for blockchain security awareness
+- **Ethical AI** principles in all implementations
 
 ---
 
-## 🆘 Support & Community
+## Support & Community
 
 ### Get Help
 
-- 📖 **Documentation:** Comprehensive guides in `/docs`
-- 🐛 **Issues:** [GitHub Issues](https://github.com/your-username/ghost-wallet-hunter/issues)
-- 💬 **Discussions:** [GitHub Discussions](https://github.com/your-username/ghost-wallet-hunter/discussions)
-- 📧 **Email:** support[at]ghostwallethunter[dot]com
+- **Documentation:** Comprehensive guides in `/docs`
+- **Issues:** [GitHub Issues](https://github.com/lipeamarok/ghost-wallet-hunter/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/lipeamarok/ghost-wallet-hunter/discussions)
+- **Email:** 'soon'
 
 ### Community Channels
 
-- 🐦 **Twitter:** [@GhostWalletHunt](https://twitter.com/GhostWalletHunt)
-- 💬 **Discord:** [Join our server](https://discord.gg/ghostwallethunter)
-- 📺 **YouTube:** [Video tutorials and demos](https://youtube.com/@ghostwallethunter)
+- **Twitter:** 'soon'
+- **Discord:** 'soon'
+- **YouTube:** 'soon'
 
 ---
 

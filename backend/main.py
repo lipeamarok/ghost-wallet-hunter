@@ -100,6 +100,27 @@ except ImportError as e:
 except Exception as e:
     logger.error(f"[ERROR] Failed to register AI costs router: {e}")
 
+# Include Blacklist routes
+try:
+    from api.blacklist_routes import router as blacklist_router
+    app.include_router(blacklist_router, prefix="", tags=["blacklist"])
+    logger.info("[OK] Blacklist routes registered successfully")
+except ImportError as e:
+    logger.warning(f"[WARNING] Could not import blacklist router: {e}")
+except Exception as e:
+    logger.error(f"[ERROR] Failed to register blacklist router: {e}")
+
+# Initialize blacklist checker on startup
+@app.on_event("startup")
+async def initialize_blacklist_checker():
+    """Initialize the blacklist checker on startup"""
+    try:
+        from services.blacklist_checker import initialize_blacklist
+        await initialize_blacklist()
+        logger.info("[OK] Blacklist checker initialized successfully")
+    except Exception as e:
+        logger.error(f"[ERROR] Failed to initialize blacklist checker: {e}")
+
 # Include Frontend API routes
 try:
     from api.frontend_api import router as frontend_router

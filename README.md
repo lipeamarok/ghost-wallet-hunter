@@ -140,45 +140,54 @@ GET    /api/agents/test/real-ai
 ```text
 ghost-wallet-hunter/
 ├── backend/                    # Python FastAPI backend
-│   ├── agents/                # JuliaOS AI agents
+│   ├── agents/                # AI detective agents (7 specialists)
 │   ├── api/                   # REST API endpoints
 │   ├── models/                # Database models
-│   ├── services/              # Business logic
+│   ├── services/              # Business logic & AI integration
 │   ├── schemas/               # Pydantic schemas
 │   ├── utils/                 # Helper functions
 │   ├── config/                # Configuration files
 │   ├── tests/                 # Unit and integration tests
-│   ├── migrations/            # Database migrations
+│   ├── data/                  # AI cost tracking data
 │   ├── main.py                # FastAPI application entry point
 │   ├── requirements.txt       # Python dependencies
 │   └── .env.example           # Environment template
-├── frontend/                   # React.js frontend
+├── frontend/                   # React + TypeScript frontend
 │   ├── src/
 │   │   ├── components/        # Reusable UI components
+│   │   │   ├── DetectiveSquad/ # Detective management UI
+│   │   │   └── CostDashboard/  # AI cost monitoring
 │   │   ├── pages/            # Application pages
-│   │   ├── assets/           # Static assets
 │   │   ├── hooks/            # Custom React hooks
-│   │   ├── contexts/         # React contexts
-│   │   ├── utils/            # Utility functions
 │   │   ├── services/         # API service layer
-│   │   ├── constants/        # Application constants
+│   │   ├── utils/            # Utility functions
 │   │   └── App.jsx           # Main React component
 │   ├── public/               # Public static files
-│   ├── styles/               # Global styles
+│   │   ├── ghost-icon.svg    # Application icon
+│   │   └── favicon.svg       # Browser favicon
+│   ├── dist/                 # Production build output
 │   ├── package.json          # Node.js dependencies
-│   ├── tailwind.config.js    # TailwindCSS configuration
-│   └── .env.example          # Environment template
+│   ├── vite.config.js        # Vite configuration
+│   └── .env.production       # Production environment
 ├── docs/                      # Comprehensive documentation
 │   ├── Technical Documentation.md
 │   ├── Project Overview.md
 │   ├── Installation And Deployment Guide.md
 │   ├── Security And Privacy Guide.md
 │   ├── Roadmap.md
-│   ├── FAQ.md
-│   └── ...
-├── assets/                    # Project assets (logos, demos)
-│   └── demo.gif
-├── README.md                  # This file
+│   └── FAQ.md
+├── updates/                   # Development history & updates
+│   ├── DEPLOYMENT_COMPLETE.md
+│   ├── IMPLEMENTATION_COMPLETE.md
+│   ├── PRODUCTION_RESOLVED.md
+│   └── README.md             # Updates folder guide
+├── assets/                    # Project assets
+├── logs/                      # Application logs
+├── .vscode/                   # VS Code configuration
+├── README.md                  # Main project documentation
+├── SETUP.md                   # Installation guide
+├── docker-compose.yml         # Docker deployment
+├── deploy.sh                  # Production deployment script
 └── .gitignore                # Git ignore rules
 ```
 

@@ -2,15 +2,15 @@
 <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
   <!-- Ghost body -->
   <path d="M16 4C11.5817 4 8 7.58172 8 12V24C8 25.1046 8.89543 26 10 26C10.5523 26 11 25.5523 11 25V23C11 22.4477 11.4477 22 12 22C12.5523 22 13 22.4477 13 23V25C13 25.5523 13.4477 26 14 26C14.5523 26 15 25.5523 15 25V23C15 22.4477 15.4477 22 16 22C16.5523 22 17 22.4477 17 23V25C17 25.5523 17.4477 26 18 26C18.5523 26 19 25.5523 19 25V23C19 22.4477 19.4477 22 20 22C20.5523 22 21 22.4477 21 23V25C21 25.5523 21.4477 26 22 26C23.1046 26 24 25.1046 24 24V12C24 7.58172 20.4183 4 16 4Z" fill="#6366F1"/>
-  
+
   <!-- Ghost eyes -->
   <circle cx="12" cy="12" r="2" fill="white"/>
   <circle cx="20" cy="12" r="2" fill="white"/>
-  
+
   <!-- Eye pupils -->
   <circle cx="12.5" cy="11.5" r="0.8" fill="#1F2937"/>
   <circle cx="20.5" cy="11.5" r="0.8" fill="#1F2937"/>
-  
+
   <!-- Wallet symbol overlay -->
   <rect x="10" y="16" width="12" height="8" rx="1" fill="rgba(255,255,255,0.2)" stroke="white" stroke-width="0.5"/>
   <rect x="11" y="17" width="10" height="1" fill="white" opacity="0.6"/>

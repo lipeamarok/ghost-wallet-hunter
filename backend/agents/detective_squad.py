@@ -71,7 +71,7 @@ class DetectiveSquadManager:
             # Initialize all seven legendary detectives IN PARALLEL! 🚀
             initialization_tasks = [
                 self.poirot.initialize(),
-                self.marple.initialize(), 
+                self.marple.initialize(),
                 self.spade.initialize(),
                 self.marlowe.initialize(),
                 self.dupin.initialize(),
@@ -80,10 +80,10 @@ class DetectiveSquadManager:
             ]
 
             detective_names = ["Poirot", "Marple", "Spade", "Marlowe", "Dupin", "Shadow", "Raven"]
-            
+
             # Wait for all initializations to complete in parallel
             initialization_results = await asyncio.gather(*initialization_tasks, return_exceptions=True)
-            
+
             # Check results
             detectives_status = {}
             for i, result in enumerate(initialization_results):

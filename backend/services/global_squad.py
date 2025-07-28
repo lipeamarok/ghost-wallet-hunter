@@ -21,22 +21,22 @@ _squad_initialized = False
 async def get_or_create_squad():
     """Get the global squad instance, creating it if needed."""
     global _global_squad, _squad_initialized
-    
+
     if _global_squad is None or not _squad_initialized:
         logger.info("🚨 Initializing global detective squad...")
-        
+
         from agents.detective_squad import DetectiveSquadManager
         _global_squad = DetectiveSquadManager()
-        
+
         # Initialize the squad
         if _global_squad:
             _squad_initialized = await _global_squad.initialize_squad()
-        
+
         if _squad_initialized:
             logger.info("✅ Global detective squad ready!")
         else:
             logger.warning("⚠️ Global detective squad partially initialized")
-    
+
     return _global_squad
 
 

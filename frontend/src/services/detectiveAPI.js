@@ -31,7 +31,7 @@ detectiveAPI.interceptors.response.use(
   (error) => {
     let message = 'An unexpected error occurred';
     let errorCode = 'UNKNOWN_ERROR';
-    
+
     if (error.code === 'ECONNABORTED') {
       message = 'Request timeout - Investigation is taking longer than expected. Please try again.';
       errorCode = 'TIMEOUT_ERROR';

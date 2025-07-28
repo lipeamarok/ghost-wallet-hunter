@@ -23,26 +23,26 @@ class QuickDemoRequest(BaseModel):
 async def demo_investigation(request: QuickDemoRequest):
     """
     🎯 DEMO INVESTIGATION - Immediate results for production demonstration
-    
+
     Returns realistic sample results instantly for UI testing and demos.
     """
     try:
         logger.info(f"🎯 Demo investigation launched: {request.wallet_address}")
-        
+
         # Sample realistic investigation results
         demo_results = {
             "success": True,
             "investigation_id": f"DEMO_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
             "wallet_address": request.wallet_address,
             "investigation_type": "comprehensive_demo",
-            
+
             "risk_assessment": {
                 "risk_score": 0.72,
                 "risk_level": "HIGH",
                 "confidence": 0.89,
                 "reasoning": "Multiple suspicious patterns detected including round-number transactions and rapid transfer sequences"
             },
-            
+
             "detective_findings": {
                 "poirot": {
                     "specialist": "Transaction Analysis & Behavioral Patterns",
@@ -54,7 +54,7 @@ async def demo_investigation(request: QuickDemoRequest):
                     "risk_indicators": ["round_amounts", "timing_correlation", "mixed_patterns"],
                     "confidence": 0.85
                 },
-                
+
                 "marple": {
                     "specialist": "Pattern & Anomaly Detection",
                     "findings": [
@@ -65,7 +65,7 @@ async def demo_investigation(request: QuickDemoRequest):
                     "anomalies": ["wash_trading", "cluster_behavior", "price_manipulation"],
                     "confidence": 0.91
                 },
-                
+
                 "spade": {
                     "specialist": "Risk Assessment & Threat Classification",
                     "findings": [
@@ -77,7 +77,7 @@ async def demo_investigation(request: QuickDemoRequest):
                     "actions": ["enhanced_monitoring", "compliance_report", "investigation_priority"],
                     "confidence": 0.88
                 },
-                
+
                 "marlowe": {
                     "specialist": "Bridge & Mixer Tracking",
                     "findings": [
@@ -88,7 +88,7 @@ async def demo_investigation(request: QuickDemoRequest):
                     "bridge_usage": ["wormhole", "portal"],
                     "obfuscation_score": 0.76
                 },
-                
+
                 "dupin": {
                     "specialist": "Compliance & AML Analysis",
                     "findings": [
@@ -100,7 +100,7 @@ async def demo_investigation(request: QuickDemoRequest):
                     "sanctions_status": "clear",
                     "compliance_level": "enhanced_monitoring_required"
                 },
-                
+
                 "shadow": {
                     "specialist": "Network Cluster Analysis",
                     "findings": [
@@ -111,11 +111,11 @@ async def demo_investigation(request: QuickDemoRequest):
                     "cluster_size": 15,
                     "coordination_score": 0.83
                 },
-                
+
                 "raven": {
                     "specialist": "AI Analysis & Communication",
                     "narrative": """
-Based on comprehensive analysis by our legendary detective squad, this wallet exhibits 
+Based on comprehensive analysis by our legendary detective squad, this wallet exhibits
 multiple concerning patterns consistent with sophisticated financial manipulation activities.
 
 🔍 KEY FINDINGS:
@@ -131,12 +131,12 @@ multiple concerning patterns consistent with sophisticated financial manipulatio
 • Consider transaction restrictions
 • Flag for regulatory review
 
-The convergence of evidence from all seven detectives strongly suggests this wallet 
+The convergence of evidence from all seven detectives strongly suggests this wallet
 is involved in systematic market manipulation and potential money laundering activities.
                     """
                 }
             },
-            
+
             "metadata": {
                 "investigation_duration": "2.3 seconds",
                 "detectives_deployed": 7,
@@ -144,14 +144,14 @@ is involved in systematic market manipulation and potential money laundering act
                 "ai_confidence": 0.89,
                 "risk_factors_identified": 12
             },
-            
+
             "timestamp": datetime.now().isoformat(),
             "legendary_squad_signature": "🕵️ Seven legendary minds have analyzed the evidence! 🕵️",
             "note": "Demo results - Real investigation available via /api/v1/wallet/investigate"
         }
-        
+
         return demo_results
-        
+
     except Exception as e:
         logger.error(f"❌ Demo investigation failed: {e}")
         return {

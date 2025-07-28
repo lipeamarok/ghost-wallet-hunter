@@ -110,7 +110,7 @@ export const useWalletInvestigation = () => {
       onError: (error) => {
         let errorMessage = 'Investigation failed';
         let userFriendlyMessage = 'Please try again in a moment';
-        
+
         if (error.code === 'TIMEOUT_ERROR') {
           errorMessage = 'Investigation timeout';
           userFriendlyMessage = 'The investigation is taking longer than expected. This may be due to complex analysis. Please try again.';
@@ -121,15 +121,15 @@ export const useWalletInvestigation = () => {
           errorMessage = 'Server error';
           userFriendlyMessage = 'The detective squad is temporarily unavailable. Please try again later.';
         }
-        
+
         setInvestigationState(prev => ({
           ...prev,
           isInvestigating: false,
           error: `${errorMessage}: ${userFriendlyMessage}`
         }));
-        toast.error(`🚨 ${errorMessage}: ${userFriendlyMessage}`, { 
+        toast.error(`🚨 ${errorMessage}: ${userFriendlyMessage}`, {
           id: 'investigation',
-          duration: 6000 
+          duration: 6000
         });
       }
     }

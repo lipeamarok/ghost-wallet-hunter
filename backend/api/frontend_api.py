@@ -115,14 +115,14 @@ async def test_investigate_simple(request: WalletInvestigationRequest):
     """
     try:
         logger.info(f"🧪 Test investigation: {request.wallet_address}")
-        
+
         # Use only one detective for testing
         from agents.spade_agent import SpadeAgent
         spade = SpadeAgent()
         await spade.initialize()
-        
+
         result = await spade.assess_wallet_risk(request.wallet_address, {})
-        
+
         return {
             "success": True,
             "wallet_address": request.wallet_address,
@@ -130,7 +130,7 @@ async def test_investigate_simple(request: WalletInvestigationRequest):
             "detective": "spade_only",
             "timestamp": datetime.now().isoformat()
         }
-        
+
     except Exception as e:
         logger.error(f"❌ Test investigation failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -149,13 +149,13 @@ async def investigate_wallet(request: WalletInvestigationRequest):
         # Use the global detective squad (lazy initialization)
         from services.global_squad import get_or_create_squad, is_squad_ready
         squad = await get_or_create_squad()
-        
+
         if squad is None or not is_squad_ready():
             raise HTTPException(
                 status_code=503,
                 detail="Legendary detective squad not available"
             )
-            
+
         logger.info("✅ Using global squad for investigation")
 
         # Send initial update to frontend via WebSocket

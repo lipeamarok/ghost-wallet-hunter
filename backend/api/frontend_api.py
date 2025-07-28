@@ -310,6 +310,12 @@ async def list_detectives():
         raise HTTPException(status_code=500, detail=f"Detective listing failed: {str(e)}")
 
 
+@router.get("/detectives/available")
+async def get_available_detectives():
+    """Get available detectives - alias for /detectives endpoint."""
+    return await list_detectives()
+
+
 @router.get("/ai-costs/dashboard", response_model=AICostDashboardResponse)
 async def get_ai_cost_dashboard():
     """Get AI cost dashboard data for frontend monitoring."""

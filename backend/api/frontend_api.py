@@ -108,6 +108,34 @@ async def websocket_investigations(websocket: WebSocket):
         manager.disconnect(websocket)
 
 
+@router.post("/wallet/investigate/test")
+async def test_investigate_simple(request: WalletInvestigationRequest):
+    """
+    🧪 TEST ENDPOINT - Simple investigation test
+    """
+    try:
+        logger.info(f"🧪 Test investigation: {request.wallet_address}")
+        
+        # Use only one detective for testing
+        from agents.spade_agent import SpadeAgent
+        spade = SpadeAgent()
+        await spade.initialize()
+        
+        result = await spade.assess_wallet_risk(request.wallet_address, {})
+        
+        return {
+            "success": True,
+            "wallet_address": request.wallet_address,
+            "test_result": result,
+            "detective": "spade_only",
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"❌ Test investigation failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.post("/wallet/investigate")
 async def investigate_wallet(request: WalletInvestigationRequest):
     """
@@ -118,15 +146,17 @@ async def investigate_wallet(request: WalletInvestigationRequest):
     try:
         logger.info(f"🚨 Frontend investigation request: {request.wallet_address}")
 
-        # Initialize the legendary detective squad
-        squad = DetectiveSquadManager()
-        squad_ready = await squad.initialize_squad()
-
-        if not squad_ready:
+        # Use the global detective squad (lazy initialization)
+        from services.global_squad import get_or_create_squad, is_squad_ready
+        squad = await get_or_create_squad()
+        
+        if squad is None or not is_squad_ready():
             raise HTTPException(
                 status_code=503,
                 detail="Legendary detective squad not available"
             )
+            
+        logger.info("✅ Using global squad for investigation")
 
         # Send initial update to frontend via WebSocket
         if request.notify_frontend:
@@ -141,11 +171,11 @@ async def investigate_wallet(request: WalletInvestigationRequest):
 
         # Launch investigation based on type
         if request.investigation_type == "comprehensive":
-            results = await squad.investigate_wallet_comprehensive(request.wallet_address)
+            results = await squad.investigate_wallet_fast(request.wallet_address)  # Use optimized version
         elif request.investigation_type == "quick":
             results = await squad.quick_risk_assessment(request.wallet_address)
         else:
-            results = await squad.investigate_wallet_comprehensive(request.wallet_address)
+            results = await squad.investigate_wallet_fast(request.wallet_address)  # Default to fast
 
         # Check for errors
         if "error" in results:

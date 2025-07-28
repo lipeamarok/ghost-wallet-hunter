@@ -58,7 +58,7 @@ detectiveAPI.interceptors.response.use(
 export const detectiveService = {
   // Get legendary squad status
   getSquadStatus: async () => {
-    return detectiveAPI.get('/api/agents/legendary-squad/status');
+    return detectiveAPI.get('/api/v1/squad/status');
   },
 
   // Launch full squad investigation
@@ -70,12 +70,11 @@ export const detectiveService = {
       user_id = 'frontend_user'
     } = options;
 
-    return detectiveAPI.post('/api/agents/legendary-squad/investigate', {
+    return detectiveAPI.post('/api/v1/wallet/investigate', {
       wallet_address: walletAddress,
-      depth,
-      include_metadata: includeMetadata,
-      budget_limit,
-      user_id
+      investigation_type: 'comprehensive',
+      priority: 'normal',
+      notify_frontend: true
     });
   },
 
@@ -126,17 +125,17 @@ export const detectiveService = {
 
   // Get available detectives
   getAvailableDetectives: async () => {
-    return detectiveAPI.get('/api/agents/detectives/available');
+    return detectiveAPI.get('/api/v1/detectives/available');
   },
 
   // Test real AI integration
   testRealAI: async () => {
-    return detectiveAPI.get('/api/agents/test/real-ai');
+    return detectiveAPI.get('/api/v1/test/ai');
   },
 
   // Health check
   healthCheck: async () => {
-    return detectiveAPI.get('/api/agents/health');
+    return detectiveAPI.get('/api/v1/health');
   }
 };
 

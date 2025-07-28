@@ -65,7 +65,7 @@ class AIConfiguration(BaseModel):
 
     # Temperature & Generation Settings
     temperature: float = 0.7  # 0.0 = deterministic, 1.0 = creative
-    max_tokens: int = 1000
+    max_tokens: int = 500  # Reduced to prevent context overflow
     top_p: float = 0.9
     frequency_penalty: float = 0.0
     presence_penalty: float = 0.0
@@ -501,7 +501,7 @@ Format as JSON with analysis, insights, confidence, and key_findings."""
         system_prompt = self._build_system_prompt(analysis_type)
         user_prompt = self._build_user_prompt(prompt, context, analysis_type)
 
-        # Grok API endpoint
+        # Grok API endpoint - Fixed URL
         url = "https://api.x.ai/v1/chat/completions"
 
         headers = {

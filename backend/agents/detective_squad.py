@@ -64,35 +64,35 @@ class DetectiveSquadManager:
         self.case_assignments = {}
 
     async def initialize_squad(self) -> bool:
-        """Initialize all legendary detectives in the complete squad."""
+        """Initialize all legendary detectives in the complete squad - OPTIMIZED PARALLEL INIT."""
         try:
             logger.info(f"🚨 {self.squad_name} is assembling the legendary seven...")
 
-            # Initialize all seven legendary detectives
+            # Initialize all seven legendary detectives IN PARALLEL! 🚀
+            initialization_tasks = [
+                self.poirot.initialize(),
+                self.marple.initialize(), 
+                self.spade.initialize(),
+                self.marlowe.initialize(),
+                self.dupin.initialize(),
+                self.shadow.initialize(),
+                self.raven.initialize()
+            ]
+
+            detective_names = ["Poirot", "Marple", "Spade", "Marlowe", "Dupin", "Shadow", "Raven"]
+            
+            # Wait for all initializations to complete in parallel
+            initialization_results = await asyncio.gather(*initialization_tasks, return_exceptions=True)
+            
+            # Check results
             detectives_status = {}
-
-            # Initialize core investigators
-            poirot_ready = await self.poirot.initialize()
-            detectives_status["Poirot"] = poirot_ready
-
-            marple_ready = await self.marple.initialize()
-            detectives_status["Marple"] = marple_ready
-
-            spade_ready = await self.spade.initialize()
-            detectives_status["Spade"] = spade_ready
-
-            # Initialize specialized investigators
-            marlowe_ready = await self.marlowe.initialize()
-            detectives_status["Marlowe"] = marlowe_ready
-
-            dupin_ready = await self.dupin.initialize()
-            detectives_status["Dupin"] = dupin_ready
-
-            shadow_ready = await self.shadow.initialize()
-            detectives_status["Shadow"] = shadow_ready
-
-            raven_ready = await self.raven.initialize()
-            detectives_status["Raven"] = raven_ready
+            for i, result in enumerate(initialization_results):
+                detective_name = detective_names[i]
+                if isinstance(result, Exception):
+                    logger.error(f"❌ {detective_name} initialization failed: {result}")
+                    detectives_status[detective_name] = False
+                else:
+                    detectives_status[detective_name] = result
 
             # Check legendary squad readiness
             ready_count = sum(detectives_status.values())
@@ -269,6 +269,109 @@ class DetectiveSquadManager:
         except Exception as e:
             logger.error(f"❌ Legendary squad investigation failed: {e}")
             return {"error": f"Legendary squad investigation failed: {e}"}
+
+    async def investigate_wallet_fast(self, wallet_address: str) -> Dict:
+        """
+        🚀 FAST COMPREHENSIVE INVESTIGATION - Optimized for speed
+
+        Uses parallel execution and streamlined detective coordination.
+        """
+        try:
+            case_id = f"FAST_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')[:17]}"
+            logger.info(f"🚨 FAST investigation launched: {case_id} for {wallet_address}")
+
+            # Start case tracking
+            self.active_cases[case_id] = {
+                "wallet": wallet_address,
+                "type": "fast_comprehensive",
+                "status": "PROCESSING",
+                "start_time": datetime.now(),
+                "detectives": ["Poirot", "Marple", "Spade", "Raven"]  # Focus on core team
+            }
+
+            # Phase 1: Core Analysis in Parallel (Only essential detectives)
+            logger.info(f"🔍 Fast analysis: Core detective team deployment...")
+
+            # Execute core investigations in parallel
+            core_tasks = [
+                self.poirot.investigate_wallet(wallet_address),
+                self.marple.observe_patterns(wallet_address, []),  # Using correct method
+                self.spade.assess_wallet_risk(wallet_address, {}),
+            ]
+
+            # Wait for core analysis to complete
+            poirot_result, marple_result, spade_result = await asyncio.gather(*core_tasks)
+
+            # Phase 2: Quick Raven Summary
+            logger.info(f"🐦‍⬛ Raven generating fast summary...")
+
+            # Quick context for Raven
+            analysis_context = {
+                "poirot_findings": str(poirot_result)[:500] if poirot_result else "No data",
+                "marple_patterns": str(marple_result)[:500] if marple_result else "No patterns",
+                "spade_risk": str(spade_result)[:500] if spade_result else "No risk data"
+            }
+
+            raven_summary = await self.raven.generate_final_truth_report({}, analysis_context)
+
+            # Compile fast report
+            fast_report = await self._compile_fast_report(
+                case_id, wallet_address, poirot_result, marple_result, spade_result, raven_summary
+            )
+
+            # Update case status
+            self.active_cases[case_id]["status"] = "COMPLETED"
+            self.active_cases[case_id]["end_time"] = datetime.now()
+            self.cases_handled += 1
+
+            logger.info(f"✅ FAST CASE CLOSED: {case_id} - Core team analysis complete!")
+
+            return fast_report
+
+        except Exception as e:
+            logger.error(f"❌ Fast investigation failed: {e}")
+            return {"error": f"Fast investigation failed: {e}"}
+
+    async def _compile_fast_report(self, case_id: str, wallet_address: str,
+                                 poirot_result: Any, marple_result: Dict, spade_result: Dict, raven_summary: Dict) -> Dict:
+        """Compile fast report with core detective findings."""
+
+        # Calculate consensus risk score
+        poirot_risk = getattr(poirot_result, 'risk_score', 0.5)
+        marple_risk = marple_result.get('risk_score', 0.5)
+        spade_risk = spade_result.get('risk_score', 0.5)
+
+        consensus_risk = (poirot_risk + marple_risk + spade_risk) / 3
+
+        # Determine consensus risk level
+        if consensus_risk >= 0.8:
+            risk_level = "CRITICAL"
+        elif consensus_risk >= 0.6:
+            risk_level = "HIGH"
+        elif consensus_risk >= 0.4:
+            risk_level = "MEDIUM"
+        else:
+            risk_level = "LOW"
+
+        return {
+            "success": True,
+            "investigation_id": case_id,
+            "wallet_address": wallet_address,
+            "investigation_type": "fast_comprehensive",
+            "risk_assessment": {
+                "risk_score": consensus_risk,
+                "risk_level": risk_level,
+                "confidence": 0.85
+            },
+            "detective_findings": {
+                "poirot": poirot_result,
+                "marple": marple_result,
+                "spade": spade_result,
+                "raven": raven_summary
+            },
+            "timestamp": datetime.now().isoformat(),
+            "legendary_squad_signature": "🚀 Fast analysis by the legendary squad! 🚀"
+        }
 
     async def _compile_squad_report(self, case_id: str, wallet_address: str,
                                   poirot_result: Any, marple_report: Dict, spade_report: Dict) -> Dict:

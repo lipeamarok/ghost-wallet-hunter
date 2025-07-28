@@ -60,14 +60,14 @@ class MarpleAgent:
             )
 
             if "error" not in test_result:
-                logger.info(f"✅ {self.name}: 'Oh my, how delightful! I can see everything clearly now.'")
+                logger.info(f"[OK] {self.name}: 'Oh my, how delightful! I can see everything clearly now.'")
                 return True
             else:
-                logger.error(f"❌ {self.name}: 'Oh dear, something seems amiss with my observation tools.'")
+                logger.error(f"[ERROR] {self.name}: 'Oh dear, something seems amiss with my observation tools.'")
                 return False
 
         except Exception as e:
-            logger.error(f"❌ {self.name} initialization failed: {e}")
+            logger.error(f"[ERROR] {self.name} initialization failed: {e}")
             return False
 
     async def observe_patterns(self, wallet_address: str, transactions: List[Dict]) -> Dict:

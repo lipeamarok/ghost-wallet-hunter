@@ -21,19 +21,19 @@ const HomePage = () => {
   const navigate = useNavigate();
 
   // Use our custom hooks for real AI integration
-  const { 
-    squadStatus, 
-    isLoadingSquad, 
-    squadError, 
-    testAI, 
+  const {
+    squadStatus,
+    isLoadingSquad,
+    squadError,
+    testAI,
     isTestingAI,
-    refreshSquadStatus 
+    refreshSquadStatus
   } = useDetectiveSquad();
 
-  const { 
-    dashboard, 
-    userUsage, 
-    isLoadingDashboard 
+  const {
+    dashboard,
+    userUsage,
+    isLoadingDashboard
   } = useAICostManagement();
 
   const validateWalletAddress = (address) => {
@@ -282,7 +282,7 @@ const HomePage = () => {
                     Enter a wallet address above to launch a full investigation with our legendary detective squad.
                     Each detective uses real AI analysis to provide comprehensive insights.
                   </p>
-                  
+
                   {/* AI Test Button */}
                   <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                     <button
@@ -299,10 +299,10 @@ const HomePage = () => {
                         '🤖 Test Real AI Integration'
                       )}
                     </button>
-                    
+
                     {squadStatus && (
                       <div className="text-sm text-gray-400">
-                        Squad Health: <span className="text-green-400 font-semibold">{squadStatus.squad_health}</span> | 
+                        Squad Health: <span className="text-green-400 font-semibold">{squadStatus.squad_health}</span> |
                         Active Detectives: <span className="text-blue-400 font-semibold">{squadStatus.active_detectives}/{squadStatus.total_detectives}</span>
                       </div>
                     )}

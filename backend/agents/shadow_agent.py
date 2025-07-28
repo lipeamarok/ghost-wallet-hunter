@@ -62,7 +62,7 @@ class ShadowAgent:
     async def initialize(self) -> bool:
         """Initialize The Shadow with mysterious network sensing abilities."""
         try:
-            logger.info(f"🌙 {self.name} emerges from the shadows to observe the hidden networks...")
+            logger.info(f"[SHADOW] {self.name} emerges from the shadows to observe the hidden networks...")
 
             # Test AI connection with The Shadow's mysterious style
             test_result = await self.ai_service.analyze_with_ai(
@@ -72,14 +72,14 @@ class ShadowAgent:
             )
 
             if "error" not in test_result:
-                logger.info(f"✅ {self.name}: 'The network perception is clear. Evil cannot hide from The Shadow.'")
+                logger.info(f"[OK] {self.name}: 'The network perception is clear. Evil cannot hide from The Shadow.'")
                 return True
             else:
-                logger.error(f"❌ {self.name}: 'The shadows grow dark. Network visibility is compromised.'")
+                logger.error(f"[ERROR] {self.name}: 'The shadows grow dark. Network visibility is compromised.'")
                 return False
 
         except Exception as e:
-            logger.error(f"❌ {self.name} initialization failed: {e}")
+            logger.error(f"[ERROR] {self.name} initialization failed: {e}")
             return False
 
     async def map_wallet_network(self, center_wallet: str, connected_wallets: List[str]) -> Dict:

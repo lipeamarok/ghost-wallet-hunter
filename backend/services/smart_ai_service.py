@@ -577,6 +577,57 @@ Format as JSON with analysis, insights, confidence, and key_findings."""
         """Get usage statistics for a user."""
         return self.usage_tracker.get_user_stats(user_id)
 
+    def get_usage_statistics(self) -> Dict[str, Any]:
+        """Get comprehensive usage statistics for dashboard."""
+        system_stats = self.get_system_stats()
+
+        # Get today's stats from all users
+        total_calls_today = 0
+        for user_id in self.usage_tracker.usage_data.keys():
+            user_stats = self.usage_tracker.get_user_stats(user_id)
+            total_calls_today += user_stats.get("requests_today", 0)
+
+        # Build cost breakdown by detective (simulated for now)
+        cost_breakdown = {
+            "poirot": self.daily_cost * 0.20,  # 20% of total cost
+            "marple": self.daily_cost * 0.15,  # 15% of total cost
+            "spade": self.daily_cost * 0.18,   # 18% of total cost
+            "marlowe": self.daily_cost * 0.12, # 12% of total cost
+            "dupin": self.daily_cost * 0.14,   # 14% of total cost
+            "shadow": self.daily_cost * 0.11,  # 11% of total cost
+            "raven": self.daily_cost * 0.10    # 10% of total cost
+        }
+
+        return {
+            "total_calls_today": total_calls_today,
+            "total_cost_today": self.daily_cost,
+            "cost_breakdown": cost_breakdown,
+            "remaining_daily_budget": max(0, self.config.max_total_daily_cost - self.daily_cost),
+            "rate_limits": {
+                "daily_limit": self.config.max_total_daily_cost,
+                "per_user_daily_limit": self.config.max_cost_per_user_daily,
+                "requests_per_minute": self.config.requests_per_minute_per_user
+            },
+            "cost_utilization": system_stats.get("cost_utilization", 0),
+            "active_provider": system_stats.get("active_provider"),
+            "fallback_providers": system_stats.get("fallback_providers", [])
+        }
+
+    def update_cost_limits(self, daily_limit: float, per_user_limit: float):
+        """Update cost limits for budget control."""
+        # Update the configuration
+        self.config.max_total_daily_cost = daily_limit
+        self.config.max_cost_per_user_daily = per_user_limit
+
+        logger.info(f"Updated cost limits: daily=${daily_limit}, per_user=${per_user_limit}")
+
+        return {
+            "success": True,
+            "new_daily_limit": daily_limit,
+            "new_per_user_limit": per_user_limit,
+            "current_daily_cost": self.daily_cost
+        }
+
     def get_system_stats(self) -> Dict[str, Any]:
         """Get system-wide AI usage statistics."""
         return {

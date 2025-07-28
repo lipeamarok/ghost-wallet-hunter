@@ -11,7 +11,7 @@ const AnalysisPage = () => {
 
   const handleAnalysis = async (e) => {
     e.preventDefault();
-    
+
     if (!walletAddress.trim()) {
       alert('Please enter a wallet address');
       return;
@@ -19,14 +19,14 @@ const AnalysisPage = () => {
 
     try {
       launchInvestigation(walletAddress);
-      
+
       // Navigate to results page with the investigation data
       if (result) {
-        navigate('/results', { 
-          state: { 
+        navigate('/results', {
+          state: {
             investigationData: result,
-            walletAddress: walletAddress 
-          } 
+            walletAddress: walletAddress
+          }
         });
       }
     } catch (error) {

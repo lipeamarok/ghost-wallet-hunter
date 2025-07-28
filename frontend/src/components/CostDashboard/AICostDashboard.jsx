@@ -1,10 +1,10 @@
 import React from 'react';
 import { useQuery } from 'react-query';
 import { motion } from 'framer-motion';
-import { 
-  CurrencyDollarIcon, 
-  ChartBarIcon, 
-  UsersIcon, 
+import {
+  CurrencyDollarIcon,
+  ChartBarIcon,
+  UsersIcon,
   ClockIcon,
   ExclamationTriangleIcon,
   CheckCircleIcon
@@ -113,10 +113,10 @@ const AICostDashboard = ({ userId = 'frontend_user' }) => {
             </div>
             <div className="mt-3">
               <div className="bg-gray-200 rounded-full h-2">
-                <div 
+                <div
                   className="bg-green-600 h-2 rounded-full"
-                  style={{ 
-                    width: `${Math.min((userUsage.daily_cost / userUsage.limits.daily_budget) * 100, 100)}%` 
+                  style={{
+                    width: `${Math.min((userUsage.daily_cost / userUsage.limits.daily_budget) * 100, 100)}%`
                   }}
                 ></div>
               </div>
@@ -138,10 +138,10 @@ const AICostDashboard = ({ userId = 'frontend_user' }) => {
             </div>
             <div className="mt-3">
               <div className="bg-gray-200 rounded-full h-2">
-                <div 
+                <div
                   className="bg-blue-600 h-2 rounded-full"
-                  style={{ 
-                    width: `${Math.min((userUsage.requests_today / userUsage.limits.requests_per_day) * 100, 100)}%` 
+                  style={{
+                    width: `${Math.min((userUsage.requests_today / userUsage.limits.requests_per_day) * 100, 100)}%`
                   }}
                 ></div>
               </div>
@@ -163,10 +163,10 @@ const AICostDashboard = ({ userId = 'frontend_user' }) => {
             </div>
             <div className="mt-3">
               <div className="bg-gray-200 rounded-full h-2">
-                <div 
+                <div
                   className="bg-purple-600 h-2 rounded-full"
-                  style={{ 
-                    width: `${Math.min((userUsage.monthly_cost / userUsage.limits.monthly_budget) * 100, 100)}%` 
+                  style={{
+                    width: `${Math.min((userUsage.monthly_cost / userUsage.limits.monthly_budget) * 100, 100)}%`
                   }}
                 ></div>
               </div>

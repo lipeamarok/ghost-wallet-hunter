@@ -45,7 +45,7 @@ export const detectiveService = {
     return detectiveAPI.get('/api/agents/legendary-squad/status');
   },
 
-  // Launch full squad investigation 
+  // Launch full squad investigation
   launchInvestigation: async (walletAddress, options = {}) => {
     const {
       depth = 2,
@@ -70,37 +70,37 @@ export const detectiveService = {
         wallet_address: walletAddress
       });
     },
-    
+
     marple: async (walletAddress) => {
       return detectiveAPI.post('/api/agents/detective/marple', {
         wallet_address: walletAddress
       });
     },
-    
+
     spade: async (walletAddress) => {
       return detectiveAPI.post('/api/agents/detective/spade', {
         wallet_address: walletAddress
       });
     },
-    
+
     marlowe: async (walletAddress) => {
       return detectiveAPI.post('/api/agents/detective/marlowe', {
         wallet_address: walletAddress
       });
     },
-    
+
     dupin: async (walletAddress) => {
       return detectiveAPI.post('/api/agents/detective/dupin', {
         wallet_address: walletAddress
       });
     },
-    
+
     shadow: async (walletAddress) => {
       return detectiveAPI.post('/api/agents/detective/shadow', {
         wallet_address: walletAddress
       });
     },
-    
+
     raven: async (walletAddress) => {
       return detectiveAPI.post('/api/agents/detective/raven', {
         wallet_address: walletAddress

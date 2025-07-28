@@ -65,7 +65,7 @@ class DupinAgent:
     async def initialize(self) -> bool:
         """Initialize Dupin with his analytical methodology."""
         try:
-            logger.info(f"👤 {self.name} enters his analytical chamber, ready to apply pure reasoning...")
+            logger.info(f"[ANALYST] {self.name} enters his analytical chamber, ready to apply pure reasoning...")
 
             # Test AI connection with Dupin's intellectual approach
             test_result = await self.ai_service.analyze_with_ai(
@@ -75,14 +75,14 @@ class DupinAgent:
             )
 
             if "error" not in test_result:
-                logger.info(f"✅ {self.name}: 'Excellent. The analytical instruments are properly calibrated.'")
+                logger.info(f"[OK] {self.name}: 'Excellent. The analytical instruments are properly calibrated.'")
                 return True
             else:
-                logger.error(f"❌ {self.name}: 'Most peculiar. The analytical framework appears compromised.'")
+                logger.error(f"[ERROR] {self.name}: 'Most peculiar. The analytical framework appears compromised.'")
                 return False
 
         except Exception as e:
-            logger.error(f"❌ {self.name} initialization failed: {e}")
+            logger.error(f"[ERROR] {self.name} initialization failed: {e}")
             return False
 
     async def perform_aml_analysis(self, wallet_address: str, transaction_data: Dict) -> Dict:
@@ -158,7 +158,7 @@ class DupinAgent:
             return aml_analysis
 
         except Exception as e:
-            logger.error(f"❌ {self.name}: 'Analytical error in AML investigation: {e}'")
+            logger.error(f"[ERROR] {self.name}: 'Analytical error in AML investigation: {e}'")
             return {"error": f"AML analysis failed: {e}"}
 
     async def conduct_sanctions_screening(self, wallet_address: str, entity_data: Dict) -> Dict:

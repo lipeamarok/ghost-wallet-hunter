@@ -6,7 +6,7 @@ import { detectiveService, costService } from '../services/detectiveAPI';
 // Hook for detective squad management
 export const useDetectiveSquad = () => {
   const queryClient = useQueryClient();
-  
+
   const squadStatusQuery = useQuery(
     'detective-squad-status',
     detectiveService.getSquadStatus,
@@ -115,7 +115,7 @@ export const useWalletInvestigation = () => {
       user_id: 'frontend_user',
       ...options
     };
-    
+
     investigationMutation.mutate({ walletAddress, options: defaultOptions });
   }, [investigationMutation]);
 
@@ -255,21 +255,21 @@ export const useRealTimeNotifications = () => {
       read: false,
       ...notification
     };
-    
+
     setNotifications(prev => [newNotification, ...prev.slice(0, 49)]); // Keep last 50
-    
+
     // Auto-remove after 5 seconds for success messages
     if (notification.type === 'success') {
       setTimeout(() => {
         setNotifications(prev => prev.filter(n => n.id !== id));
       }, 5000);
     }
-    
+
     return id;
   }, []);
 
   const markAsRead = useCallback((notificationId) => {
-    setNotifications(prev => prev.map(n => 
+    setNotifications(prev => prev.map(n =>
       n.id === notificationId ? { ...n, read: true } : n
     ));
   }, []);

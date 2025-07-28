@@ -51,7 +51,7 @@ class SpadeAgent:
     async def initialize(self) -> bool:
         """Initialize Sam Spade with his no-nonsense approach."""
         try:
-            logger.info(f"🚬 {self.name} lights a cigarette and gets ready for business...")
+            logger.info(f"[CIGARETTE] {self.name} lights a cigarette and gets ready for business...")
 
             # Test AI connection with Spade's direct style
             test_result = await self.ai_service.analyze_with_ai(
@@ -61,14 +61,14 @@ class SpadeAgent:
             )
 
             if "error" not in test_result:
-                logger.info(f"✅ {self.name}: 'Good. The tools work. Let's get down to business.'")
+                logger.info(f"[OK] {self.name}: 'Good. The tools work. Let's get down to business.'")
                 return True
             else:
-                logger.error(f"❌ {self.name}: 'Great. Another system that doesn't work when you need it.'")
+                logger.error(f"[ERROR] {self.name}: 'Great. Another system that doesn't work when you need it.'")
                 return False
 
         except Exception as e:
-            logger.error(f"❌ {self.name} initialization failed: {e}")
+            logger.error(f"[ERROR] {self.name} initialization failed: {e}")
             return False
 
     async def assess_wallet_risk(self, wallet_address: str, evidence: Dict) -> Dict:

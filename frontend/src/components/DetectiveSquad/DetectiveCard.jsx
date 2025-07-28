@@ -1,19 +1,19 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { 
-  CheckCircleIcon, 
-  ExclamationCircleIcon, 
+import {
+  CheckCircleIcon,
+  ExclamationCircleIcon,
   ClockIcon,
   StarIcon,
   CursorArrowRaysIcon
 } from '@heroicons/react/24/outline';
 
-const DetectiveCard = ({ 
-  detective, 
-  onSelect, 
-  isSelected = false, 
+const DetectiveCard = ({
+  detective,
+  onSelect,
+  isSelected = false,
   showStats = false,
-  className = '' 
+  className = ''
 }) => {
   const getStatusColor = (status) => {
     switch (status) {
@@ -56,8 +56,8 @@ const DetectiveCard = ({
     <motion.div
       className={`
         relative bg-white rounded-lg shadow-lg border-2 transition-all duration-200 cursor-pointer
-        ${isSelected 
-          ? 'border-blue-500 shadow-blue-200 shadow-lg' 
+        ${isSelected
+          ? 'border-blue-500 shadow-blue-200 shadow-lg'
           : 'border-gray-200 hover:border-gray-300 hover:shadow-md'
         }
         ${detective.status !== 'active' ? 'opacity-75' : ''}
@@ -98,7 +98,7 @@ const DetectiveCard = ({
               </p>
             </div>
           </div>
-          
+
           {/* Status Badge */}
           <div className={`flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(detective.status)}`}>
             {getStatusIcon(detective.status)}
@@ -157,8 +157,8 @@ const DetectiveCard = ({
                 {detective.status === 'busy' ? 'Currently Busy' : 'Offline'}
               </p>
               <p className="text-xs text-gray-500">
-                {detective.status === 'busy' 
-                  ? 'Working on another case' 
+                {detective.status === 'busy'
+                  ? 'Working on another case'
                   : 'Not available right now'
                 }
               </p>

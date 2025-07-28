@@ -16,12 +16,14 @@
 ### Option 1: Automated Setup (Recommended)
 
 **Windows:**
+
 ```powershell
 # Run the setup script
 .\setup.ps1
 ```
 
 **Linux/Mac:**
+
 ```bash
 # Make script executable and run
 chmod +x setup.sh
@@ -31,6 +33,7 @@ chmod +x setup.sh
 ### Option 2: Manual Setup
 
 **Backend Setup:**
+
 ```bash
 cd backend
 python -m venv venv
@@ -41,6 +44,7 @@ cp .env.example .env
 ```
 
 **Frontend Setup:**
+
 ```bash
 cd frontend
 npm install
@@ -51,6 +55,7 @@ cp .env.example .env
 ## Configuration
 
 ### Backend (.env)
+
 ```env
 OPENAI_API_KEY=sk-your-openai-key-here
 SOLANA_RPC_URL=https://api.mainnet-beta.solana.com
@@ -59,6 +64,7 @@ SECRET_KEY=your-super-secret-key
 ```
 
 ### Frontend (.env)
+
 ```env
 VITE_BACKEND_URL=http://localhost:8000
 ```
@@ -66,22 +72,25 @@ VITE_BACKEND_URL=http://localhost:8000
 ## Running the Application
 
 **Terminal 1 - Backend:**
+
 ```bash
 cd backend
 uvicorn main:app --reload
 ```
 
 **Terminal 2 - Frontend:**
+
 ```bash
 cd frontend
 npm run dev
 ```
 
-**Access:** http://localhost:3000
+**Access:** <http://localhost:3000>
 
 ## Development Commands
 
 ### Backend
+
 ```bash
 # Run with auto-reload
 uvicorn main:app --reload
@@ -98,6 +107,7 @@ mypy .
 ```
 
 ### Frontend
+
 ```bash
 # Development server
 npm run dev
@@ -112,7 +122,7 @@ npm run format
 
 ## Project Structure
 
-```
+```text
 ghost-wallet-hunter/
 ├── backend/          # Python FastAPI backend
 ├── frontend/         # React frontend
@@ -149,4 +159,4 @@ ghost-wallet-hunter/
 
 ---
 
-**Ready to hunt some ghost wallets? 👻🔍**
+## Ready to hunt some ghost wallets? 👻🔍

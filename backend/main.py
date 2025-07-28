@@ -74,21 +74,31 @@ app.include_router(analysis.router, prefix="/api", tags=["analysis"])
 try:
     from api.agents import router as agents_router
     app.include_router(agents_router, prefix="/api", tags=["agents"])
-    logger.info("✅ JuliaOS Agents routes registered successfully")
+    logger.info("[OK] JuliaOS Agents routes registered successfully")
 except ImportError as e:
-    logger.warning(f"⚠️ Could not import agents router: {e}")
+    logger.warning(f"[WARNING] Could not import agents router: {e}")
 except Exception as e:
-    logger.error(f"❌ Failed to register agents router: {e}")
+    logger.error(f"[ERROR] Failed to register agents router: {e}")
 
 # Include AI Cost Management routes
 try:
     from api.ai_costs import router as ai_costs_router
     app.include_router(ai_costs_router, prefix="/api", tags=["ai-costs"])
-    logger.info("✅ AI Cost Management routes registered successfully")
+    logger.info("[OK] AI Cost Management routes registered successfully")
 except ImportError as e:
-    logger.warning(f"⚠️ Could not import AI costs router: {e}")
+    logger.warning(f"[WARNING] Could not import AI costs router: {e}")
 except Exception as e:
-    logger.error(f"❌ Failed to register AI costs router: {e}")
+    logger.error(f"[ERROR] Failed to register AI costs router: {e}")
+
+# Include Frontend API routes
+try:
+    from api.frontend_api import router as frontend_router
+    app.include_router(frontend_router, tags=["frontend-api"])
+    logger.info("[OK] Frontend API routes registered successfully")
+except ImportError as e:
+    logger.warning(f"[WARNING] Could not import frontend API router: {e}")
+except Exception as e:
+    logger.error(f"[ERROR] Failed to register frontend API router: {e}")
 
 
 @app.get("/")

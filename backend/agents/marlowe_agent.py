@@ -63,7 +63,7 @@ class MarloweAgent:
     async def initialize(self) -> bool:
         """Initialize Marlowe with his street knowledge and tracking tools."""
         try:
-            logger.info(f"🔍 {self.name} adjusts his fedora and starts walking the mean digital streets...")
+            logger.info(f"[DETECTIVE] {self.name} adjusts his fedora and starts walking the mean digital streets...")
 
             # Test AI connection with Marlowe's noir style
             test_result = await self.ai_service.analyze_with_ai(
@@ -73,14 +73,14 @@ class MarloweAgent:
             )
 
             if "error" not in test_result:
-                logger.info(f"✅ {self.name}: 'The system's clean. Time to follow some dirty money.'")
+                logger.info(f"[OK] {self.name}: 'The system's clean. Time to follow some dirty money.'")
                 return True
             else:
-                logger.error(f"❌ {self.name}: 'Something's not right with the tracking tools. Can't work blind.'")
+                logger.error(f"[ERROR] {self.name}: 'Something's not right with the tracking tools. Can't work blind.'")
                 return False
 
         except Exception as e:
-            logger.error(f"❌ {self.name} initialization failed: {e}")
+            logger.error(f"[ERROR] {self.name} initialization failed: {e}")
             return False
 
     async def track_bridge_activity(self, wallet_address: str, transactions: List[Dict]) -> Dict:

@@ -73,7 +73,7 @@ class RavenAgent:
     async def initialize(self) -> bool:
         """Initialize Raven with mystical communication abilities."""
         try:
-            logger.info(f"🐦‍⬛ {self.name} takes flight to bring clarity to complex analysis...")
+            logger.info(f"[RAVEN] {self.name} takes flight to bring clarity to complex analysis...")
 
             # Test AI connection with Raven's communicative style
             test_result = await self.ai_service.analyze_with_ai(
@@ -83,14 +83,14 @@ class RavenAgent:
             )
 
             if "error" not in test_result:
-                logger.info(f"✅ {self.name}: 'The communication channels are clear. Truth will fly on raven wings.'")
+                logger.info(f"[OK] {self.name}: 'The communication channels are clear. Truth will fly on raven wings.'")
                 return True
             else:
-                logger.error(f"❌ {self.name}: 'The channels are clouded. Communication clarity is compromised.'")
+                logger.error(f"[ERROR] {self.name}: 'The channels are clouded. Communication clarity is compromised.'")
                 return False
 
         except Exception as e:
-            logger.error(f"❌ {self.name} initialization failed: {e}")
+            logger.error(f"[ERROR] {self.name} initialization failed: {e}")
             return False
 
     async def synthesize_detective_findings(self, all_detective_reports: Dict, analysis_context: Dict) -> Dict:
@@ -169,7 +169,7 @@ class RavenAgent:
             return synthesis_result
 
         except Exception as e:
-            logger.error(f"❌ {self.name}: 'The synthesis is clouded by error: {e}'")
+            logger.error(f"[ERROR] {self.name}: 'The synthesis is clouded by error: {e}'")
             return {"error": f"Detective synthesis failed: {e}"}
 
     async def generate_executive_explanation(self, synthesis_data: Dict, target_audience: str = "executive") -> Dict:

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from 'react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  UserGroupIcon, 
-  ShieldCheckIcon, 
+import {
+  UserGroupIcon,
+  ShieldCheckIcon,
   ExclamationTriangleIcon,
   ClockIcon,
   ChartBarIcon
@@ -21,11 +21,11 @@ const DetectiveSquadDashboard = ({ onDetectiveSelect, selectedDetectives = [] })
   });
 
   // Fetch squad status
-  const { 
-    data: squadStatus, 
-    isLoading, 
+  const {
+    data: squadStatus,
+    isLoading,
     error,
-    refetch 
+    refetch
   } = useQuery(
     'squadStatus',
     detectiveService.getSquadStatus,
@@ -36,7 +36,7 @@ const DetectiveSquadDashboard = ({ onDetectiveSelect, selectedDetectives = [] })
         if (data?.detectives) {
           const totalCases = data.detectives.reduce((sum, det) => sum + det.cases_solved, 0);
           const avgSuccess = data.detectives.reduce((sum, det) => sum + det.success_rate, 0) / data.detectives.length;
-          
+
           setSquadStats({
             totalCases,
             successRate: avgSuccess,
@@ -87,7 +87,7 @@ const DetectiveSquadDashboard = ({ onDetectiveSelect, selectedDetectives = [] })
           <div>
             <h3 className="font-semibold text-red-800">Squad Connection Error</h3>
             <p className="text-red-600 mt-1">{error.message}</p>
-            <button 
+            <button
               onClick={() => refetch()}
               className="mt-2 px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
             >
@@ -167,7 +167,7 @@ const DetectiveSquadDashboard = ({ onDetectiveSelect, selectedDetectives = [] })
 
         {/* Last Updated */}
         <p className="text-sm text-gray-500">
-          Last updated: {squadStatus?.last_updated 
+          Last updated: {squadStatus?.last_updated
             ? new Date(squadStatus.last_updated).toLocaleString()
             : 'Unknown'
           }

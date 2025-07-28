@@ -50,7 +50,7 @@ class PoirotAgent:
     async def initialize(self) -> bool:
         """Initialize Poirot with his methodical approach."""
         try:
-            logger.info(f"🕵️ {self.name} is preparing his investigation tools...")
+            logger.info(f"[DETECTIVE] {self.name} is preparing his investigation tools...")
 
             # Test AI connection with Poirot's signature style
             test_result = await self.ai_service.analyze_with_ai(
@@ -60,14 +60,14 @@ class PoirotAgent:
             )
 
             if "error" not in test_result:
-                logger.info(f"✅ {self.name}: 'Ah, magnifique! The little grey cells are ready for work!'")
+                logger.info(f"[OK] {self.name}: 'Ah, magnifique! The little grey cells are ready for work!'")
                 return True
             else:
-                logger.error(f"❌ {self.name}: 'Mon Dieu! There is a problem with the investigation tools!'")
+                logger.error(f"[ERROR] {self.name}: 'Mon Dieu! There is a problem with the investigation tools!'")
                 return False
 
         except Exception as e:
-            logger.error(f"❌ {self.name} initialization failed: {e}")
+            logger.error(f"[ERROR] {self.name} initialization failed: {e}")
             return False
 
     async def investigate_wallet(self, wallet_address: str) -> AnalysisResult:
@@ -78,7 +78,7 @@ class PoirotAgent:
         with the precision of a Swiss watch.
         """
         try:
-            logger.info(f"🕵️ {self.name}: 'Alors, we have a case! Wallet {wallet_address[:8]}... let us begin.'")
+            logger.info(f"[DETECTIVE] {self.name}: 'Alors, we have a case! Wallet {wallet_address[:8]}... let us begin.'")
 
             # Step 1: Poirot's Initial Observation
             initial_prompt = f"""
@@ -126,12 +126,12 @@ class PoirotAgent:
             )
 
             self.cases_solved += 1
-            logger.info(f"✅ {self.name}: 'Case #{self.cases_solved} solved! The truth is revealed!'")
+            logger.info(f"[OK] {self.name}: 'Case #{self.cases_solved} solved! The truth is revealed!'")
 
             return final_analysis
 
         except Exception as e:
-            logger.error(f"❌ {self.name}: 'Mon Dieu! Something has gone wrong in the investigation: {e}'")
+            logger.error(f"[ERROR] {self.name}: 'Mon Dieu! Something has gone wrong in the investigation: {e}'")
             return self._create_emergency_analysis(wallet_address, str(e))
 
     async def _gather_evidence(self, wallet_address: str) -> List[Dict]:
@@ -323,7 +323,7 @@ class PoirotAgent:
             risk_score=risk_score,
             risk_level=risk_level,
             total_connections=len(clusters),
-            explanation=f"🕵️ POIROT'S DEDUCTION: {explanation}",
+            explanation=f"[DETECTIVE] POIROT'S DEDUCTION: {explanation}",
             analysis_timestamp=datetime.now()
         )
 
@@ -335,7 +335,7 @@ class PoirotAgent:
             risk_score=0.5,
             risk_level=RiskLevel("MEDIUM"),
             total_connections=0,
-            explanation=f"🕵️ POIROT SAYS: 'Mon ami, there was a small complication in the investigation: {error}. But fear not, even this tells us something about the case!'",
+            explanation=f"[DETECTIVE] POIROT SAYS: 'Mon ami, there was a small complication in the investigation: {error}. But fear not, even this tells us something about the case!'",
             analysis_timestamp=datetime.now()
         )
 

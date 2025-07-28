@@ -14,7 +14,7 @@ from datetime import datetime
 
 # Import the legendary detective squad
 from agents.detective_squad import DetectiveSquadManager
-from services.smart_ai_service import get_ai_service
+from services.smart_ai_service import get_ai_service, SmartAIService
 
 logger = logging.getLogger(__name__)
 
@@ -284,7 +284,7 @@ async def list_detectives():
 async def get_ai_cost_dashboard():
     """Get AI cost dashboard data for frontend monitoring."""
     try:
-        ai_service = get_ai_service()
+        ai_service: SmartAIService = get_ai_service()
 
         # Get current usage statistics
         usage_stats = ai_service.get_usage_statistics()
@@ -318,7 +318,7 @@ async def get_ai_cost_dashboard():
 async def update_ai_cost_limits(daily_limit: float, per_user_limit: float):
     """Update AI cost limits for budget control."""
     try:
-        ai_service = get_ai_service()
+        ai_service: SmartAIService = get_ai_service()
 
         # Update cost limits
         ai_service.update_cost_limits(

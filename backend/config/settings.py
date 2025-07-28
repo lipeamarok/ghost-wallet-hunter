@@ -47,7 +47,6 @@ class Settings(BaseSettings):
         "http://localhost:3000", 
         "http://127.0.0.1:3000",
         "https://ghost-wallet-hunter.vercel.app",
-        "https://ghost-wallet-hunter-*.vercel.app"  # Para preview deployments
     ]
     ALLOWED_METHODS: List[str] = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
     ALLOWED_HEADERS: List[str] = ["*"]

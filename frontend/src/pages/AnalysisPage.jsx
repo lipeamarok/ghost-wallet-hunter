@@ -18,7 +18,7 @@ const AnalysisPage = () => {
     }
 
     try {
-      launchInvestigation(walletAddress);
+      const result = await launchInvestigation(walletAddress);
 
       // Navigate to results page with the investigation data
       if (result) {

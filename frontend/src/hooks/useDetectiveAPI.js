@@ -144,7 +144,7 @@ export const useWalletInvestigation = () => {
       ...options
     };
 
-    investigationMutation.mutate({ walletAddress, options: defaultOptions });
+    return investigationMutation.mutateAsync({ walletAddress, options: defaultOptions });
   }, [investigationMutation]);
 
   const resetInvestigation = useCallback(() => {

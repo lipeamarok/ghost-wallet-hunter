@@ -1,11 +1,11 @@
 import axios from 'axios';
 
-const BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+const BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8001';
 
 // Create axios instance for detective API
 const detectiveAPI = axios.create({
   baseURL: BASE_URL,
-  timeout: 60000, // 60 seconds for AI operations
+  timeout: 180000, // 3 minutes for AI operations (production needs more time)
   headers: {
     'Content-Type': 'application/json',
   },
@@ -25,16 +25,32 @@ detectiveAPI.interceptors.request.use(
 // Response interceptor
 detectiveAPI.interceptors.response.use(
   (response) => {
+    console.log(`✅ API Success: ${response.config.method?.toUpperCase()} ${response.config.url} - ${response.status}`);
     return response.data;
   },
   (error) => {
-    const message = error.response?.data?.detail ||
-                   error.response?.data?.message ||
-                   error.message ||
-                   'An unexpected error occurred';
+    let message = 'An unexpected error occurred';
+    let errorCode = 'UNKNOWN_ERROR';
+    
+    if (error.code === 'ECONNABORTED') {
+      message = 'Request timeout - Investigation is taking longer than expected. Please try again.';
+      errorCode = 'TIMEOUT_ERROR';
+    } else if (error.response) {
+      // Server responded with error status
+      message = error.response?.data?.detail ||
+               error.response?.data?.message ||
+               `Server error: ${error.response.status}`;
+      errorCode = `HTTP_${error.response.status}`;
+    } else if (error.request) {
+      // Request was made but no response received
+      message = 'Unable to connect to the detective squad. Please check your connection.';
+      errorCode = 'CONNECTION_ERROR';
+    }
 
-    console.error('🚨 Detective API Error:', message);
-    return Promise.reject(new Error(message));
+    console.error(`🚨 Detective API Error [${errorCode}]:`, message);
+    const apiError = new Error(message);
+    apiError.code = errorCode;
+    return Promise.reject(apiError);
   }
 );
 

@@ -13,8 +13,14 @@ export const useDetectiveSquad = () => {
     {
       refetchInterval: 30000, // Refresh every 30 seconds
       staleTime: 10000, // Consider data stale after 10 seconds
+      retry: 3, // Retry failed requests 3 times
+      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
       onError: (error) => {
-        toast.error(`🚨 Squad connection failed: ${error.message}`);
+        console.warn('Squad status query error:', error.message);
+        // Only show toast for connection errors, not timeouts
+        if (error.code !== 'TIMEOUT_ERROR') {
+          toast.error(`🚨 Squad connection failed: ${error.message}`);
+        }
       }
     }
   );
@@ -25,8 +31,13 @@ export const useDetectiveSquad = () => {
     {
       refetchInterval: 60000, // Refresh every minute
       staleTime: 30000,
+      retry: 2, // Retry failed requests 2 times
+      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
       onError: (error) => {
-        toast.error(`🚨 Failed to load detectives: ${error.message}`);
+        console.warn('Available detectives query error:', error.message);
+        if (error.code !== 'TIMEOUT_ERROR') {
+          toast.error(`🚨 Failed to load detectives: ${error.message}`);
+        }
       }
     }
   );
@@ -97,12 +108,29 @@ export const useWalletInvestigation = () => {
         return data;
       },
       onError: (error) => {
+        let errorMessage = 'Investigation failed';
+        let userFriendlyMessage = 'Please try again in a moment';
+        
+        if (error.code === 'TIMEOUT_ERROR') {
+          errorMessage = 'Investigation timeout';
+          userFriendlyMessage = 'The investigation is taking longer than expected. This may be due to complex analysis. Please try again.';
+        } else if (error.code === 'CONNECTION_ERROR') {
+          errorMessage = 'Connection failed';
+          userFriendlyMessage = 'Unable to connect to the detective squad. Please check your internet connection.';
+        } else if (error.code?.startsWith('HTTP_')) {
+          errorMessage = 'Server error';
+          userFriendlyMessage = 'The detective squad is temporarily unavailable. Please try again later.';
+        }
+        
         setInvestigationState(prev => ({
           ...prev,
           isInvestigating: false,
-          error: error.message
+          error: `${errorMessage}: ${userFriendlyMessage}`
         }));
-        toast.error(`🚨 Investigation failed: ${error.message}`, { id: 'investigation' });
+        toast.error(`🚨 ${errorMessage}: ${userFriendlyMessage}`, { 
+          id: 'investigation',
+          duration: 6000 
+        });
       }
     }
   );

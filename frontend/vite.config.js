@@ -17,16 +17,26 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true,
+    sourcemap: process.env.NODE_ENV !== 'production',
+    minify: 'terser',
+    target: 'es2020',
     rollupOptions: {
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom'],
           reactflow: ['reactflow'],
           ui: ['@headlessui/react', '@heroicons/react', 'framer-motion'],
+          api: ['axios', 'react-query'],
         },
       },
     },
+    terserOptions: {
+      compress: {
+        drop_console: process.env.NODE_ENV === 'production',
+        drop_debugger: true,
+      },
+    },
+    chunkSizeWarningLimit: 1000,
   },
   define: {
     global: 'globalThis',

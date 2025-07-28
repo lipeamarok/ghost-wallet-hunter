@@ -29,14 +29,24 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     """Application lifespan manager for startup and shutdown events."""
     # Startup
-    logger.info("Starting Ghost Wallet Hunter backend...")
-    logger.info("AI-powered blockchain analysis ready")
+    logger.info("[STARTUP] Ghost Wallet Hunter backend starting...")
+    logger.info("[STARTUP] Initializing AI services...")
+    
+    # Initialize AI service
+    try:
+        from services.smart_ai_service import get_ai_service
+        ai_service = get_ai_service()
+        logger.info("[STARTUP] AI service initialized successfully")
+    except Exception as e:
+        logger.error(f"[STARTUP] Failed to initialize AI service: {e}")
+    
+    logger.info("[STARTUP] Backend ready for requests")
 
     yield
 
     # Shutdown
-    logger.info("Shutting down Ghost Wallet Hunter backend...")
-    logger.info("Cleanup completed")
+    logger.info("[SHUTDOWN] Ghost Wallet Hunter backend shutting down...")
+    logger.info("[SHUTDOWN] Cleanup completed")
 
 
 # Create FastAPI application

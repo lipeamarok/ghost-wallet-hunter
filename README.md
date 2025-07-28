@@ -1,31 +1,42 @@
 # 👻 Ghost Wallet Hunter
 
-> **Detect hidden wallets and suspicious patterns on Solana blockchain using explanatory, visual and empathetic AI – fast, secure and open-source.**
+> **AI-powered blockchain analysis with a legendary detective squad. Detect suspicious wallet patterns on Solana using real AI intelligence – fast, secure and production-ready.**
+
+🌐 **Live Demo:** [https://ghostwallethunter.xyz](https://ghostwallethunter.xyz)
+📚 **API Documentation:** [https://api.ghostwallethunter.xyz/docs](https://api.ghostwallethunter.xyz/docs)
+💰 **Cost Dashboard:** [https://api.ghostwallethunter.xyz/ai-costs/dashboard](https://api.ghostwallethunter.xyz/ai-costs/dashboard)
 
 [![Build Status](https://img.shields.io/github/actions/workflow/status/lipeamarok/ghost-wallet-hunter/main.yml?branch=main)](https://github.com/lipeamarok/ghost-wallet-hunter/actions)
 [![License](https://img.shields.io/github/license/lipeamarok/ghost-wallet-hunter)](LICENSE)
-[![Made with JuliaOS & Solana](https://img.shields.io/badge/made%20with-JuliaOS%20%26%20Solana-blue)](https://docs.juliaos.com/)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![React 18.2+](https://img.shields.io/badge/react-18.2+-61dafb.svg)](https://reactjs.org/)
-[![FastAPI](https://img.shields.io/badge/fastapi-0.100.0+-009688.svg)](https://fastapi.tiangolo.com/)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-ghostwallethunter.xyz-brightgreen)](https://ghostwallethunter.xyz)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![FastAPI](https://img.shields.io/badge/fastapi-0.104+-009688.svg)](https://fastapi.tiangolo.com/)
+[![OpenAI Integration](https://img.shields.io/badge/AI-OpenAI%20%2B%20Grok-brightgreen)](https://openai.com/)
+[![Docker Ready](https://img.shields.io/badge/deployment-Docker%20Ready-blue)](https://docker.com/)
 
 ---
 
 ## 🎯 Overview
 
-**Ghost Wallet Hunter** is an innovative blockchain analysis DApp that uses autonomous AI via JuliaOS and Solana to identify suspicious wallet clusters, explain risk connections and empower everyday users, investors, exchanges and regulators. Easy to use, visual and educational, focused on ethics and transparency.
+**Ghost Wallet Hunter** features a legendary detective squad of 7 specialized AI agents that work together to analyze blockchain transactions and detect suspicious wallet patterns. Each detective brings unique expertise powered by real AI integration (OpenAI + Grok fallback).
 
-### 🚨 Problem We're Solving
+### �️‍♂️ The Legendary Detective Squad
 
-While blockchain offers transparency, it's difficult for average users to analyze detailed transactions and detect suspicious behavior. Bad actors often spread funds across many wallets, making human tracking complex and time-consuming.
+1. **🕵️ Hercule Poirot** - Transaction Analysis & Behavioral Patterns
+2. **👵 Miss Jane Marple** - Pattern & Anomaly Detection
+3. **🚬 Sam Spade** - Risk Assessment & Threat Classification
+4. **🔍 Philip Marlowe** - Bridge & Mixer Tracking
+5. **👤 Auguste Dupin** - Compliance & AML Analysis
+6. **🌙 The Shadow** - Network Cluster Analysis
+7. **🐦‍⬛ Raven** - LLM Explanation & Communication
 
-**Ghost Wallet Hunter solves this by:**
+### 🚨 What We Solve
 
-- 🔍 **Detecting hidden links** between seemingly unrelated wallets
-- 📊 **Visualizing connections** with interactive, intuitive graphs
-- 🧠 **AI-powered explanations** that make complex patterns understandable
+- 🔍 **Hidden wallet connections** across complex transaction networks
+- 📊 **Risk assessment** with AI-powered threat classification
+- 🧠 **Clear explanations** of suspicious patterns in plain language
 - ⚡ **Real-time analysis** of Solana blockchain transactions
-- 🛡️ **Risk assessment** with clear, actionable insights
+- � **Cost control** with comprehensive AI usage monitoring
 
 ---
 
@@ -33,55 +44,93 @@ While blockchain offers transparency, it's difficult for average users to analyz
 
 ### Prerequisites
 
-- **Python 3.10+** with pip
-- **Node.js 18+** with npm
+- **Python 3.11+** with pip
+- **Docker & Docker Compose** (recommended for production)
 - **Git** for version control
-- **API Keys:** OpenAI API key, Solana RPC endpoint
+- **API Keys:** OpenAI API key (required), Grok API key (optional)
 
-### Installation
+### Quick Start (Development)
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/ghost-wallet-hunter.git
+git clone https://github.com/lipeamarok/ghost-wallet-hunter.git
 cd ghost-wallet-hunter
 
-# Backend setup
+# Backend development setup
 cd backend
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+# Windows: venv\Scripts\activate
+# Linux/Mac: source venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env    # Configure your API keys!
 
-# Frontend setup
-cd ../frontend
-npm install
-cp .env.example .env    # Set VITE_BACKEND_URL
+# Test the legendary squad
+python test_legendary_squad.py
+python test_frontend_integration.py
 
-# Start both services
-# Terminal 1 (Backend)
-cd backend && uvicorn main:app --reload
+# Start development server
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
 
-# Terminal 2 (Frontend)
-cd frontend && npm run dev
+# Access API docs: http://localhost:8000/docs
+```
 
-# Access: http://localhost:3000
+### Production Deployment (Docker)
+
+```bash
+# Set environment variables
+export OPENAI_API_KEY=your_openai_key
+export GROK_API_KEY=your_grok_key  # Optional
+export DB_PASSWORD=secure_password
+
+# Deploy complete system
+chmod +x deploy.sh
+./deploy.sh
+
+# Or manually with Docker Compose
+docker-compose up -d
+
+# Access (Production): https://ghostwallethunter.xyz
+# Access (Local Dev): https://localhost (with SSL)
 ```
 
 ### Environment Configuration
 
-**Backend (.env):**
+**Required Variables (.env or environment):**
 
 ```env
-OPENAI_API_KEY=sk-your-openai-key
+# AI Providers (at least OpenAI required)
+OPENAI_API_KEY=sk-your-openai-key-here
+GROK_API_KEY=your-grok-key-here
+
+# Database
+DB_PASSWORD=secure-database-password
+DATABASE_URL=postgresql://ghost_user:${DB_PASSWORD}@postgres:5432/ghost_wallet_hunter
+
+# Application
+SECRET_KEY=your-super-secure-secret-key
+DEBUG=false
+ENVIRONMENT=production
+
+# Blockchain
 SOLANA_RPC_URL=https://api.mainnet-beta.solana.com
-DATABASE_URL=postgresql://user:pass@host:port/dbname
-SECRET_KEY=your-fastapi-secret-key
 ```
 
-**Frontend (.env):**
+### API Endpoints (Ready for Frontend)
 
-```env
-VITE_BACKEND_URL=http://localhost:8000
+```bash
+# Detective Squad
+GET    /api/agents/legendary-squad/status
+POST   /api/agents/legendary-squad/investigate
+POST   /api/agents/detective/{detective_name}
+
+# AI Cost Management
+GET    /api/ai-costs/dashboard
+POST   /api/ai-costs/update-limits
+GET    /api/ai-costs/providers/status
+
+# Health & Testing
+GET    /api/health
+GET    /api/agents/test/real-ai
 ```
 
 ---
@@ -173,30 +222,41 @@ ghost-wallet-hunter/
 
 ### Backend Architecture
 
-- **Language:** Python 3.10+
-- **Framework:** FastAPI (REST API)
-- **AI Framework:** JuliaOS Agents
+- **Language:** Python 3.11+
+- **Framework:** FastAPI (REST API + WebSocket)
+- **AI Integration:** OpenAI GPT-3.5-turbo + Grok fallback
+- **Detective Squad:** 7 specialized AI agents
+- **Cost Tracking:** Real-time AI usage monitoring
 - **Blockchain:** Solana.py
-- **Database:** PostgreSQL
-- **Testing:** Pytest
-- **Environment:** venv
+- **Database:** PostgreSQL + Redis cache
+- **Testing:** Pytest + Custom integration tests
+- **Environment:** Docker + Docker Compose
 
-### Frontend Architecture
+### AI Detective System
 
-- **Language:** JavaScript/TypeScript
-- **Framework:** React.js 18.2+
-- **Styling:** TailwindCSS 3.4+
-- **Visualization:** React Flow
-- **HTTP Client:** Axios
-- **Build Tool:** Vite
+- **Smart AI Service:** Multi-provider AI with automatic failover
+- **Cost Management:** Real-time tracking, rate limiting, budget controls
+- **Detective Agents:** Specialized AI agents for different analysis tasks
+- **Real AI Power:** OpenAI integration with Grok fallback
+- **Mock Fallback:** Emergency fallback for development/testing
+
+### Frontend Architecture (Ready for Development)
+
+- **Framework:** React.js (API endpoints ready)
+- **State Management:** Context API / Redux
+- **HTTP Client:** Fetch API / Axios
+- **Real-time:** WebSocket integration ready
+- **Styling:** TailwindCSS / Styled Components
+- **Visualization:** React Flow / D3.js for network graphs
 
 ### DevOps & Deployment
 
-- **Version Control:** Git/GitHub
-- **Backend Deploy:** Render
-- **Frontend Deploy:** Vercel
-- **Containerization:** Docker (optional)
-- **CI/CD:** GitHub Actions
+- **Containerization:** Docker + Docker Compose
+- **Database:** PostgreSQL with automatic initialization
+- **Cache:** Redis for performance
+- **Reverse Proxy:** Nginx with SSL support
+- **Monitoring:** Health checks and error tracking
+- **Environment:** Production-ready configuration
 
 ---
 

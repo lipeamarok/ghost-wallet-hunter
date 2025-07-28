@@ -88,8 +88,15 @@ uvicorn main:app --reload --port 8001
 npm run dev
 ```
 
-Access the application at: [http://localhost:3000](http://localhost:3000)
-API Documentation: [http://localhost:8001/docs](http://localhost:8001/docs)
+Access the application at:
+
+* **Development:** [http://localhost:3000](http://localhost:3000)
+* **Production:** [https://ghostwallethunter.xyz](https://ghostwallethunter.xyz)
+
+API Documentation:
+
+* **Development:** [http://localhost:8001/docs](http://localhost:8001/docs)
+* **Production:** [https://api.ghostwallethunter.xyz/docs](https://api.ghostwallethunter.xyz/docs)
 
 ---
 

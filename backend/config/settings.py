@@ -44,9 +44,12 @@ class Settings(BaseSettings):
 
     # CORS
     ALLOWED_ORIGINS: List[str] = [
-        "http://localhost:3000", 
+        "http://localhost:3000",
         "http://127.0.0.1:3000",
-        "https://ghost-wallet-hunter.vercel.app",
+        "https://ghostwallethunter.xyz",
+        "https://www.ghostwallethunter.xyz",
+        "https://api.ghostwallethunter.xyz",
+        "https://ghost-wallet-hunter.vercel.app",  # Backup deployment
     ]
     ALLOWED_METHODS: List[str] = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
     ALLOWED_HEADERS: List[str] = ["*"]

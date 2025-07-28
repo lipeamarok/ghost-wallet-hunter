@@ -1,0 +1,28 @@
+{
+  "dashboard": {
+    "daily_cost_limit": 10.0,
+    "monthly_cost_limit": 100.0,
+    "calls_per_minute": 10,
+    "calls_per_hour": 100,
+    "calls_per_day": 500,
+    "auto_stop_on_limit": true,
+    "alert_thresholds": [
+      0.5,
+      0.8,
+      0.95
+    ]
+  },
+  "test_user": {
+    "daily_cost_limit": 10.0,
+    "monthly_cost_limit": 100.0,
+    "calls_per_minute": 10,
+    "calls_per_hour": 100,
+    "calls_per_day": 500,
+    "auto_stop_on_limit": true,
+    "alert_thresholds": [
+      0.5,
+      0.8,
+      0.95
+    ]
+  }
+}

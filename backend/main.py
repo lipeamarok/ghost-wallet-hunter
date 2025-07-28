@@ -70,6 +70,26 @@ if not settings.DEBUG:
 app.include_router(health.router, prefix="/api", tags=["health"])
 app.include_router(analysis.router, prefix="/api", tags=["analysis"])
 
+# Include JuliaOS Agents routes
+try:
+    from api.agents import router as agents_router
+    app.include_router(agents_router, prefix="/api", tags=["agents"])
+    logger.info("✅ JuliaOS Agents routes registered successfully")
+except ImportError as e:
+    logger.warning(f"⚠️ Could not import agents router: {e}")
+except Exception as e:
+    logger.error(f"❌ Failed to register agents router: {e}")
+
+# Include AI Cost Management routes
+try:
+    from api.ai_costs import router as ai_costs_router
+    app.include_router(ai_costs_router, prefix="/api", tags=["ai-costs"])
+    logger.info("✅ AI Cost Management routes registered successfully")
+except ImportError as e:
+    logger.warning(f"⚠️ Could not import AI costs router: {e}")
+except Exception as e:
+    logger.error(f"❌ Failed to register AI costs router: {e}")
+
 
 @app.get("/")
 async def root():

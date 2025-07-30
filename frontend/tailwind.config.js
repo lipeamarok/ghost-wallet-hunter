@@ -7,7 +7,19 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
+      fontFamily: {
+        'inter': ['Inter', 'sans-serif', 'Montserrat', 'Poppins', 'Roboto'],
+        'barlow': ['Barlow', 'Inter', 'sans-serif'],
+      },
       colors: {
+        navy: '#040d1b',
+        'green-safe': '#22C55E',
+        'white/10': 'rgba(255, 255, 255, 0.1)',
+        'white-ice': '#f0f4ff',
+        'red-risk': '#EF4444',
+        'blue-accent': '#3B82F6',
+        'blue-light': '#3B82F6',
+        'blue-dark': '#1E40AF',
         primary: {
           50: '#f0f9ff',
           100: '#e0f2fe',

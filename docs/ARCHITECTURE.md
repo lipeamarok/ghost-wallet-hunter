@@ -92,7 +92,7 @@ ghost-wallet-hunter/
 
 ## Application Flow (MVP Scope)
 
-This section describes the core user journey and data processing pipeline for the minimum viable product.
+Describes the core user journey and processing pipeline for the MVP.
 
 ### Ideal User Flow
 

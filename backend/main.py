@@ -40,6 +40,14 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error(f"[STARTUP] Failed to initialize AI service: {e}")
 
+    # Initialize blacklist checker
+    try:
+        from services.blacklist_checker import initialize_blacklist
+        await initialize_blacklist()
+        logger.info("[STARTUP] Blacklist checker initialized successfully")
+    except Exception as e:
+        logger.error(f"[STARTUP] Failed to initialize blacklist checker: {e}")
+
     logger.info("[STARTUP] Backend ready for requests")
 
     yield
@@ -110,17 +118,6 @@ except ImportError as e:
 except Exception as e:
     logger.error(f"[ERROR] Failed to register blacklist router: {e}")
 
-# Initialize blacklist checker on startup
-@app.on_event("startup")
-async def initialize_blacklist_checker():
-    """Initialize the blacklist checker on startup"""
-    try:
-        from services.blacklist_checker import initialize_blacklist
-        await initialize_blacklist()
-        logger.info("[OK] Blacklist checker initialized successfully")
-    except Exception as e:
-        logger.error(f"[ERROR] Failed to initialize blacklist checker: {e}")
-
 # Include Frontend API routes
 try:
     from api.frontend_api import router as frontend_router
@@ -169,7 +166,7 @@ if __name__ == "__main__":
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
-        port=8000,
+        port=8001,
         reload=settings.DEBUG,
         log_level=settings.LOG_LEVEL.lower()
     )

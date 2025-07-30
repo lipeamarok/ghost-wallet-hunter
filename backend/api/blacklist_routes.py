@@ -137,3 +137,47 @@ async def search_blacklist(query: str) -> Dict[str, Any]:
     except Exception as e:
         logger.error(f"❌ Search error: {e}")
         raise HTTPException(status_code=500, detail=f"Error searching blacklist: {str(e)}")
+
+@router.get("/random-example")
+async def get_random_blacklist_example() -> Dict[str, Any]:
+    """
+    🎲 Get a random blacklisted address for testing/example purposes
+
+    Returns a random address from the blacklist database for UI examples
+    """
+    try:
+        import random
+
+        if not blacklist_checker.scam_addresses:
+            # Return a safe example if blacklist is empty
+            return {
+                "success": True,
+                "data": {
+                    "address": "5zMyQtvhSQ8r7P5ki7c19V7XsPmg5wWwLM1m8F2w5nDa",
+                    "source": "fallback",
+                    "note": "Example address (blacklist may be loading)"
+                }
+            }
+
+        # Get random address from actual blacklist
+        random_address = random.choice(list(blacklist_checker.scam_addresses))
+
+        return {
+            "success": True,
+            "data": {
+                "address": random_address,
+                "source": "blacklist_database",
+                "note": "Real suspicious address from our database"
+            }
+        }
+    except Exception as e:
+        logger.error(f"❌ Random example error: {e}")
+        # Fallback to safe example
+        return {
+            "success": True,
+            "data": {
+                "address": "5zMyQtvhSQ8r7P5ki7c19V7XsPmg5wWwLM1m8F2w5nDa",
+                "source": "fallback",
+                "note": "Fallback example address"
+            }
+        }

@@ -8,6 +8,8 @@ import HomePage from './pages/HomePage';
 import AnalysisPage from './pages/AnalysisPage';
 import ResultsPage from './pages/ResultsPage';
 import AboutPage from './pages/AboutPage';
+import AnalysisPageSimple from './pages/AnalysisPageSimple';
+import ResultsPageSimple from './pages/ResultsPageSimple';
 
 import './index.css';
 
@@ -25,16 +27,26 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router>
+      <Router
+        future={{
+          v7_startTransition: true,
+          v7_relativeSplatPath: true
+        }}
+      >
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900">
-          <Layout>
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/analysis" element={<AnalysisPage />} />
-              <Route path="/results/:walletAddress" element={<ResultsPage />} />
-              <Route path="/about" element={<AboutPage />} />
-            </Routes>
-          </Layout>
+          <Routes>
+            {/* HomePage sem Layout - página de entrada limpa */}
+            <Route path="/" element={<HomePage />} />
+
+            {/* Páginas simples sem Layout - investigação rápida */}
+            <Route path="/analysis-simple" element={<AnalysisPageSimple />} />
+            <Route path="/results-simple" element={<ResultsPageSimple />} />
+
+            {/* Outras páginas com Layout (com Header) */}
+            <Route path="/analysis" element={<Layout><AnalysisPage /></Layout>} />
+            <Route path="/results/:walletAddress" element={<Layout><ResultsPage /></Layout>} />
+            <Route path="/about" element={<Layout><AboutPage /></Layout>} />
+          </Routes>
           <Toaster
             position="top-right"
             toastOptions={{

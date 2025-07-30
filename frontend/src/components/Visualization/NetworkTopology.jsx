@@ -9,11 +9,13 @@ import ReactFlow, {
   Panel,
 } from 'reactflow';
 import { motion } from 'framer-motion';
+import NetworkPulse from '../Animations/NetworkPulse';
 import 'reactflow/dist/style.css';
+import './NetworkTopology.css';
 
 // Custom node component for wallet visualization
 const WalletNode = ({ data }) => {
-  const { label, riskLevel, isTarget, isBlacklisted, connections } = data;
+  const { label, riskLevel, isTarget, isBlacklisted, connections, animationDelay = 0 } = data;
 
   const getNodeColors = () => {
     if (isBlacklisted) return { bg: '#ff3366', border: '#ff1150', text: '#ffffff' };
@@ -31,13 +33,18 @@ const WalletNode = ({ data }) => {
 
   return (
     <motion.div
-      initial={{ scale: 0, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      transition={{ type: "spring", stiffness: 300, damping: 25 }}
+      initial={{ scale: 0, opacity: 0, y: 20 }}
+      animate={{ scale: 1, opacity: 1, y: 0 }}
+      transition={{
+        type: "spring",
+        stiffness: 300,
+        damping: 25,
+        delay: animationDelay / 1000
+      }}
       className="relative"
     >
       <div
-        className="px-4 py-3 rounded-lg border-2 min-w-[180px] text-center shadow-lg"
+        className="px-4 py-3 rounded-lg border-2 min-w-[180px] text-center shadow-lg relative overflow-hidden"
         style={{
           backgroundColor: colors.bg,
           borderColor: colors.border,
@@ -45,31 +52,52 @@ const WalletNode = ({ data }) => {
           boxShadow: `0 0 20px ${colors.border}50`
         }}
       >
-        <div className="font-mono text-xs font-bold">
+        <div className="font-mono text-xs font-bold relative z-10">
           {label.slice(0, 8)}...{label.slice(-8)}
         </div>
         {isTarget && (
-          <div className="text-xs mt-1 font-semibold">TARGET</div>
+          <div className="text-xs mt-1 font-semibold relative z-10">TARGET</div>
         )}
         {isBlacklisted && (
-          <div className="text-xs mt-1 font-semibold animate-pulse">BLACKLISTED</div>
+          <motion.div
+            className="text-xs mt-1 font-semibold relative z-10"
+            animate={{ opacity: [1, 0.3, 1] }}
+            transition={{ duration: 1, repeat: Infinity }}
+          >
+            BLACKLISTED
+          </motion.div>
         )}
-        <div className="text-xs mt-1 opacity-80">
+        <div className="text-xs mt-1 opacity-80 relative z-10">
           Risk: {riskLevel?.toUpperCase() || 'UNKNOWN'}
         </div>
-        <div className="text-xs opacity-60">
+        <div className="text-xs opacity-60 relative z-10">
           Connections: {connections || 0}
         </div>
+
+        {/* Network Pulse Animation */}
+        <NetworkPulse
+          isActive={isTarget || isBlacklisted || riskLevel === 'high'}
+          connections={connections}
+          delay={animationDelay}
+        />
       </div>
 
-      {/* Pulsing effect for active nodes */}
+      {/* Enhanced pulsing effect for active nodes */}
       {(isTarget || isBlacklisted) && (
-        <div
-          className="absolute inset-0 rounded-lg animate-ping"
+        <motion.div
+          className="absolute inset-0 rounded-lg"
           style={{
             backgroundColor: colors.border,
-            opacity: 0.3,
             zIndex: -1
+          }}
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.3, 0.1, 0.3]
+          }}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+            ease: "easeInOut"
           }}
         />
       )}
@@ -142,6 +170,7 @@ const NetworkTopology = ({ walletAddress, investigationData, isAnalyzing, curren
           isTarget: false,
           isBlacklisted: connectionData?.is_blacklisted || Math.random() < 0.1,
           connections: connectionData?.connection_count || Math.floor(Math.random() * 20),
+          animationDelay: index * 300, // Stagger node animations
         },
       };
     });
@@ -153,17 +182,25 @@ const NetworkTopology = ({ walletAddress, investigationData, isAnalyzing, curren
       source: 'target',
       target: wallet.id,
       type: 'smoothstep',
-      animated: wallet.data.isBlacklisted,
+      animated: true, // Enable animation for all connections
+      className: `${wallet.data.isBlacklisted ? 'blacklisted-edge' : ''} ${wallet.data.riskLevel === 'high' ? 'high-risk-edge' : ''}`,
       style: {
         stroke: wallet.data.isBlacklisted ? '#ff3366' :
                 wallet.data.riskLevel === 'high' ? '#ff6b4a' :
                 wallet.data.riskLevel === 'medium' ? '#ffb000' : '#00ff41',
         strokeWidth: wallet.data.isBlacklisted ? 3 : 2,
+        strokeDasharray: wallet.data.isBlacklisted ? '10 5' : '5 5',
+        filter: 'drop-shadow(0 0 6px currentColor)',
       },
       markerEnd: {
         type: 'arrowclosed',
         color: wallet.data.isBlacklisted ? '#ff3366' : '#00ffff',
       },
+      data: {
+        animationDelay: index * 200, // Stagger the animation start
+        risk: wallet.data.riskLevel,
+        blacklisted: wallet.data.isBlacklisted,
+      }
     }));
   };
 

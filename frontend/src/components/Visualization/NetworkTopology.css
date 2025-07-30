@@ -1,0 +1,95 @@
+/* Enhanced ReactFlow edge animations for network topology */
+
+/* Pulsing data flow animation on edges */
+@keyframes dataFlow {
+  0% {
+    stroke-dashoffset: 20;
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0.3;
+  }
+}
+
+@keyframes connectionPulse {
+  0%, 100% {
+    opacity: 0.6;
+    filter: drop-shadow(0 0 3px currentColor);
+  }
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 8px currentColor);
+  }
+}
+
+/* Enhanced edge styling for network connections */
+.react-flow__edge-path {
+  animation: dataFlow 2s ease-in-out infinite;
+  transition: all 0.3s ease;
+}
+
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke-width: 4px !important;
+  animation: connectionPulse 1s ease-in-out infinite;
+}
+
+/* Connection branch animation */
+.react-flow__edge[data-animated="true"] .react-flow__edge-path {
+  animation: dataFlow 1.5s ease-in-out infinite, connectionPulse 3s ease-in-out infinite;
+}
+
+/* High-risk connection styling */
+.react-flow__edge[data-risk="high"] .react-flow__edge-path {
+  stroke-dasharray: 8 4;
+  animation: dataFlow 1s linear infinite, connectionPulse 2s ease-in-out infinite;
+  filter: drop-shadow(0 0 6px #ff6b4a);
+}
+
+/* Blacklisted connection styling */
+.react-flow__edge[data-blacklisted="true"] .react-flow__edge-path {
+  stroke-dasharray: 10 5;
+  animation: dataFlow 0.8s linear infinite, connectionPulse 1.5s ease-in-out infinite;
+  filter: drop-shadow(0 0 8px #ff3366);
+}
+
+/* Network topology reveal animation */
+@keyframes networkReveal {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.react-flow__node {
+  animation: networkReveal 0.6s ease-out forwards;
+}
+
+/* Enhanced minimap styling */
+.react-flow__minimap {
+  background-color: rgba(17, 24, 39, 0.9) !important;
+  border: 1px solid #374151 !important;
+}
+
+/* Controls styling */
+.react-flow__controls {
+  background-color: rgba(31, 41, 55, 0.9) !important;
+  border: 1px solid #4b5563 !important;
+}
+
+.react-flow__controls-button {
+  background-color: rgba(55, 65, 81, 0.9) !important;
+  border-bottom: 1px solid #4b5563 !important;
+  color: #d1d5db !important;
+}
+
+.react-flow__controls-button:hover {
+  background-color: rgba(75, 85, 99, 0.9) !important;
+}

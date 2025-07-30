@@ -8,6 +8,7 @@ import {
   UserGroupIcon,
   ChartBarIcon
 } from '@heroicons/react/24/outline';
+import Layout from '../components/Layout/Layout';
 
 const AboutPage = () => {
   const features = [
@@ -78,26 +79,7 @@ const AboutPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-black text-green-400">
-      {/* Professional Header */}
-      <div className="border-b border-gray-800 bg-gray-900">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-mono font-bold text-cyan-400">
-                GHOST WALLET HUNTER v2.0 - ABOUT
-              </h1>
-              <p className="text-sm text-gray-400 font-mono">
-                Professional Blockchain Intelligence Platform - System Overview
-              </p>
-            </div>
-            <div className="text-xs text-gray-500 font-mono">
-              {new Date().toISOString()}
-            </div>
-          </div>
-        </div>
-      </div>
-
+    <Layout>
       <div className="max-w-7xl mx-auto px-4 py-16">
         {/* Hero Terminal Section */}
         <motion.div
@@ -330,7 +312,7 @@ const AboutPage = () => {
           </div>
         </motion.div>
       </div>
-    </div>
+    </Layout>
   );
 };
 

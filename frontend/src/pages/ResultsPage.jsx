@@ -10,7 +10,7 @@ import {
   EyeIcon,
   LinkIcon
 } from '@heroicons/react/24/outline';
-
+import Layout from '../components/Layout/Layout';
 import LoadingSpinner from '../components/UI/LoadingSpinner';
 
 const ResultsPage = () => {
@@ -122,7 +122,7 @@ const ResultsPage = () => {
     const riskLevel = data?.results?.risk_assessment?.risk_level?.toLowerCase() || 'unknown';
     const totalConnections = connectedWallets.length;
     const highRiskNodes = connectedWallets.filter(w => w.risk === 'high').length;
-    
+
     const reports = {
       high: [
         `THREAT ANALYSIS: Target exhibits elevated risk patterns with ${totalConnections} identified connections. Immediate monitoring recommended.`,
@@ -141,7 +141,7 @@ const ResultsPage = () => {
       ]
     };
 
-    return reports[riskLevel] ? reports[riskLevel][Math.floor(Math.random() * reports[riskLevel].length)] : 
+    return reports[riskLevel] ? reports[riskLevel][Math.floor(Math.random() * reports[riskLevel].length)] :
            "ANALYSIS_ERROR: Unable to generate assessment report. Insufficient data for threat evaluation.";
   };
 
@@ -173,57 +173,39 @@ const ResultsPage = () => {
   const RiskIcon = getRiskIcon();
 
   return (
-    <div className="min-h-screen bg-black text-green-400">
-      {/* Professional Header */}
-      <div className="border-b border-gray-800 bg-gray-900">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-mono font-bold text-cyan-400">
-                GHOST WALLET HUNTER v2.0 - RESULTS
-              </h1>
-              <p className="text-sm text-gray-400 font-mono">
-                Investigation Complete - Threat Assessment Report
-              </p>
-            </div>
-            <div className="text-xs text-gray-500 font-mono">
-              {new Date().toISOString()}
-            </div>
-          </div>
-        </div>
-      </div>
-
+    <Layout>
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Terminal Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <button
-            onClick={() => navigate('/')}
-            className="flex items-center text-cyan-400 hover:text-cyan-300 mb-6 transition-colors font-mono"
+          {/* Terminal Header */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8"
           >
-            <ArrowLeftIcon className="h-5 w-5 mr-2" />
-            [RETURN_TO_COMMAND_CENTER]
-          </button>
+            <button
+              onClick={() => navigate('/')}
+              className="flex items-center text-cyan-400 hover:text-cyan-300 mb-6 transition-colors font-mono"
+            >
+              <ArrowLeftIcon className="h-5 w-5 mr-2" />
+              [RETURN_TO_COMMAND_CENTER]
+            </button>
 
-          <div className="text-center mb-8">
-            <div className="bg-gray-900 border border-gray-700 rounded-lg p-6 max-w-4xl mx-auto">
-              <div className="bg-black border border-gray-600 rounded-lg p-4 mb-4 font-mono text-left">
-                <div className="text-green-400 mb-2">
-                  &gt; investigation.complete() - THREAT_ASSESSMENT_REPORT
-                </div>
-                <div className="text-gray-400 text-sm mb-2">
-                  Investigation ID: {Date.now().toString(36).toUpperCase()}
-                </div>
-                <div className="text-cyan-400 text-sm">
-                  TARGET: {displayWallet}
+            <div className="text-center mb-8">
+              <div className="bg-gray-900 border border-gray-700 rounded-lg p-6 max-w-4xl mx-auto">
+                <div className="bg-black border border-gray-600 rounded-lg p-4 mb-4 font-mono text-left">
+                  <div className="text-green-400 mb-2">
+                    &gt; investigation.complete() - THREAT_ASSESSMENT_REPORT
+                  </div>
+                  <div className="text-gray-400 text-sm mb-2">
+                    Investigation ID: {Date.now().toString(36).toUpperCase()}
+                  </div>
+                  <div className="text-cyan-400 text-sm">
+                    TARGET: {displayWallet}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
 
         {/* Main Threat Assessment */}
         <motion.div
@@ -305,7 +287,7 @@ const ResultsPage = () => {
               <div className="text-green-400 font-mono text-xs mb-4">
                 &gt; network.analyze_connections()
               </div>
-              
+
               {/* Central Wallet */}
               <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
                 <div className={`w-20 h-20 rounded-full border-4 ${riskColors.border} bg-gray-800 flex items-center justify-center cursor-pointer hover:scale-110 transition-transform`}
@@ -517,8 +499,7 @@ const ResultsPage = () => {
             </div>
           </div>
         </motion.div>
-      </div>
-    </div>
+    </Layout>
   );
 };
 

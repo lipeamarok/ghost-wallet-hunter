@@ -15,14 +15,14 @@ const Header = () => {
   ];
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       className="border-b border-gray-800 bg-gray-900 sticky top-0 z-50"
     >
       <div className="max-w-7xl mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          <div 
+          <div
             className="cursor-pointer group"
             onClick={() => navigate('/')}
           >

@@ -11,6 +11,7 @@ from typing import Dict, List, Any, Optional
 from datetime import datetime, timedelta
 
 from services.smart_ai_service import get_ai_service
+from .utils.compliance import compliance_utils
 
 logger = logging.getLogger(__name__)
 
@@ -95,62 +96,14 @@ class DupinAgent:
         try:
             logger.info(f"👤 {self.name}: 'Commencing AML analysis with methodical precision...'")
 
-            aml_prompt = f"""
-            C. Auguste Dupin here, applying analytical reasoning to anti-money laundering investigation.
-            The criminal mind follows predictable patterns, even when attempting to obfuscate.
-
-            Subject wallet: {wallet_address}
-            Transaction evidence: {transaction_data}
-
-            Applying established AML frameworks: {', '.join(self.aml_frameworks)}
-
-            My analytical methodology focuses on:
-
-            1. PLACEMENT PATTERNS:
-               - Initial entry of illicit funds into the financial system
-               - Large cash deposits or crypto purchases
-               - Structured transactions to avoid reporting thresholds
-               - Use of multiple accounts or wallets for initial placement
-
-            2. LAYERING ANALYSIS:
-               - Complex transactions designed to obscure the audit trail
-               - Multiple jurisdictional transfers
-               - Conversion between different cryptocurrencies
-               - Use of intermediary accounts or shell entities
-
-            3. INTEGRATION IDENTIFICATION:
-               - Final stage where laundered funds enter legitimate economy
-               - Purchase of legitimate assets or investments
-               - Normal-appearing business transactions
-               - Integration with conventional financial systems
-
-            4. TYPOLOGY MATCHING:
-               - Trade-based money laundering patterns
-               - Digital asset mixing and tumbling
-               - Cross-border correspondent banking
-               - Professional money laundering services
-
-            5. RED FLAG ANALYSIS:
-               - Transactions inconsistent with known business activity
-               - Rapid movement of funds through multiple accounts
-               - Transactions with high-risk jurisdictions
-               - Unusual transaction timing or amounts
-
-            The intellectual approach reveals what emotional investigation might miss.
-            What money laundering patterns does analytical reasoning detect?
-            """
-
-            aml_analysis = await self.ai_service.analyze_with_ai(
-                prompt=aml_prompt,
-                user_id=self.agent_id,
-                context={
-                    "detective": "C. Auguste Dupin",
-                    "analysis_type": "aml_investigation",
-                    "frameworks": self.aml_frameworks,
-                    "transaction_data": transaction_data
-                },
-                analysis_type="compliance"
+            # Use centralized compliance utils with Dupin's analytical style
+            aml_analysis = await compliance_utils.perform_aml_analysis(
+                wallet_address, self.agent_id, agent_style="analytical"
             )
+
+            # Add Dupin-specific context
+            aml_analysis["detective_method"] = "Analytical reasoning and methodical investigation"
+            aml_analysis["dupin_insight"] = "The intellectual approach reveals what emotional investigation might miss."
 
             self.aml_screenings += 1
             logger.info(f"🔍 {self.name}: 'AML analysis #{self.aml_screenings} complete. Patterns emerge through reason.'")
@@ -163,135 +116,48 @@ class DupinAgent:
 
     async def conduct_sanctions_screening(self, wallet_address: str, entity_data: Dict) -> Dict:
         """Dupin's systematic sanctions screening using analytical methodology."""
+        try:
+            logger.info(f"📋 {self.name}: 'Conducting sanctions screening with methodical precision...'")
 
-        sanctions_prompt = f"""
-        Dupin conducting sanctions screening with methodical precision. The analytical mind
-        must verify whether this entity appears on any prohibited lists.
+            # Use centralized compliance utils with Dupin's analytical style
+            sanctions_analysis = await compliance_utils.perform_sanctions_screening(
+                wallet_address, self.agent_id, agent_style="analytical"
+            )
 
-        Target for screening: {wallet_address}
-        Entity information: {entity_data}
+            # Add Dupin-specific context
+            sanctions_analysis["analytical_method"] = "Systematic screening with methodical precision"
+            sanctions_analysis["dupin_philosophy"] = "Analytical reasoning eliminates false positives while ensuring no genuine risk escapes detection."
 
-        Systematic screening against: {', '.join(self.sanctions_lists)}
+            self.sanctions_checks += 1
+            logger.info(f"📋 {self.name}: 'Sanctions screening #{self.sanctions_checks} complete. Analytical clarity achieved.'")
 
-        Analytical screening methodology:
+            return sanctions_analysis
 
-        1. DIRECT MATCHING:
-           - Exact wallet address matches on sanctions lists
-           - Associated entity names or identifiers
-           - Direct beneficial ownership connections
-           - Explicit sanctions designations
-
-        2. INDIRECT ASSOCIATIONS:
-           - Transactions with sanctioned entities
-           - Beneficial ownership through sanctioned persons
-           - Control by sanctioned organizations
-           - Economic relationships with prohibited parties
-
-        3. JURISDICTION ANALYSIS:
-           - Operations in sanctioned territories
-           - Incorporation in high-risk jurisdictions
-           - Regulatory actions in relevant jurisdictions
-           - Geographic risk factor assessment
-
-        4. TEMPORAL CONSIDERATIONS:
-           - Sanctions list timing and transaction patterns
-           - Pre/post sanctions designation activity
-           - Evasion attempts following designation
-           - Historical sanctions exposure
-
-        5. RISK CATEGORIZATION:
-           - Primary sanctions risk (direct listing)
-           - Secondary sanctions risk (association)
-           - Sectoral sanctions implications
-           - Comprehensive sanctions impact
-
-        Analytical reasoning eliminates false positives while ensuring no genuine risk escapes detection.
-        What sanctions exposure does systematic analysis reveal?
-        """
-
-        sanctions_analysis = await self.ai_service.analyze_with_ai(
-            prompt=sanctions_prompt,
-            user_id=self.agent_id,
-            context={
-                "screening_type": "sanctions_analysis",
-                "sanctions_lists": self.sanctions_lists,
-                "entity_data": entity_data,
-                "wallet": wallet_address
-            },
-            analysis_type="compliance"
-        )
-
-        self.sanctions_checks += 1
-        logger.info(f"📋 {self.name}: 'Sanctions screening #{self.sanctions_checks} complete. Analytical clarity achieved.'")
-
-        return sanctions_analysis
+        except Exception as e:
+            logger.error(f"[ERROR] {self.name}: 'Analytical error in sanctions screening: {e}'")
+            return {"error": f"Sanctions screening failed: {e}"}
 
     async def assess_regulatory_compliance(self, wallet_address: str, jurisdiction_data: Dict) -> Dict:
-        """Assess regulatory compliance across multiple jurisdictions."""
+        """Assess regulatory compliance across multiple jurisdictions using centralized utils."""
+        try:
+            logger.info(f"⚖️ {self.name}: 'Applying analytical reasoning to regulatory compliance assessment...'")
 
-        regulatory_prompt = f"""
-        Dupin applying analytical reasoning to regulatory compliance assessment.
-        Each jurisdiction presents unique requirements that the analytical mind must parse.
+            # Use centralized compliance utils with Dupin's analytical style
+            regulatory_analysis = await compliance_utils.perform_regulatory_assessment(
+                wallet_address, self.agent_id, agent_style="analytical"
+            )
 
-        Subject wallet: {wallet_address}
-        Jurisdictional context: {jurisdiction_data}
+            # Add Dupin-specific context and detailed framework analysis
+            regulatory_analysis["analytical_approach"] = "Each jurisdiction presents unique requirements that the analytical mind must parse."
+            regulatory_analysis["dupin_insight"] = "The analytical approach reveals compliance gaps before they become violations."
 
-        Regulatory frameworks under analysis:
+            logger.info(f"⚖️ {self.name}: 'Regulatory compliance assessment complete. Analytical framework applied.'")
 
-        1. CRYPTOCURRENCY REGULATIONS:
-           - Digital asset licensing requirements
-           - Virtual asset service provider (VASP) compliance
-           - Know Your Customer (KYC) obligations
-           - Anti-Money Laundering (AML) requirements
+            return regulatory_analysis
 
-        2. FINANCIAL SERVICES COMPLIANCE:
-           - Money transmission licensing
-           - Securities law implications
-           - Banking regulation applicability
-           - Payment services directive compliance
-
-        3. TAX COMPLIANCE:
-           - Digital asset taxation obligations
-           - Cross-border reporting requirements
-           - Beneficial ownership disclosure
-           - Transfer pricing implications
-
-        4. DATA PROTECTION:
-           - GDPR compliance for EU operations
-           - Privacy law adherence across jurisdictions
-           - Data localization requirements
-           - Cross-border data transfer restrictions
-
-        5. SANCTIONS AND TRADE:
-           - Export control compliance
-           - Trade sanctions adherence
-           - Dual-use technology restrictions
-           - Economic sanctions implementation
-
-        6. EMERGING REGULATIONS:
-           - MiCA implementation in EU
-           - Travel Rule compliance
-           - Central Bank Digital Currency impact
-           - Decentralized Finance (DeFi) regulation
-
-        The analytical approach reveals compliance gaps before they become violations.
-        What regulatory risks does systematic analysis identify?
-        """
-
-        regulatory_analysis = await self.ai_service.analyze_with_ai(
-            prompt=regulatory_prompt,
-            user_id=self.agent_id,
-            context={
-                "analysis_type": "regulatory_compliance",
-                "jurisdiction_data": jurisdiction_data,
-                "wallet": wallet_address
-            },
-            analysis_type="compliance"
-        )
-
-        logger.info(f"⚖️ {self.name}: 'Regulatory compliance assessment complete. Analytical framework applied.'")
-
-        return regulatory_analysis
+        except Exception as e:
+            logger.error(f"[ERROR] {self.name}: 'Analytical error in regulatory assessment: {e}'")
+            return {"error": f"Regulatory assessment failed: {e}"}
 
     async def analyze_financial_intelligence(self, wallet_address: str, network_data: Dict) -> Dict:
         """Analyze financial intelligence patterns using Dupin's analytical methods."""
@@ -361,71 +227,33 @@ class DupinAgent:
         return fintel_analysis
 
     async def compile_compliance_report(self, wallet_address: str, all_analyses: Dict) -> Dict:
-        """Compile Dupin's comprehensive compliance and regulatory analysis."""
+        """Compile Dupin's comprehensive compliance and regulatory analysis using centralized utils."""
+        try:
+            # Extract individual analyses from all_analyses
+            aml_analysis = all_analyses.get("aml_analysis", {})
+            sanctions_check = all_analyses.get("sanctions_check", {})
+            regulatory_assessment = all_analyses.get("regulatory_assessment", {})
+            compliance_score = all_analyses.get("compliance_score", {})
 
-        final_prompt = f"""
-        C. Auguste Dupin presenting final analytical conclusion for wallet {wallet_address}.
-        The analytical method has been applied systematically to all available evidence.
+            # Use centralized compliance report generation
+            final_report = await compliance_utils.generate_compliance_report(
+                wallet_address, aml_analysis, sanctions_check,
+                regulatory_assessment, compliance_score, self.agent_id, self.name
+            )
 
-        Complete analytical evidence: {all_analyses}
+            # Add Dupin-specific analytical insights
+            final_report["analytical_method"] = "C. Auguste Dupin's methodical analytical reasoning"
+            final_report["dupin_conclusion"] = "The analytical method provides certainty where intuition offers only speculation."
+            final_report["analytical_confidence"] = "Evidence quality assessed through systematic reasoning"
 
-        Final analytical assessment:
+            self.compliance_reviews += 1
+            logger.info(f"📊 {self.name}: 'Compliance review #{self.compliance_reviews} complete. Analytical certainty achieved.'")
 
-        1. COMPLIANCE DETERMINATION:
-           - Overall compliance status assessment
-           - Specific regulatory violations identified
-           - Risk level categorization
-           - Remediation requirements
+            return final_report
 
-        2. AML CONCLUSION:
-           - Money laundering risk assessment
-           - Typology classification if applicable
-           - Evidence strength evaluation
-           - Investigation priority recommendation
-
-        3. SANCTIONS FINDING:
-           - Sanctions exposure determination
-           - Risk categorization (primary/secondary)
-           - Compliance recommendations
-           - Ongoing monitoring requirements
-
-        4. REGULATORY RECOMMENDATION:
-           - Immediate compliance actions required
-           - Long-term monitoring strategy
-           - Regulatory notification requirements
-           - Risk mitigation measures
-
-        5. INTELLIGENCE ASSESSMENT:
-           - Criminal organization involvement likelihood
-           - International cooperation requirements
-           - Law enforcement referral recommendation
-           - Strategic intelligence value
-
-        6. ANALYTICAL CONFIDENCE:
-           - Evidence quality assessment
-           - Analytical certainty level
-           - Additional investigation requirements
-           - Methodological validation
-
-        The analytical method provides certainty where intuition offers only speculation.
-        Present the definitive compliance and regulatory assessment.
-        """
-
-        final_report = await self.ai_service.analyze_with_ai(
-            prompt=final_prompt,
-            user_id=self.agent_id,
-            context={
-                "report_type": "comprehensive_compliance_analysis",
-                "all_analyses": all_analyses,
-                "wallet": wallet_address
-            },
-            analysis_type="compliance"
-        )
-
-        self.compliance_reviews += 1
-        logger.info(f"📊 {self.name}: 'Compliance review #{self.compliance_reviews} complete. Analytical certainty achieved.'")
-
-        return final_report
+        except Exception as e:
+            logger.error(f"[ERROR] {self.name}: 'Analytical error in compliance report: {e}'")
+            return {"error": f"Compliance report failed: {e}"}
 
     async def get_detective_status(self) -> Dict:
         """Get Dupin's current analytical status and case statistics."""

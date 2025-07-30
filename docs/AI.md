@@ -2,166 +2,114 @@
 
 ## 1. Purpose of AI in Ghost Wallet Hunter
 
-AI is the core intelligence of the application. It is responsible for:
+AI is the central intelligence of the app, responsible for:
 
-* Analyzing public on-chain data from the Solana blockchain, focusing on wallet connections
-* Interpreting these connections to detect suspicious patterns (fraud, money laundering, manipulation)
-* Generating simple, empathetic, educational explanations for both novice and professional users
-* Minimizing false positives with clear instructions and layered analysis
-* Coordinating with multiple agents (swarm) for enhanced quality and scalability
-
----
-
-## 2. Detailed AI Features
-
-### 2.1 On-Chain Data Analysis
-
-* Connects via Solana RPC and auxiliary APIs to gather transaction data
-* Extracts relevant info:
-
-  * Recent transactions (e.g., last 10)
-  * Wallets directly connected by transactions
-  * Volume, frequency, timing, and interaction patterns
-* Flags suspicious signs:
-
-  * Simultaneous or unusual transaction patterns
-  * Interaction with known malicious wallets (based on public lists or detected behavior)
-* Builds simple “clusters” representing connected wallets
-
-### 2.2 Textual Explanation Generation
-
-* Converts analysis results into prompts for LLM (GPT-3.5 Turbo)
-* Produces educational, non-alarmist explanations
-* Adds automatic disclaimers to stress probabilistic nature
-* Adjusts tone based on user profile (simplified vs. technical view)
-
-#### Example Output
-
-> “This wallet made 5 transactions to 2 others within 12 hours. While not definitive proof of fraud, such patterns may warrant caution. *This is an automated analysis based on known behaviors. For manual review, consult a specialist.*”
-
-### 2.3 False Positive Reduction
-
-* Rule-based filtering for trivial cases (e.g., official exchanges, recognized bots)
-* Agent-level validation across sources before labeling suspicious
-* Planned user feedback loop for ongoing refinement (post-MVP)
-
-### 2.4 JuliaOS Agent Swarm Orchestration
-
-* Assign specific agents:
-
-  * Agent 1: on-chain data fetching
-  * Agent 2: cluster/statistics analysis
-  * Agent 3: explanation generation via LLM
-* Agents collaborate to refine results
-* Managed via JuliaOS CLI and APIs
+- Analyzing public on-chain data from Solana (and future chains)
+- Detecting suspicious wallet connections and behavioral patterns
+- Generating clear, educational explanations for users of all levels
+- Minimizing false positives via multi-layered validation
+- Coordinating multiple autonomous agents (JuliaOS swarm)
 
 ---
 
-## 3. AI Architecture in Code
+## 2. Core AI Features
 
-### 3.1 Core Modules
+### **On-Chain Data Analysis**
 
-* `solana_data_fetcher.py`: connects to RPC, fetches transactions
-* `cluster_analyzer.py`: detects suspicious clusters
-* `explanation_generator.py`: builds prompts and interacts with OpenAI API
-* `agents_manager.py`: manages JuliaOS agent orchestration
+- Connects via Solana RPC and public APIs to gather transaction data
+- Extracts transaction history, counterparties, volumes, timing, and patterns
+- Flags unusual or suspicious activity (e.g., rapid movements, links to known scam wallets)
+- Builds wallet “clusters” for context-rich analysis
 
-### 3.2 Data Flow
+### **AI-Generated Explanations**
 
-```plaintext
-User → FastAPI → agents_manager → solana_data_fetcher → cluster_analyzer → explanation_generator → FastAPI → User
-```
+- Converts findings into prompts for LLMs (e.g., OpenAI GPT)
+- Produces empathetic, educational, and non-alarmist responses
+- Includes disclaimers about the probabilistic nature of analysis
+- Adjusts technical depth based on user profile
 
-### 3.3 Simplified Agent Structure
+### **False Positive Reduction**
 
-```python
-class DataFetcherAgent(AgentBase):
-    def run(self, wallet_address):
-        # Fetch transactions from Solana RPC
-        pass
+- Rule-based filtering for common/official addresses
+- Cross-validation using multiple agents and data sources
+- User feedback and regular model updates for ongoing improvement
 
-class ClusterAnalyzerAgent(AgentBase):
-    def run(self, transactions_data):
-        # Detect suspicious clusters
-        pass
+### **Agent Swarm Orchestration (JuliaOS)**
 
-class ExplanationAgent(AgentBase):
-    def run(self, cluster_info):
-        # Generate explanatory text via OpenAI
-        pass
-```
+- Specialized agents for data fetching, clustering, explanation, etc.
+- Agents collaborate and refine results for higher accuracy
+- Managed by JuliaOS APIs and CLI
 
 ---
 
-## 4. Technical Implementation Details
+## 3. AI Architecture Overview
 
-### 4.1 OpenAI Interaction
+**Core Modules:**
 
-* Uses official OpenAI Python SDK
-* Prompts crafted for neutral, educational, empathetic tone
+- `solana_service.py`: blockchain data collection
+- `analysis_service.py`: cluster and risk analysis
+- `ai_service.py`: prompt construction and OpenAI LLM interaction
+- `smart_ai_service.py`: JuliaOS agent orchestration
 
-  ```text
-  Analyze the following clusters: {cluster_data}. Provide an educational, neutral explanation with highlighted risks. Include a disclaimer.
-  ```
+**Data Flow:**
 
-* Token limits enforced to reduce cost
-* Fallbacks for API errors with default safe responses
-
-### 4.2 JuliaOS Configuration
-
-* Install via pip/npm
-* Configure agents to run in swarm mode
-* Define synchronous/asynchronous agent communication
-* Log events for auditing and debugging
-
-### 4.3 Config Parameters
-
-* Max transactions per wallet (e.g., 10–20)
-* Risk scoring rules (e.g., >3 simultaneous tx, >5 repeated links)
-* Explanation detail level (prompt option)
-* API rate limits and caching controls
+User → FastAPI API → JuliaOS Agent Swarm → AI → Results → User
 
 ---
 
-## 5. AI Testing Plan
+## 4. Technical Details
 
-* Validate data collection from typical and flagged wallets
-* Confirm accurate cluster detection logic
-* Evaluate coherence and quality of LLM outputs
-* Ensure graceful handling of low/no-data scenarios
-* Test input edge cases for robustness
+### **OpenAI & LLM Integration**
+
+- Uses OpenAI Python SDK for prompt-based AI analysis
+- Prompts crafted for clear, neutral, and educational output
+- Automatic handling of token limits and fallbacks for errors
+
+### **JuliaOS Configuration**
+
+- Agents configured for parallel/asynchronous analysis
+- Logs for all agent interactions for traceability
+
+### **Config Parameters**
+
+- Max transactions per analysis (e.g., 10–20)
+- Customizable risk scoring and detection rules
+- API rate limiting and cache control
+
+---
+
+## 5. AI Testing & Quality
+
+- Validates with real flagged/safe wallets
+- Tests cluster detection logic and LLM output quality
+- Handles edge cases and no-data scenarios robustly
+- Monitors token usage and response latency
 
 ---
 
 ## 6. Documentation & Maintenance
 
-* Document each agent, module, and flow in code and README
-* Include usage examples and test scenarios
-* Implement detailed logging for post-deploy analysis
-* Establish prompt review and update routine
+- Each agent and module documented with examples
+- Usage and testing guidelines included in code and README
+- Detailed logging for debugging and post-launch analysis
 
 ---
 
-## 7. Ethical & Legal Considerations
+## 7. Ethics & User Safeguards
 
-* AI responses include automatic disclaimers
-* Only public blockchain data used
-* Language is empathetic and non-accusatory
-* Human review mechanism planned (post-MVP)
-
----
-
-## 8. AI Performance Metrics
-
-* Perplexity Score: target < 20
-* Cluster accuracy: target > 85%
-* Average token usage per response: < 100
+- AI outputs always include disclaimers
+- Strictly public blockchain data only; privacy-respecting
+- Empathetic, non-accusatory language
+- Human review and user reporting channels for future releases
 
 ---
 
-## Post-MVP AI Refinement Roadmap
+## 8. Metrics & Ongoing Improvement
 
-* **Weeks 1–2:** Collect real user feedback, refine prompts and clustering rules
-* **Weeks 3–4:** Integrate additional public datasets to enhance false positive filtering
-* **Months 2–3:** A/B test different AI versions for tone and accuracy
-* **Ongoing:** Monthly updates based on fraud trends and community input
+- AI performance (accuracy, false positive rate, average token use) is tracked
+- Community/user feedback informs prompt/model updates
+- Roadmap includes continuous improvements based on emerging fraud trends
+
+---
+
+> Questions or feedback? Open a GitHub Issue or join the discussion!

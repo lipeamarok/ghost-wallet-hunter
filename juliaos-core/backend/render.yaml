@@ -7,7 +7,6 @@ services:
     rootDir: juliaos-core/backend
     plan: starter
     region: oregon
-    dockerCommand: julia run_server.jl
     envVars:
       - key: HOST
         value: 0.0.0.0

@@ -11,7 +11,7 @@ from typing import Dict, List, Any, Optional
 from datetime import datetime
 
 from services.smart_ai_service import get_ai_service
-from .shared_models import MockSolanaService
+from services.solana_service import SolanaService
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +42,7 @@ class MarloweAgent:
 
         # Real AI service for sophisticated tracking
         self.ai_service = get_ai_service()
-        self.solana = MockSolanaService()
+        self.solana = SolanaService()
 
         # Marlowe's street-smart tracking
         self.bridges_tracked = 0

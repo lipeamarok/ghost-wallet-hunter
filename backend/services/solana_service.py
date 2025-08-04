@@ -31,52 +31,65 @@ class SolanaService:
         limit: int = 100,
         before: Optional[str] = None
     ) -> List[Dict[str, Any]]:
-        """Get transactions for a wallet address."""
+        """Get transactions for a wallet address using REAL Solana RPC."""
         try:
-            # For now, return mock data for testing
-            logger.info(f"Getting transactions for wallet: {wallet_address}")
+            logger.info(f"Getting REAL transactions for wallet: {wallet_address}")
 
-            # Mock transaction data for development
-            mock_transactions = [
-                {
-                    "signature": f"mock_sig_{i}",
-                    "slot": 1000000 + i,
-                    "blockTime": int(datetime.now().timestamp()) - (i * 3600),
-                    "err": None,
-                    "meta": {
-                        "fee": 5000,
-                        "preBalances": [1000000000, 500000000],
-                        "postBalances": [999995000, 500000000]
-                    },
-                    "transaction": {
-                        "message": {
-                            "accountKeys": [wallet_address, "mock_destination_address"],
-                            "instructions": [
-                                {
-                                    "programId": "11111111111111111111111111111112",
-                                    "accounts": [0, 1],
-                                    "data": "mock_instruction_data"
-                                }
-                            ]
+            # Make real RPC call to Solana
+            async with httpx.AsyncClient() as client:
+                payload = {
+                    "jsonrpc": "2.0",
+                    "id": 1,
+                    "method": "getSignaturesForAddress",
+                    "params": [
+                        wallet_address,
+                        {
+                            "limit": limit,
+                            "before": before
                         }
-                    }
+                    ]
                 }
-                for i in range(min(limit, 10))  # Return up to 10 mock transactions
-            ]
 
-            return mock_transactions
+                response = await client.post(self.rpc_url, json=payload)
+                result = response.json()
+
+                if "result" in result and result["result"]:
+                    logger.info(f"Found {len(result['result'])} real transactions")
+                    return result["result"]
+                else:
+                    logger.warning(f"No transactions found for wallet: {wallet_address}")
+                    return []
 
         except Exception as e:
             logger.error(f"Failed to get wallet transactions: {e}")
             return []
 
     async def get_wallet_balance(self, wallet_address: str) -> float:
-        """Get wallet balance in SOL."""
+        """Get wallet balance in SOL using REAL Solana RPC."""
         try:
-            logger.info(f"Getting balance for wallet: {wallet_address}")
+            logger.info(f"Getting REAL balance for wallet: {wallet_address}")
 
-            # For now, return mock balance
-            return 1.5  # Mock balance in SOL
+            # Make real RPC call to get balance
+            async with httpx.AsyncClient() as client:
+                payload = {
+                    "jsonrpc": "2.0",
+                    "id": 1,
+                    "method": "getBalance",
+                    "params": [wallet_address]
+                }
+
+                response = await client.post(self.rpc_url, json=payload)
+                result = response.json()
+
+                if "result" in result and "value" in result["result"]:
+                    # Convert lamports to SOL (1 SOL = 1,000,000,000 lamports)
+                    balance_lamports = result["result"]["value"]
+                    balance_sol = balance_lamports / 1_000_000_000
+                    logger.info(f"Real balance: {balance_sol} SOL")
+                    return balance_sol
+                else:
+                    logger.warning(f"Could not get balance for wallet: {wallet_address}")
+                    return 0.0
 
         except Exception as e:
             logger.error(f"Failed to get wallet balance: {e}")
@@ -101,25 +114,33 @@ class SolanaService:
             return False
 
     async def get_token_accounts(self, wallet_address: str) -> List[Dict[str, Any]]:
-        """Get token accounts for a wallet."""
+        """Get token accounts for a wallet using REAL Solana RPC."""
         try:
-            logger.info(f"Getting token accounts for wallet: {wallet_address}")
+            logger.info(f"Getting REAL token accounts for wallet: {wallet_address}")
 
-            # Mock token accounts for development
-            mock_token_accounts = [
-                {
-                    "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",  # USDC
-                    "amount": "1000000",  # 1 USDC (6 decimals)
-                    "decimals": 6
-                },
-                {
-                    "mint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",  # USDT
-                    "amount": "500000",  # 0.5 USDT (6 decimals)
-                    "decimals": 6
+            # Make real RPC call to get token accounts
+            async with httpx.AsyncClient() as client:
+                payload = {
+                    "jsonrpc": "2.0",
+                    "id": 1,
+                    "method": "getTokenAccountsByOwner",
+                    "params": [
+                        wallet_address,
+                        {"programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"},
+                        {"encoding": "jsonParsed"}
+                    ]
                 }
-            ]
 
-            return mock_token_accounts
+                response = await client.post(self.rpc_url, json=payload)
+                result = response.json()
+
+                if "result" in result and "value" in result["result"]:
+                    token_accounts = result["result"]["value"]
+                    logger.info(f"Found {len(token_accounts)} real token accounts")
+                    return token_accounts
+                else:
+                    logger.warning(f"No token accounts found for wallet: {wallet_address}")
+                    return []
 
         except Exception as e:
             logger.error(f"Failed to get token accounts: {e}")

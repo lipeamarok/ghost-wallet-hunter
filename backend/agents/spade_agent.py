@@ -373,13 +373,13 @@ class SpadeAgent:
     def get_risk_level_from_score(self, risk_score: float) -> RiskLevel:
         """Convert numeric risk score to risk level classification."""
         if risk_score >= 0.8:
-            return RiskLevel("CRITICAL")
+            return RiskLevel.CRITICAL
         elif risk_score >= 0.6:
-            return RiskLevel("HIGH")
+            return RiskLevel.HIGH
         elif risk_score >= 0.4:
-            return RiskLevel("MEDIUM")
+            return RiskLevel.MEDIUM
         else:
-            return RiskLevel("LOW")
+            return RiskLevel.LOW
 
     async def get_detective_status(self) -> Dict:
         """Get Sam Spade's current status and track record."""

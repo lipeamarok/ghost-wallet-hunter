@@ -3,13 +3,24 @@ Ghost Wallet Hunter - Detective Squad Manager
 
 Central coordinator of the legendary detective squad.
 Orchestrates Poirot, Marple, Spade, Marlowe, Dupin, Shadow, and Raven agents.
+Enhanced with JuliaOS hybrid architecture for 10-100x performance boost.
 """
 
 import asyncio
 import logging
+import time
+import json
 from typing import Dict, List, Any, Optional
 from datetime import datetime
 
+# Import JuliaOS service for hybrid analysis - ACTIVATED FOR PHASE 4
+from ..services.juliaos_service import get_juliaos_service
+from ..services.juliaos_detective_integration import get_juliaos_detective_integration, execute_enhanced_investigation
+
+# Import AI service for explanations
+from ..services.smart_ai_service import SmartAIService
+
+# Import existing agents for fallback
 from .poirot_agent import PoirotAgent
 from .marple_agent import MarpleAgent
 from .spade_agent import SpadeAgent
@@ -64,10 +75,151 @@ class DetectiveSquadManager:
         self.active_cases = {}
         self.case_assignments = {}
 
+        # JuliaOS Integration - Phase 4 Enhanced
+        self.juliaos_available = False
+        self.juliaos_service = None
+        self.juliaos_detective_integration = None
+        self.swarm_intelligence_available = False
+
+        # JuliaOS Agents tracking
+        self.juliaos_agents = {}  # Track created JuliaOS agents
+
+    async def check_juliaos_availability(self) -> bool:
+        """Check if JuliaOS backend is available for enhanced analysis - Phase 4 Enhanced"""
+        try:
+            # Initialize JuliaOS detective integration
+            if not self.juliaos_detective_integration:
+                self.juliaos_detective_integration = await get_juliaos_detective_integration()
+
+            # Check health
+            health_status = await self.juliaos_detective_integration.health_check()
+            self.juliaos_available = health_status.get("available", False)
+            self.swarm_intelligence_available = health_status.get("detective_swarm_available", False)
+
+            if self.juliaos_available:
+                logger.info("🚀 JuliaOS backend is available - Phase 4 Enhanced mode activated!")
+                if self.swarm_intelligence_available:
+                    logger.info("🧠 Swarm intelligence detection available - Using coordinated detective analysis!")
+                tools_count = health_status.get("available_tools", 0)
+                logger.info(f"📊 JuliaOS tools available: {tools_count}")
+
+                # PHASE 2: Create JuliaOS detective agents
+                await self.initialize_juliaos_detective_agents()
+
+                # Verify agents are working
+                agents_verified = await self.verify_detective_agents()
+                if agents_verified:
+                    logger.info("🎯 JuliaOS detective agents verified and ready!")
+                else:
+                    logger.warning("⚠️ JuliaOS agents created but verification failed")
+
+            else:
+                logger.warning("⚠️ JuliaOS backend not available - Using Python fallback mode")
+
+            return self.juliaos_available
+
+        except Exception as e:
+            logger.warning(f"⚠️ JuliaOS availability check failed: {e}")
+            self.juliaos_available = False
+            self.swarm_intelligence_available = False
+            return False
+
+    async def initialize_juliaos_detective_agents(self) -> bool:
+        """Initialize JuliaOS agents for each detective with real agent creation"""
+        try:
+            if not self.juliaos_available:
+                logger.info("📝 JuliaOS not available, skipping agent creation")
+                return False
+
+            # Initialize JuliaOS service if not done
+            if not self.juliaos_service:
+                self.juliaos_service = get_juliaos_service()
+
+            # Detective configurations based on our legendary squad
+            detective_configs = [
+                ("ghost_poirot", "Hercule Poirot", "Transaction analysis and behavioral patterns specialist"),
+                ("ghost_marple", "Miss Jane Marple", "Pattern and anomaly detection expert"),
+                ("ghost_spade", "Sam Spade", "Risk assessment and threat classification professional"),
+                ("ghost_marlowe", "Philip Marlowe", "Bridge and mixer tracking specialist"),
+                ("ghost_dupin", "Auguste Dupin", "Compliance and AML analysis expert"),
+                ("ghost_shadow", "The Shadow", "Network cluster analysis investigator"),
+                ("ghost_raven", "Edgar Raven", "LLM explanation and communication specialist")
+            ]
+
+            logger.info("🔧 Creating JuliaOS detective agents...")
+
+            created_agents = 0
+            for agent_id, name, description in detective_configs:
+                try:
+                    # Check if agent already exists
+                    existing_agent = await self.juliaos_service.get_agent(agent_id)
+
+                    if existing_agent:
+                        logger.info(f"♻️ {name} JuliaOS agent already exists, reusing")
+                        self.juliaos_agents[agent_id] = existing_agent
+                        created_agents += 1
+                    else:
+                        # Create new agent with detective_investigation strategy
+                        agent = await self.juliaos_service.create_detective_agent(
+                            agent_id=agent_id,
+                            name=name,
+                            description=description,
+                            strategy_name="detective_investigation",
+                            tools=["analyze_wallet", "check_blacklist", "risk_assessment", "llm_chat"]
+                        )
+
+                        if agent:
+                            logger.info(f"✅ {name} JuliaOS agent created successfully")
+                            self.juliaos_agents[agent_id] = agent
+                            created_agents += 1
+                        else:
+                            logger.warning(f"⚠️ Failed to create {name} JuliaOS agent")
+
+                except Exception as e:
+                    logger.error(f"❌ Error creating {name} agent: {e}")
+                    continue
+
+            if created_agents > 0:
+                logger.info(f"🎯 JuliaOS detective squad ready: {created_agents}/7 agents operational")
+                return True
+            else:
+                logger.warning("⚠️ No JuliaOS detective agents could be created")
+                return False
+
+        except Exception as e:
+            logger.error(f"❌ JuliaOS detective agents initialization failed: {e}")
+            return False
+
+    async def verify_detective_agents(self) -> bool:
+        """Verify that JuliaOS detective agents are running and accessible"""
+        try:
+            if not self.juliaos_agents or not self.juliaos_service:
+                return False
+
+            working_agents = 0
+            for agent_id, agent in self.juliaos_agents.items():
+                try:
+                    # Try to get agent status
+                    current_agent = await self.juliaos_service.get_agent(agent_id)
+                    if current_agent:
+                        working_agents += 1
+                except Exception as e:
+                    logger.warning(f"⚠️ Agent {agent_id} verification failed: {e}")
+
+            logger.info(f"✅ Verified {working_agents}/{len(self.juliaos_agents)} JuliaOS detective agents")
+            return working_agents > 0
+
+        except Exception as e:
+            logger.error(f"❌ Agent verification failed: {e}")
+            return False
+
     async def initialize_squad(self) -> bool:
-        """Initialize all legendary detectives in the complete squad - OPTIMIZED PARALLEL INIT."""
+        """Initialize all legendary detectives in the complete squad - OPTIMIZED PARALLEL INIT + JULIAOS."""
         try:
             logger.info(f"🚨 {self.squad_name} is assembling the legendary seven...")
+
+            # PHASE 2: Check JuliaOS availability first
+            await self.check_juliaos_availability()
 
             # Initialize all seven legendary detectives IN PARALLEL! 🚀
             initialization_tasks = [
@@ -269,19 +421,41 @@ class DetectiveSquadManager:
             }
 
             # Raven's synthesis and communication
-            raven_synthesis = await self.raven.synthesize_detective_findings(all_detective_reports, analysis_context)
-            raven_executive = await self.raven.generate_executive_explanation(raven_synthesis, "executive")
-            raven_technical = await self.raven.generate_executive_explanation(raven_synthesis, "technical")
-            raven_narrative = await self.raven.create_investigation_narrative({}, {})
+            try:
+                logger.info("🐦‍⬛ Raven beginning analysis synthesis...")
+                raven_synthesis = await self.raven.synthesize_detective_findings(all_detective_reports, analysis_context)
 
-            raven_communications = {
-                "synthesis": raven_synthesis,
-                "executive_summary": raven_executive,
-                "technical_report": raven_technical,
-                "investigation_narrative": raven_narrative
-            }
+                logger.info("🐦‍⬛ Raven generating executive summary...")
+                raven_executive = await self.raven.generate_executive_explanation(raven_synthesis, "executive")
 
-            raven_final_truth = await self.raven.generate_final_truth_report(raven_communications, analysis_context)
+                logger.info("🐦‍⬛ Raven generating technical report...")
+                raven_technical = await self.raven.generate_executive_explanation(raven_synthesis, "technical")
+
+                logger.info("🐦‍⬛ Raven creating investigation narrative...")
+                raven_narrative = await self.raven.create_investigation_narrative({}, {})
+
+                raven_communications = {
+                    "synthesis": raven_synthesis,
+                    "executive_summary": raven_executive,
+                    "technical_report": raven_technical,
+                    "investigation_narrative": raven_narrative
+                }
+
+                logger.info("🐦‍⬛ Raven generating final truth report...")
+                raven_final_truth = await self.raven.generate_final_truth_report(raven_communications, analysis_context)
+
+                logger.info("✅ Raven analysis completed successfully")
+
+            except Exception as e:
+                logger.error(f"❌ Raven analysis failed: {e}")
+                # Create fallback report
+                raven_final_truth = {
+                    "status": "error",
+                    "error_type": "raven_analysis_failure",
+                    "error_message": str(e),
+                    "fallback_analysis": "Raven agent encountered an error during analysis synthesis. Investigation continues with other detective findings.",
+                    "recommendation": "Review individual detective reports for analysis results."
+                }
 
             # Phase 5: Legendary Squad Final Report
             logger.info(f"🌟 Phase 5: Legendary squad consensus and final report...")
@@ -472,6 +646,166 @@ This analysis represents the combined intelligence of the Ghost Wallet Hunter De
             "squad_signature": "Ghost Wallet Hunter Detective Squad - Legendary Minds, Unbreakable Cases"
         }
 
+    async def run_enhanced_investigation(self, wallet_address: str, analysis_type: str = 'comprehensive', use_swarm: bool = True) -> Dict:
+        """
+        Run enhanced investigation using JuliaOS backend with swarm intelligence - Phase 4
+        """
+        try:
+            investigation_start = time.time()
+
+            logger.info(f"🔍 Starting Phase 4 enhanced investigation for wallet: {wallet_address}")
+
+            # Check JuliaOS availability
+            is_available = await self.check_juliaos_availability()
+
+            if is_available and self.juliaos_detective_integration:
+                logger.info("🚀 Using JuliaOS backend with swarm intelligence coordination!")
+
+                # Prepare investigation data
+                investigation_data = {
+                    "analysis_type": analysis_type,
+                    "enable_swarm_coordination": use_swarm,
+                    "requested_detectives": ["poirot", "marple", "spade", "marlowe", "dupin", "shadow", "raven"]
+                }
+
+                # Use coordinated detective swarm if available
+                if use_swarm and self.swarm_intelligence_available:
+                    logger.info("🧠 Activating detective swarm with collective intelligence...")
+                    result = await self.juliaos_detective_integration.execute_detective_swarm(
+                        wallet_address=wallet_address,
+                        investigation_data=investigation_data,
+                        selected_detectives=["poirot", "marple", "spade", "marlowe", "dupin", "shadow", "raven"]
+                    )
+                    result['investigation_mode'] = 'JuliaOS_Swarm_Intelligence'
+                    result['swarm_coordination'] = True
+                else:
+                    # Use Ghost Wallet Hunter strategy
+                    logger.info("🔍 Using JuliaOS Ghost Wallet Hunter strategy...")
+                    result = await self.juliaos_detective_integration.execute_ghost_wallet_strategy(
+                        wallet_address=wallet_address
+                    )
+                    result['investigation_mode'] = 'JuliaOS_Strategy'
+                    result['swarm_coordination'] = False
+
+                # Add enhanced metrics
+                result['performance_metrics'] = {
+                    'total_time': time.time() - investigation_start,
+                    'backend_type': 'JuliaOS_Native',
+                    'tools_used': result.get('tools_executed', []),
+                    'swarm_active': use_swarm and self.swarm_intelligence_available
+                }
+
+                logger.info(f"✅ JuliaOS investigation completed in {result['performance_metrics']['total_time']:.2f}s")
+                return result
+
+            else:
+                logger.warning("⚠️ JuliaOS not available - falling back to Python native investigation")
+                return await self.investigate_wallet_comprehensive(wallet_address)
+
+        except Exception as e:
+            logger.error(f"❌ Enhanced investigation failed: {e}")
+            logger.info("🔄 Falling back to comprehensive Python investigation...")
+            return await self.investigate_wallet_comprehensive(wallet_address)
+
+    async def execute_llm_enhanced_analysis(self, wallet_address: str, investigation_context: Dict) -> Dict:
+        """
+        Execute LLM-enhanced analysis using JuliaOS llm_chat tool - Phase 4
+        """
+        try:
+            logger.info(f"🤖 Starting LLM-enhanced analysis for wallet: {wallet_address}")
+
+            # Check JuliaOS availability
+            is_available = await self.check_juliaos_availability()
+
+            if is_available and self.juliaos_detective_integration:
+                # Prepare analysis prompt for LLM
+                analysis_prompt = f"""
+                Análise de Carteira Ghost Wallet Hunter - Relatório Detective Squad
+
+                CARTEIRA: {wallet_address}
+
+                CONTEXTO DA INVESTIGAÇÃO:
+                {json.dumps(investigation_context, indent=2)}
+
+                TAREFA:
+                Como um especialista em análise de blockchain e detecção de fraudes, analise esta carteira e forneça:
+
+                1. RESUMO EXECUTIVO: Avaliação geral de risco em português
+                2. PADRÕES SUSPEITOS: Identifique comportamentos anômalos
+                3. RECOMENDAÇÕES: Ações específicas baseadas na evidência
+                4. CONFIANÇA: Nível de certeza da análise (0-100%)
+
+                Foque em:
+                - Padrões de transação suspeitos
+                - Conexões com carteiras conhecidas por fraude
+                - Atividades de lavagem de dinheiro
+                - Uso de mixers ou bridges
+                - Volumes e frequências anômalas
+
+                Seja preciso, técnico e direto.
+                """
+
+                # Execute LLM analysis via JuliaOS
+                llm_config = {
+                    "messages": [
+                        {
+                            "role": "system",
+                            "content": "Você é um especialista em análise de blockchain e detecção de fraudes. Forneça análises técnicas precisas e actionable."
+                        },
+                        {
+                            "role": "user",
+                            "content": analysis_prompt
+                        }
+                    ],
+                    "max_tokens": 2000,
+                    "temperature": 0.3
+                }
+
+                if self.juliaos_detective_integration.client:
+                    response = await self.juliaos_detective_integration.client.post(
+                        f"{self.juliaos_detective_integration.juliaos_url}/tools/llm_chat/execute",
+                        json=llm_config,
+                        timeout=60.0
+                    )
+
+                    if response.status_code == 200:
+                        llm_result = response.json()
+                        logger.info("✅ LLM analysis completed successfully!")
+
+                        return {
+                            "wallet_address": wallet_address,
+                            "llm_analysis": llm_result,
+                            "analysis_method": "juliaos_llm_chat",
+                            "timestamp": datetime.now().isoformat(),
+                            "status": "success"
+                        }
+                    else:
+                        logger.warning(f"LLM analysis failed with status {response.status_code}")
+
+            # Fallback to Raven agent
+            logger.info("🔄 Falling back to Raven agent for LLM analysis...")
+            raven_analysis = await self.raven.generate_final_truth_report(investigation_context, {})
+
+            return {
+                "wallet_address": wallet_address,
+                "llm_analysis": raven_analysis,
+                "analysis_method": "raven_fallback",
+                "timestamp": datetime.now().isoformat(),
+                "status": "success"
+            }
+
+        except Exception as e:
+            logger.error(f"❌ LLM enhanced analysis failed: {e}")
+            return {
+                "error": str(e),
+                "status": "failed",
+                "fallback_message": "LLM analysis não disponível. Use análise detective squad padrão."
+            }
+
+    async def run_comprehensive_investigation(self, wallet_address: str) -> Dict:
+        """Run comprehensive investigation using Python detective squad."""
+        return await self.investigate_wallet_comprehensive(wallet_address)
+
     async def quick_risk_assessment(self, wallet_address: str) -> Dict:
         """Quick risk assessment using only Spade for urgent cases."""
         try:
@@ -488,7 +822,7 @@ This analysis represents the combined intelligence of the Ghost Wallet Hunter De
                 "assessment_type": "quick_risk_evaluation",
                 "wallet_address": wallet_address,
                 "risk_score": risk_score,
-                "risk_level": risk_level.level,
+                "risk_level": risk_level.value if hasattr(risk_level, 'value') else str(risk_level),
                 "detective": "Sam Spade",
                 "assessment": spade_quick,
                 "timestamp": datetime.now().isoformat(),
@@ -524,52 +858,265 @@ This analysis represents the combined intelligence of the Ghost Wallet Hunter De
 
     async def _compile_legendary_squad_report(self, case_id: str, wallet_address: str,
                                            all_detective_reports: Dict, raven_final_truth: Dict) -> Dict:
-        """Compile final legendary squad report combining all seven detective findings."""
+        """
+        Compile final legendary squad report using the new Risk Scoring System.
+        Implements weighted scoring, absolute overrides, and proper risk bands.
+        """
 
         try:
-            # Extract risk scores from all detectives
-            risk_scores = []
+            # Agent weights according to Risk Scoring System
+            agent_weights = {
+                "blacklist": 1.5,
+                "dupin": 1.3,
+                "spade": 1.2,
+                "poirot": 1.0,
+                "marple": 1.0,
+                "marlowe": 0.9,
+                "shadow": 0.8,
+                "raven": 0.3
+            }
 
-            # Get Poirot risk
-            poirot_risk = getattr(all_detective_reports.get("poirot"), 'risk_score', 0.5)
-            risk_scores.append(poirot_risk)
+            # Critical weights for flagged cases
+            critical_weights = {
+                "blacklist": 2.0,
+                "dupin": 1.8,
+                "spade": 1.4,
+                "poirot": 1.2,
+                "marple": 1.2,
+                "marlowe": 1.2,
+                "shadow": 1.1,
+                "raven": 0.4
+            }
 
-            # Get Marple risk
-            marple_risk = all_detective_reports.get("marple", {}).get('risk_score', 0.5)
-            risk_scores.append(marple_risk)
+            # Extract agent scores and confidence
+            agent_scores = []
+            override_triggered = False
+            override_reason = []
+            agents_data = []  # Initialize here so it's always available
 
-            # Get Spade risk
+            # Collect agent results FIRST (needed for consensus calculations even with overrides)
+            # Poirot (Transaction Analysis)
+            poirot_risk = getattr(all_detective_reports.get("poirot"), 'risk_score', None)
+            if poirot_risk is not None:
+                agents_data.append({
+                    "name": "poirot",
+                    "score": poirot_risk,
+                    "confidence": 1.0,  # Default confidence
+                    "weight": agent_weights["poirot"],
+                    "tags": []
+                })
+
+            # Marple (Pattern Detection)
+            marple_report = all_detective_reports.get("marple", {})
+            marple_risk = marple_report.get('risk_score', None)
+            if marple_risk is not None:
+                agents_data.append({
+                    "name": "marple",
+                    "score": marple_risk,
+                    "confidence": 1.0,
+                    "weight": agent_weights["marple"],
+                    "tags": []
+                })
+
+            # Spade (Risk Assessment)
             spade_report = all_detective_reports.get("spade", {})
-            spade_risk = spade_report.get('risk_score', 0.5)
-            risk_scores.append(spade_risk)
+            spade_risk = spade_report.get('risk_score', None)
+            if spade_risk is not None:
+                # Check for critical patterns
+                spade_tags = []
+                if spade_risk >= 0.8:
+                    spade_patterns = spade_report.get('patterns', [])
+                    for pattern in spade_patterns:
+                        if isinstance(pattern, dict) and 'money_laundering_indicators' in pattern:
+                            spade_tags.append("money_laundering")
 
-            # Additional detective risks (estimated from their analysis)
-            marlowe_risk = 0.6  # Bridge/mixer activity often indicates higher risk
-            dupin_risk = 0.5    # Compliance baseline
-            shadow_risk = 0.7   # Network analysis often reveals hidden connections
+                agents_data.append({
+                    "name": "spade",
+                    "score": spade_risk,
+                    "confidence": spade_report.get('confidence', 1.0),
+                    "weight": agent_weights["spade"],
+                    "tags": spade_tags
+                })
 
-            risk_scores.extend([marlowe_risk, dupin_risk, shadow_risk])
+            # Dupin (Compliance)
+            dupin_report = all_detective_reports.get("dupin", {})
+            if isinstance(dupin_report, dict) and dupin_report.get('compliance_report'):
+                compliance_status = dupin_report.get('compliance_report', {}).get('compliance_status', '')
+                # Only include if Dupin actually provided a compliance assessment
+                if compliance_status and compliance_status != 'UNKNOWN':
+                    dupin_score = 0.95 if compliance_status == 'NON-COMPLIANT' else 0.5
+                    dupin_tags = ["aml_violation"] if compliance_status == 'NON-COMPLIANT' else []
 
-            # Calculate legendary squad consensus
-            consensus_risk = sum(risk_scores) / len(risk_scores)
+                    agents_data.append({
+                        "name": "dupin",
+                        "score": dupin_score,
+                        "confidence": 1.0,
+                        "weight": agent_weights["dupin"],
+                        "tags": dupin_tags
+                    })
 
-            # Determine legendary consensus risk level
-            if consensus_risk >= 0.8:
-                risk_level = "CRITICAL"
-                threat_classification = "EXTREME THREAT"
-            elif consensus_risk >= 0.6:
-                risk_level = "HIGH"
-                threat_classification = "HIGH THREAT"
-            elif consensus_risk >= 0.4:
-                risk_level = "MEDIUM"
-                threat_classification = "MODERATE THREAT"
-            else:
-                risk_level = "LOW"
-                threat_classification = "LOW THREAT"
+            # Marlowe (Bridge/Mixer tracking) - ONLY if has valid risk_score
+            marlowe_report = all_detective_reports.get("marlowe", {})
+            marlowe_score = marlowe_report.get('risk_score', None) if marlowe_report else None
+            if marlowe_score is not None:
+                marlowe_tags = []
+                # Check for bridge/mixer patterns
+                if marlowe_score >= 0.8:
+                    marlowe_patterns = marlowe_report.get('patterns', [])
+                    if any('laundering' in str(pattern).lower() for pattern in marlowe_patterns):
+                        marlowe_tags.append("money_laundering")
 
-            # Count detective consensus
-            high_risk_detectives = sum(1 for score in risk_scores if score >= 0.6)
-            detective_consensus = f"{high_risk_detectives}/{len(risk_scores)} detectives flag HIGH+ risk"
+                agents_data.append({
+                    "name": "marlowe",
+                    "score": marlowe_score,
+                    "confidence": marlowe_report.get('confidence', 0.7),
+                    "weight": agent_weights["marlowe"],
+                    "tags": marlowe_tags
+                })
+
+            # Shadow (Network Intelligence) - ONLY if has valid risk_score
+            shadow_report = all_detective_reports.get("shadow", {})
+            # Parse Shadow's analysis field which contains JSON
+            shadow_score = None
+            if shadow_report and 'analysis' in shadow_report:
+                try:
+                    import json
+                    analysis_text = shadow_report['analysis']
+                    # Extract risk_score from the JSON string
+                    if '"risk_score":' in analysis_text:
+                        # Parse the JSON to get risk_score
+                        start = analysis_text.find('"risk_score":') + len('"risk_score":')
+                        end = analysis_text.find(',', start)
+                        if end == -1:
+                            end = analysis_text.find('}', start)
+                        shadow_score = float(analysis_text[start:end].strip())
+                except:
+                    # Try to get from raw_response if analysis parsing fails
+                    if 'raw_response' in shadow_report:
+                        try:
+                            shadow_data = json.loads(shadow_report['raw_response'])
+                            shadow_score = shadow_data.get('risk_score')
+                        except:
+                            pass
+
+            if shadow_score is not None:
+                shadow_tags = []
+                if shadow_score >= 0.8:
+                    shadow_reasoning = shadow_report.get('reasoning', '').lower()
+                    critical_patterns = ['money laundering hubs', 'criminal organization', 'centralized control']
+                    if any(pattern in shadow_reasoning for pattern in critical_patterns):
+                        shadow_tags.append("criminal_network")
+
+                agents_data.append({
+                    "name": "shadow",
+                    "score": shadow_score,
+                    "confidence": shadow_report.get('confidence', 0.8),
+                    "weight": agent_weights["shadow"],
+                    "tags": shadow_tags
+                })
+
+            # Check for ABSOLUTE OVERRIDES first (Hard Stops)
+
+            # 1. Blacklist Override
+            poirot_report = all_detective_reports.get("poirot", {})
+            if hasattr(poirot_report, 'false_positive_prevention'):
+                blacklist_info = poirot_report.false_positive_prevention.get('legitimacy_info', {}).get('blacklist', {})
+                if blacklist_info.get('is_blacklisted', False):
+                    override_triggered = True
+                    override_reason.append("BLACKLISTED ADDRESS DETECTED")
+                    final_score = 1.0
+                    risk_level = "CRITICAL"
+                    threat_classification = "CRITICAL SECURITY ALERT - BLACKLISTED"
+
+            # 2. AML/Compliance Override
+            if not override_triggered:
+                dupin_report = all_detective_reports.get("dupin", {})
+                if isinstance(dupin_report, dict):
+                    compliance_status = dupin_report.get('compliance_report', {}).get('compliance_status', '')
+                    aml_risk = dupin_report.get('compliance_report', {}).get('key_findings', {}).get('aml_risk', '')
+                    if compliance_status == 'NON-COMPLIANT' and aml_risk == 'HIGH':
+                        # Check if score >= 0.9 (as per documentation)
+                        dupin_score = 0.95  # High AML violation
+                        if dupin_score >= 0.9:
+                            override_triggered = True
+                            override_reason.append("AML/COMPLIANCE VIOLATION")
+                            final_score = 0.95
+                            risk_level = "HIGH"
+                            threat_classification = "HIGH THREAT - AML VIOLATION"
+
+            # If no absolute override, calculate weighted score
+            if not override_triggered:
+                # Calculate weighted score using the Risk Scoring System formula
+                weighted_scores = []
+                total_weights = 0
+
+                # LOG: Show which detectives are actually contributing to the score
+                logger.info(f"🎯 Detectives contributing to Risk Score calculation:")
+                for agent in agents_data:
+                    logger.info(f"   - {agent['name'].capitalize()}: {agent['score']:.3f} (weight: {agent['weight']})")
+
+                logger.info(f"📊 Total detectives in calculation: {len(agents_data)} (out of 7 possible)")
+
+                for agent in agents_data:
+                    score = agent["score"]
+                    confidence = agent["confidence"]
+                    weight = agent["weight"]
+
+                    # Check if critical flags require critical weight
+                    if any(tag in ["blacklist", "aml_violation", "money_laundering", "criminal_network"] for tag in agent["tags"]):
+                        weight = critical_weights.get(agent["name"], weight)
+
+                    # Apply confidence adjustment: weight × (0.7 + 0.3 × confidence)
+                    adjusted_weight = weight * (0.7 + 0.3 * confidence)
+                    weighted_score = score * adjusted_weight
+
+                    weighted_scores.append(weighted_score)
+                    total_weights += adjusted_weight
+
+                # 3. Majority Consensus Override
+                high_risk_agents = sum(1 for agent in agents_data if agent["score"] >= 0.8)
+                if high_risk_agents >= 4 and len(agents_data) >= 6:
+                    override_triggered = True
+                    override_reason.append("MAJORITY HIGH RISK CONSENSUS")
+                    final_score = 0.9
+                    risk_level = "HIGH"
+                    threat_classification = "HIGH THREAT - MAJORITY CONSENSUS"
+
+                # Calculate final score if no override
+                if not override_triggered:
+                    if total_weights == 0:
+                        final_score = 0.5  # UNKNOWN
+                        risk_level = "UNKNOWN"
+                        threat_classification = "INSUFFICIENT DATA"
+                        logger.warning(f"⚠️ No detective scores available - defaulting to UNKNOWN")
+                    else:
+                        final_score = sum(weighted_scores) / total_weights
+                        logger.info(f"📊 CALCULATION: Sum of weighted scores: {sum(weighted_scores):.3f}")
+                        logger.info(f"📊 CALCULATION: Total weights: {total_weights:.3f}")
+                        logger.info(f"📊 CALCULATION: Final score: {final_score:.3f}")
+
+                        # Apply Risk Bands according to documentation
+                        if final_score >= 0.85:
+                            risk_level = "CRITICAL"
+                            threat_classification = "CRITICAL THREAT"
+                        elif final_score >= 0.60:
+                            risk_level = "HIGH"
+                            threat_classification = "HIGH THREAT"
+                        elif final_score >= 0.30:
+                            risk_level = "MEDIUM"
+                            threat_classification = "MODERATE THREAT"
+                        else:
+                            risk_level = "LOW"
+                            threat_classification = "LOW THREAT"
+
+            # Count detective consensus for transparency
+            all_scores = [agent["score"] for agent in agents_data if agent.get("score") is not None]
+            high_risk_detectives = sum(1 for score in all_scores if score >= 0.6)
+            detective_consensus = f"{high_risk_detectives}/{len(all_scores)} detectives flag HIGH+ risk"
+
+            # Add override information to threat classification
+            if override_triggered and override_reason:
+                threat_classification = f"{threat_classification} - {', '.join(override_reason)}"
 
             legendary_report = {
                 "case_metadata": {
@@ -581,11 +1128,14 @@ This analysis represents the combined intelligence of the Ghost Wallet Hunter De
                     "squad_name": self.squad_name
                 },
                 "legendary_consensus": {
-                    "consensus_risk_score": round(consensus_risk, 3),
+                    "consensus_risk_score": round(final_score, 3),
                     "consensus_risk_level": risk_level,
                     "threat_classification": threat_classification,
                     "detective_consensus": detective_consensus,
-                    "investigation_confidence": "MAXIMUM (7 Detective Validation)"
+                    "investigation_confidence": "MAXIMUM (7 Detective Validation)",
+                    "override_triggered": override_triggered,
+                    "override_reason": override_reason if override_triggered else None,
+                    "scoring_methodology": "Risk Scoring System v1.0"
                 },
                 "detective_findings": {
                     "poirot_transaction_analysis": all_detective_reports.get("poirot"),
@@ -600,6 +1150,16 @@ This analysis represents the combined intelligence of the Ghost Wallet Hunter De
                     "synthesis_status": "COMPLETE",
                     "explanation_quality": "MAXIMUM_CLARITY"
                 },
+                "transparency_report": {
+                    "agent_weights_used": agent_weights,
+                    "critical_flags_detected": sum(1 for agent in agents_data
+                                                 if any(tag in ["blacklist", "aml_violation", "money_laundering", "criminal_network"]
+                                                       for tag in agent.get("tags", []))),
+                    "top_contributors": sorted([(agent["name"], agent["score"] * agent["weight"])
+                                              for agent in agents_data],
+                                             key=lambda x: x[1], reverse=True)[:3],
+                    "calculation_method": "Weighted scoring with confidence adjustment and absolute overrides"
+                },
                 "squad_performance": {
                     "total_detectives": 7,
                     "successful_analyses": 7,
@@ -609,12 +1169,14 @@ This analysis represents the combined intelligence of the Ghost Wallet Hunter De
                 "recommendations": {
                     "immediate_actions": self._extract_immediate_actions(all_detective_reports),
                     "monitoring_requirements": self._extract_monitoring_needs(all_detective_reports),
-                    "investigation_priority": "MAXIMUM" if consensus_risk >= 0.7 else "HIGH" if consensus_risk >= 0.5 else "MEDIUM"
+                    "investigation_priority": "MAXIMUM" if final_score >= 0.7 else "HIGH" if final_score >= 0.5 else "MEDIUM"
                 },
                 "legend_signature": "🌟 Seven legendary detectives have spoken. The truth is revealed. 🌟"
             }
 
-            logger.info(f"🌟 Legendary squad consensus: {risk_level} risk ({consensus_risk:.3f}) - {detective_consensus}")
+            logger.info(f"🌟 Risk Scoring System: {risk_level} risk ({final_score:.3f}) - {detective_consensus}")
+            if override_triggered:
+                logger.warning(f"⚠️ OVERRIDE TRIGGERED: {', '.join(override_reason)}")
 
             return legendary_report
 

@@ -3,6 +3,7 @@ Ghost Wallet Hunter - Poirot (Transaction Analysis Agent)
 
 Hercule Poirot - The master of method, meticulous in examining each transaction.
 "Little grey cells" applied to blockchain analysis with surgical precision.
+Enhanced with contextual token recog        logger.info(f"TARGET {self.name}: 'Mon ami, the deduction is complete! The truth emerges!'")ition and enriched analysis.
 """
 
 import asyncio
@@ -10,65 +11,75 @@ import logging
 from typing import Dict, List, Any, Optional
 from datetime import datetime
 
-from services.smart_ai_service import get_ai_service
-from .shared_models import MockSolanaService, RiskLevel, WalletCluster, AnalysisResult
+from services.juliaos_only_ai_service import get_juliaos_ai_service
+from services.solana_service import SolanaService
+from .shared_models import RiskLevel, WalletCluster, AnalysisResult
 
 logger = logging.getLogger(__name__)
 
 
 class PoirotAgent:
     """
-    🕵️ HERCULE POIROT - Transaction Analysis Detective
+     HERCULE POIROT - Transaction Analysis Detective
 
     The Belgian master of deduction applied to blockchain. Poirot examines each transaction
     with methodological precision, using his "little grey cells" to detect
     the smallest suspicious details in fund movement patterns.
 
+    NOW ENHANCED with contextual token recognition:
+    - Can identify specific tokens: "Ah, this is the Samoyed Coin (SAMO)!"
+    - Recognizes wallet behavior patterns: "This wallet, it shows memecoin trading, oui?"
+    - Provides enriched context for analysis
+
     Specialties:
-    - Meticulous transaction analysis
-    - Behavioral pattern detection
-    - Related wallet clustering
-    - Identificação de anomalias temporais
+    - Meticulous transaction analysis with token context
+    - Behavioral pattern detection with AI enrichment
+    - Related wallet clustering with contextual insights
+    - Temporal anomaly identification with token metadata
     """
 
     def __init__(self):
         self.name = "Hercule Poirot"
         self.code_name = "POIROT"
-        self.specialty = "Transaction Analysis & Pattern Recognition"
+        self.specialty = "Transaction Analysis & Contextual Pattern Recognition"
         self.agent_id = f"poirot_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-        self.motto = "Order and method, mon ami. The blockchain, she tells us everything."
+        self.motto = "Order and method, mon ami. The blockchain with context, she tells us everything."
 
-        # Real AI service for sophisticated analysis
-        self.ai_service = get_ai_service()
-        self.solana = MockSolanaService()
+        # AI service will be initialized in initialize()
+        self.ai_service = None
+
+        # Enhanced Solana service with token enrichment
+        self.solana_service = None
 
         # Poirot's meticulous tracking
         self.cases_solved = 0
         self.patterns_detected = 0
         self.anomalies_found = 0
+        self.tokens_identified = 0
 
     async def initialize(self) -> bool:
-        """Initialize Poirot with his methodical approach."""
+        """Initialize Poirot with JuliaOS AI service."""
         try:
-            logger.info(f"[DETECTIVE] {self.name} is preparing his investigation tools...")
+            logger.info(f"🕵️ {self.name} is preparing his investigation tools...")
 
-            # Test AI connection with Poirot's signature style
-            test_result = await self.ai_service.analyze_with_ai(
-                prompt="Bonjour! This is Hercule Poirot. Please confirm your readiness for methodical blockchain analysis.",
-                user_id=self.agent_id,
-                analysis_type="transaction_analysis"
-            )
+            # Initialize JuliaOS AI service
+            self.ai_service = await get_juliaos_ai_service()
 
-            if "error" not in test_result:
-                logger.info(f"[OK] {self.name}: 'Ah, magnifique! The little grey cells are ready for work!'")
-                return True
-            else:
-                logger.error(f"[ERROR] {self.name}: 'Mon Dieu! There is a problem with the investigation tools!'")
-                return False
+            # Initialize Solana service
+            self.solana_service = SolanaService()
+
+            logger.info(f"✅ {self.name} is ready for investigation!")
+            return True
 
         except Exception as e:
-            logger.error(f"[ERROR] {self.name} initialization failed: {e}")
+            logger.error(f"❌ {self.name} initialization failed: {e}")
             return False
+
+    @property
+    def fp_prevention_service(self):
+        """Lazy loading to avoid circular imports"""
+        from services.false_positive_prevention import fp_prevention_service
+        return fp_prevention_service
 
     async def investigate_wallet(self, wallet_address: str) -> AnalysisResult:
         """
@@ -98,9 +109,17 @@ class PoirotAgent:
             impossible must be possible in spite of appearances."
             """
 
+            if not self.ai_service:
+                logger.error(f"[ERROR] {self.name}: AI service not initialized")
+                return AnalysisResult(
+                    wallet_address=wallet_address,
+                    risk_score=0.5,
+                    risk_level=RiskLevel.MEDIUM,
+                    explanation="AI service unavailable for analysis"
+                )
+
             investigation_result = await self.ai_service.analyze_with_ai(
                 prompt=initial_prompt,
-                user_id=self.agent_id,
                 context={
                     "detective": "Hercule Poirot",
                     "method": "methodical_observation",
@@ -138,8 +157,12 @@ class PoirotAgent:
         """Poirot methodically gathers all transaction evidence."""
         logger.info(f"🔍 {self.name}: 'Now, we must gather ALL the evidence, no detail too small!'")
 
-        # Simulate thorough transaction gathering
-        transactions = await self.solana.get_wallet_transactions(wallet_address, limit=50)
+        # Ensure Solana service is initialized
+        if self.solana_service is None:
+            self.solana_service = SolanaService()
+
+        # Get transactions using real Solana service
+        transactions = await self.solana_service.get_wallet_transactions(wallet_address, limit=50)
 
         logger.info(f"📊 {self.name}: 'Ah! {len(transactions)} transactions to examine. Each one tells a story.'")
         return transactions
@@ -180,7 +203,7 @@ class PoirotAgent:
 
         patterns = await self.ai_service.analyze_with_ai(
             prompt=pattern_prompt,
-            user_id=self.agent_id,
+
             context={
                 "transaction_count": len(transactions),
                 "detective_method": "psychological_pattern_analysis"
@@ -232,7 +255,7 @@ class PoirotAgent:
 
         deduction = await self.ai_service.analyze_with_ai(
             prompt=deduction_prompt,
-            user_id=self.agent_id,
+
             context={
                 "wallet": wallet_address,
                 "patterns": patterns,
@@ -241,7 +264,7 @@ class PoirotAgent:
             analysis_type="transaction_analysis"
         )
 
-        logger.info(f"🎯 {self.name}: 'Mon ami, the deduction is complete! The truth emerges!'")
+        logger.info(f" {self.name}: 'Mon ami, the deduction is complete! The truth emerges!'")
         return deduction
 
     async def _present_solution(self, wallet_address: str, transactions: List[Dict],
@@ -280,7 +303,7 @@ class PoirotAgent:
 
         solution = await self.ai_service.analyze_with_ai(
             prompt=solution_prompt,
-            user_id=self.agent_id,
+
             context={
                 "case_summary": {
                     "wallet": wallet_address,
@@ -292,16 +315,46 @@ class PoirotAgent:
             analysis_type="transaction_analysis"
         )
 
-        # Create Poirot's final analysis result
-        risk_score = risk_assessment.get("risk_score", 0.5)
-        if risk_score > 0.8:
-            risk_level = RiskLevel("CRITICAL")
-        elif risk_score > 0.6:
-            risk_level = RiskLevel("HIGH")
-        elif risk_score > 0.4:
-            risk_level = RiskLevel("MEDIUM")
+        # Create Poirot's initial analysis result
+        initial_risk_score = risk_assessment.get("risk_score", 0.5)
+        if initial_risk_score > 0.8:
+            initial_risk_level = RiskLevel.CRITICAL
+        elif initial_risk_score > 0.6:
+            initial_risk_level = RiskLevel.HIGH
+        elif initial_risk_score > 0.4:
+            initial_risk_level = RiskLevel.MEDIUM
         else:
-            risk_level = RiskLevel("LOW")
+            initial_risk_level = RiskLevel.LOW
+
+        #  ENHANCED: Apply False Positive Prevention
+        logger.info(f"[DETECTIVE] {self.name}: 'Now, let me verify if this wallet is perhaps legitimate...'")
+
+        analysis_context = {
+            "agent": self.name,
+            "patterns": patterns,
+            "risk_assessment": risk_assessment,
+            "transactions_analyzed": len(transactions),
+            "investigation_timestamp": datetime.now().isoformat()
+        }
+
+        fp_analysis = await self.fp_prevention_service.analyze_with_legitimacy_check(
+            address=wallet_address,
+            initial_risk_score=initial_risk_score,
+            initial_risk_level=initial_risk_level,
+            analysis_context=analysis_context
+        )
+
+        # Use adjusted risk from false positive prevention
+        final_risk_score = fp_analysis.get("risk_score", initial_risk_score)
+        final_risk_level = fp_analysis.get("risk_level", initial_risk_level)
+
+        # Add legitimacy context to Poirot's explanation
+        legitimacy_context = fp_analysis.get("false_positive_prevention", {}).get("legitimacy_info", {})
+        legitimacy_note = ""
+
+        if fp_analysis.get("risk_adjustment_applied", False):
+            adjustment_reason = fp_analysis.get("adjustment_reason", "")
+            legitimacy_note = f"\n\n[DETECTIVE NOTE] {self.name}: 'Ah! Upon further investigation: {adjustment_reason}'"
 
         # Create some clusters based on analysis
         clusters = []
@@ -309,7 +362,7 @@ class PoirotAgent:
             clusters.append(WalletCluster(
                 cluster_id=f"poirot_cluster_{len(clusters)}",
                 wallets=[wallet_address] + patterns.get("connected_wallets", [])[:4],
-                risk_score=risk_score,
+                risk_score=final_risk_score,
                 connection_type="transaction_pattern"
             ))
 
@@ -317,14 +370,18 @@ class PoirotAgent:
         if isinstance(explanation, dict):
             explanation = explanation.get("solution", str(explanation))
 
+        # Add legitimacy context to explanation
+        final_explanation = f"[DETECTIVE] POIROT'S DEDUCTION: {explanation}{legitimacy_note}"
+
         return AnalysisResult(
             wallet_address=wallet_address,
             clusters=clusters,
-            risk_score=risk_score,
-            risk_level=risk_level,
+            risk_score=final_risk_score,
+            risk_level=final_risk_level,
             total_connections=len(clusters),
-            explanation=f"[DETECTIVE] POIROT'S DEDUCTION: {explanation}",
-            analysis_timestamp=datetime.now()
+            explanation=final_explanation,
+            analysis_timestamp=datetime.now(),
+            false_positive_prevention=fp_analysis.get("false_positive_prevention", {})
         )
 
     def _create_emergency_analysis(self, wallet_address: str, error: str) -> AnalysisResult:
@@ -333,24 +390,86 @@ class PoirotAgent:
             wallet_address=wallet_address,
             clusters=[],
             risk_score=0.5,
-            risk_level=RiskLevel("MEDIUM"),
+            risk_level=RiskLevel.MEDIUM,
             total_connections=0,
             explanation=f"[DETECTIVE] POIROT SAYS: 'Mon ami, there was a small complication in the investigation: {error}. But fear not, even this tells us something about the case!'",
             analysis_timestamp=datetime.now()
         )
 
     async def get_detective_status(self) -> Dict:
-        """Get Poirot's current status and achievements."""
+        """Get Poirot's enhanced status and achievements."""
         return {
             "detective": self.name,
             "code_name": self.code_name,
             "specialty": self.specialty,
             "motto": self.motto,
-            "status": "Ready for investigation",
+            "status": "Ready for enhanced investigation with token context",
             "cases_solved": self.cases_solved,
             "patterns_detected": self.patterns_detected,
             "anomalies_found": self.anomalies_found,
-            "investigation_tools": "AI-powered deductive reasoning",
-            "signature_method": "Order and method with little grey cells",
-            "agent_id": self.agent_id
+            "tokens_identified": self.tokens_identified,
+            "investigation_tools": "AI-powered deductive reasoning with token enrichment database",
+            "enhancements": [
+                "Token identification with external APIs",
+                "Contextual wallet behavior analysis",
+                "Enhanced risk assessment with token metadata",
+                "Behavioral pattern recognition with protocol usage"
+            ]
         }
+
+    def _format_token_insights(self, enriched_tokens: List[Dict[str, Any]]) -> str:
+        """Format token insights for Poirot's analysis."""
+        if not enriched_tokens:
+            return "No tokens identified in this wallet."
+
+        insights = []
+        for token in enriched_tokens[:5]:  # Top 5 tokens
+            info = token.get("enriched_info", {})
+            name = info.get("name", "Unknown")
+            token_type = info.get("type", "unknown")
+            confidence = info.get("confidence", 0)
+
+            insights.append(f"- {name} ({token_type}, confidence: {confidence:.1%})")
+
+        return "\n".join(insights)
+
+    def _format_context_insights(self, wallet_context: Dict[str, Any]) -> str:
+        """Format wallet context insights for Poirot's analysis."""
+        context_type = wallet_context.get("context_type", "unknown")
+        characteristics = wallet_context.get("characteristics", [])
+        protocols = wallet_context.get("protocol_usage", [])
+
+        insights = [f"Wallet Type: {context_type}"]
+
+        if characteristics:
+            insights.append(f"Characteristics: {', '.join(characteristics)}")
+
+        if protocols:
+            insights.append(f"Protocol Usage: {', '.join(protocols)}")
+
+        return "\n".join(insights)
+
+    def _determine_enhanced_risk(self, wallet_context: Dict[str, Any],
+                               enriched_tokens: List[Dict[str, Any]]) -> RiskLevel:
+        """Determine risk level based on enhanced context."""
+        risk_indicators = wallet_context.get("risk_indicators", [])
+        context_type = wallet_context.get("context_type", "unknown")
+
+        # High risk conditions
+        if "potential_bot_activity" in risk_indicators:
+            return RiskLevel.HIGH
+
+        if context_type in ["bot_wallet", "exchange_wallet"]:
+            return RiskLevel.HIGH
+
+        # Check for high-risk tokens
+        for token in enriched_tokens:
+            token_type = token.get("enriched_info", {}).get("type", "unknown")
+            if token_type == "memecoin":
+                return RiskLevel.MEDIUM
+
+        # Medium risk conditions
+        if risk_indicators or context_type in ["memecoin_trader"]:
+            return RiskLevel.MEDIUM
+
+        return RiskLevel.LOW

@@ -60,6 +60,7 @@ class Settings(BaseSettings):
 
     # Cache Settings
     REDIS_URL: str = "redis://localhost:6379/0"
+    REDIS_URL_TEST: Optional[str] = None
     CACHE_TTL_SECONDS: int = 900
 
     # Logging
@@ -72,9 +73,19 @@ class Settings(BaseSettings):
     SUSPICIOUS_THRESHOLD: float = 0.7
     MIN_CONNECTIONS_FOR_CLUSTER: int = 3
 
-    # JuliaOS
+    # JuliaOS Integration
+    JULIAOS_BASE_URL: str = "http://localhost:8052"  # Default: desenvolvimento local
     JULIAOS_API_KEY: Optional[str] = None
     JULIAOS_ENVIRONMENT: str = "development"
+    JULIAOS_ENABLED: bool = True
+
+    def get_juliaos_url(self) -> str:
+        """Get JuliaOS URL based on environment"""
+        # Production: Use Render service URL
+        if self.ENVIRONMENT == "production":
+            return "https://ghost-julia.onrender.com"
+        # Development: Use local JuliaOS or simple server
+        return self.JULIAOS_BASE_URL
 
     class Config:
         env_file = BACKEND_DIR / ".env"

@@ -11,7 +11,7 @@ from typing import Dict, List, Any, Optional
 from datetime import datetime, timedelta
 
 from services.smart_ai_service import get_ai_service
-from .shared_models import MockSolanaService
+from services.solana_service import SolanaService
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +40,7 @@ class MarpleAgent:
 
         # Real AI service for pattern analysis
         self.ai_service = get_ai_service()
-        self.solana = MockSolanaService()
+        self.solana = SolanaService()
 
         # Miss Marple's keen observations
         self.anomalies_spotted = 0

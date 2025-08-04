@@ -1,15 +1,14 @@
 import React from 'react';
-import Header from './Header';
+import UniversalHeader from './HeaderUniversal';
 import Footer from './Footer';
 
 const Layout = ({ children }) => {
   return (
     <div className="min-h-screen flex flex-col bg-black text-green-400">
-      <Header />
+      <UniversalHeader />
       <main className="flex-1">
         {children}
       </main>
-      <Footer />
     </div>
   );
 };

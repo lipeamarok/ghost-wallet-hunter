@@ -5,12 +5,13 @@ This is the main entry point for the Ghost Wallet Hunter backend API.
 It provides endpoints for blockchain analysis, wallet clustering, and AI-powered explanations.
 """
 
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from contextlib import asynccontextmanager
 import logging
 import sys
+import asyncio
 from pathlib import Path
 
 # Add the backend directory to the Python path
@@ -84,6 +85,30 @@ if not settings.DEBUG:
         allowed_hosts=["*.onrender.com", "localhost", "127.0.0.1"]
     )
 
+# Custom timeout middleware for long-running AI investigations
+@app.middleware("http")
+async def timeout_middleware(request: Request, call_next):
+    """
+    Custom timeout middleware for AI investigations.
+    Allows longer timeouts for investigation endpoints.
+    """
+    # Set timeout based on endpoint
+    if "/api/agents/legendary-squad/investigate" in str(request.url):
+        timeout = 300  # 5 minutes for full 7-detective investigation
+    elif "/api/v1/analyze" in str(request.url):
+        timeout = 180  # 3 minutes for standard analysis
+    else:
+        timeout = 60   # 1 minute for other endpoints
+
+    try:
+        return await asyncio.wait_for(call_next(request), timeout=timeout)
+    except asyncio.TimeoutError:
+        logger.warning(f"Request timeout ({timeout}s) for {request.url}")
+        raise HTTPException(
+            status_code=504,
+            detail=f"Request timeout after {timeout} seconds. AI investigation may take longer than expected."
+        )
+
 # Include API routes
 app.include_router(health.router, prefix="/api", tags=["health"])
 app.include_router(analysis.router, prefix="/api", tags=["analysis"])
@@ -124,9 +149,29 @@ try:
     app.include_router(frontend_router, tags=["frontend-api"])
     logger.info("[OK] Frontend API routes registered successfully")
 except ImportError as e:
-    logger.warning(f"[WARNING] Could not import frontend API router: {e}")
+    logger.warning(f"[WARNING] Could not import frontend router: {e}")
 except Exception as e:
-    logger.error(f"[ERROR] Failed to register frontend API router: {e}")
+    logger.error(f"[ERROR] Failed to register frontend router: {e}")
+
+# Include Real AI Investigation routes
+try:
+    from api.real_ai_investigation import router as real_ai_router
+    app.include_router(real_ai_router, tags=["real-ai-investigation"])
+    logger.info("[OK] Real AI Investigation routes registered successfully")
+except ImportError as e:
+    logger.warning(f"[WARNING] Could not import real AI investigation router: {e}")
+except Exception as e:
+    logger.error(f"[ERROR] Failed to register real AI investigation router: {e}")
+
+# Include Performance Monitoring routes
+try:
+    from api.performance_monitoring import router as performance_router
+    app.include_router(performance_router, prefix="/api", tags=["performance"])
+    logger.info("[OK] Performance Monitoring routes registered successfully")
+except ImportError as e:
+    logger.warning(f"[WARNING] Could not import performance monitoring router: {e}")
+except Exception as e:
+    logger.error(f"[ERROR] Failed to register performance monitoring router: {e}")
 
 # Include Demo Investigation routes
 try:

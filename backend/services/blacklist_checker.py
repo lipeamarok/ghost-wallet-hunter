@@ -116,7 +116,7 @@ class BlacklistChecker:
     async def _fetch_source(self, session: aiohttp.ClientSession, source_name: str, source_config: dict) -> Set[str]:
         """Fetch addresses from a specific source"""
         try:
-            logger.info(f"📡 Fetching {source_name}...")
+            logger.info(f"Fetching {source_name}...")
 
             timeout = ClientTimeout(total=30)
             async with session.get(source_config['url'], timeout=timeout) as response:

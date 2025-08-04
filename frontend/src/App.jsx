@@ -7,9 +7,12 @@ import Layout from './components/Layout/Layout';
 import HomePage from './pages/HomePage';
 import AnalysisPage from './pages/AnalysisPage';
 import ResultsPage from './pages/ResultsPage';
+import ResultsTest from './pages/ResultsTest'; // Importando a página de teste
 import AboutPage from './pages/AboutPage';
 import AnalysisPageSimple from './pages/AnalysisPageSimple';
 import ResultsPageSimple from './pages/ResultsPageSimple';
+import BlockchainTravelPlayground from './pages/BlockchainTravelPlayground';
+import TransitionTest from './pages/TransitionTest';
 
 import './index.css';
 
@@ -46,6 +49,16 @@ function App() {
             <Route path="/analysis" element={<Layout><AnalysisPage /></Layout>} />
             <Route path="/results/:walletAddress" element={<Layout><ResultsPage /></Layout>} />
             <Route path="/about" element={<Layout><AboutPage /></Layout>} />
+
+            {/* Página de teste 3D */}
+            <Route path="/3d-test" element={<BlockchainTravelPlayground />} />
+            {/* Página de transição */}
+            <Route path="/transition-test" element={<TransitionTest />} />
+            {/* Rota de loading */}
+            <Route path="/loading" element={<Layout><BlockchainTravelPlayground /></Layout>} />
+            {/* Página de teste de resultados */}
+            <Route path="/results-test" element={<Layout><ResultsTest /></Layout>} />
+
           </Routes>
           <Toaster
             position="top-right"

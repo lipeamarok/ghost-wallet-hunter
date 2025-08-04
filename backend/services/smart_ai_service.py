@@ -1,8 +1,8 @@
 """
-AI Configuration Service
+AI Configuration Service - JuliaOS ONLY
 
-Advanced AI configuration system for Ghost Wallet Hunter.
-Supports multiple AI providers with cost control, rate limiting, and temperature settings.
+Ghost Wallet Hunter AI system configured to use EXCLUSIVELY JuliaOS.
+100% focus on JuliaOS integration for production-ready AI analysis.
 """
 
 from enum import Enum
@@ -24,57 +24,45 @@ except ImportError:
 
 
 class AIProvider(Enum):
-    """Supported AI providers."""
-    OPENAI = "openai"
-    GROK = "grok"
+    """AI providers - JuliaOS ONLY."""
     JULIAOS = "juliaos"
-    MOCK = "mock"  # For development/testing
 
 
 class AIModel(Enum):
-    """AI models available for each provider."""
-    # OpenAI Models
-    GPT_4_TURBO = "gpt-4-turbo-preview"
-    GPT_4 = "gpt-4"
-    GPT_3_5_TURBO = "gpt-3.5-turbo"
-
-    # Grok Models
-    GROK_BETA = "grok-beta"
-
-    # JuliaOS Models
+    """AI models available - JuliaOS ONLY."""
     JULIAOS_DEFAULT = "juliaos-default"
-
-    # Mock for testing
-    MOCK_MODEL = "mock-model"
+    JULIAOS_ADVANCED = "juliaos-advanced"
 
 
 class AIConfiguration(BaseModel):
-    """AI configuration settings."""
+    """AI configuration settings - JuliaOS ONLY."""
 
-    # Provider Selection - REAL AI BY DEFAULT! 🚀
-    primary_provider: AIProvider = AIProvider.OPENAI
-    fallback_providers: List[AIProvider] = [AIProvider.GROK, AIProvider.MOCK]
+    # Provider Selection - JULIAOS ONLY! 🚀
+    primary_provider: AIProvider = AIProvider.JULIAOS
+    fallback_providers: List[AIProvider] = []  # No fallbacks - JuliaOS only
 
-    # Model Selection per Provider
+    # Model Selection - JuliaOS models only
     models: Dict[AIProvider, AIModel] = {
-        AIProvider.OPENAI: AIModel.GPT_3_5_TURBO,
-        AIProvider.GROK: AIModel.GROK_BETA,
-        AIProvider.JULIAOS: AIModel.JULIAOS_DEFAULT,
-        AIProvider.MOCK: AIModel.MOCK_MODEL
+        AIProvider.JULIAOS: AIModel.JULIAOS_DEFAULT
     }
 
+    # JuliaOS-specific settings
+    juliaos_host: str = "localhost"
+    juliaos_port: int = 8052
+    juliaos_timeout: float = 30.0
+
     # Temperature & Generation Settings
-    temperature: float = 0.7  # 0.0 = deterministic, 1.0 = creative
-    max_tokens: int = 500  # Reduced to prevent context overflow
+    temperature: float = 0.7
+    max_tokens: int = 500
     top_p: float = 0.9
     frequency_penalty: float = 0.0
     presence_penalty: float = 0.0
 
     # Cost Control
-    max_cost_per_request: float = 0.05  # USD
-    max_cost_per_user_daily: float = 1.00  # USD per user per day
-    max_cost_per_user_monthly: float = 10.00  # USD per user per month
-    max_total_daily_cost: float = 50.00  # USD total daily limit
+    max_cost_per_request: float = 0.05
+    max_cost_per_user_daily: float = 1.00
+    max_cost_per_user_monthly: float = 10.00
+    max_total_daily_cost: float = 50.00
 
     # Rate Limiting
     requests_per_minute_per_user: int = 10
@@ -89,7 +77,7 @@ class AIConfiguration(BaseModel):
     # Retry & Fallback
     max_retries: int = 3
     retry_delay_seconds: float = 1.0
-    enable_fallback: bool = True
+    enable_fallback: bool = False  # No fallback - JuliaOS only
 
 
 class UserUsageTracker:
@@ -320,9 +308,7 @@ class SmartAIService:
     ) -> Dict[str, Any]:
         """Call specific AI provider."""
 
-        if provider == AIProvider.MOCK:
-            return await self._call_mock_ai(prompt, context, analysis_type)
-        elif provider == AIProvider.OPENAI:
+        if provider == AIProvider.OPENAI:
             return await self._call_openai(prompt, context, analysis_type)
         elif provider == AIProvider.GROK:
             return await self._call_grok(prompt, context, analysis_type)
@@ -330,38 +316,6 @@ class SmartAIService:
             return await self._call_juliaos(prompt, context, analysis_type)
         else:
             raise ValueError(f"Unsupported provider: {provider}")
-
-    async def _call_mock_ai(self, prompt: str, context: Optional[Dict], analysis_type: str) -> Dict[str, Any]:
-        """Mock AI implementation with realistic responses."""
-        await asyncio.sleep(0.2)  # Simulate API delay
-
-        # Sophisticated mock responses based on analysis type and prompt content
-        if analysis_type == "transaction_analysis" or "transaction" in prompt.lower():
-            return {
-                "analysis": "Advanced transaction pattern analysis reveals clustering behavior",
-                "risk_score": 0.65,
-                "patterns": ["round_amounts", "timing_correlation", "frequent_micro_transactions"],
-                "confidence": 0.82,
-                "reasoning": "Multiple indicators suggest coordinated wallet activity including synchronized transactions and round-number transfers typical of money laundering schemes."
-            }
-
-        elif analysis_type == "compliance" or "compliance" in prompt.lower():
-            return {
-                "compliance_status": "requires_enhanced_monitoring",
-                "aml_risk": "medium",
-                "sanctions_check": "clear",
-                "regulatory_flags": ["frequent_small_amounts", "cross_border_activity"],
-                "confidence": 0.88,
-                "recommendations": ["implement_kyc_verification", "monitor_transaction_velocity"]
-            }
-
-        else:
-            return {
-                "analysis": "Comprehensive AI analysis completed",
-                "insights": "Wallet shows moderate risk profile with some suspicious indicators",
-                "confidence": 0.75,
-                "key_findings": ["transaction_clustering", "behavioral_anomalies"]
-            }
 
     async def _call_openai(self, prompt: str, context: Optional[Dict], analysis_type: str) -> Dict[str, Any]:
         """OpenAI API implementation with real API calls."""
@@ -543,8 +497,27 @@ Format as JSON with analysis, insights, confidence, and key_findings."""
 
     async def _call_juliaos(self, prompt: str, context: Optional[Dict], analysis_type: str) -> Dict[str, Any]:
         """JuliaOS API implementation."""
-        # JuliaOS integration ready for future implementation
-        return await self._call_mock_ai(prompt, context, analysis_type)
+        from services.juliaos_service import get_juliaos_client
+        from datetime import datetime
+
+        try:
+            client = await get_juliaos_client()
+
+            # Prepare transaction data for JuliaOS analysis
+            transaction_data = {
+                "prompt": prompt,
+                "context": context or {},
+                "analysis_type": analysis_type,
+                "timestamp": datetime.now().isoformat()
+            }
+
+            # Call JuliaOS analysis
+            result = await client.analyze_transaction_with_llm(transaction_data)
+            return result
+
+        except Exception as e:
+            logger.error(f"JuliaOS API call failed: {e}")
+            raise
 
     def _estimate_cost(self, provider: AIProvider, prompt: str, result: Dict[str, Any]) -> float:
         """Estimate cost of AI request."""
@@ -562,7 +535,8 @@ Format as JSON with analysis, insights, confidence, and key_findings."""
             # JuliaOS pricing (estimated)
             return (prompt_tokens + response_tokens) * 0.0005 / 1000
         else:
-            return 0.0  # Mock is free
+            # Unknown provider
+            return 0.0
 
     def _get_fallback_analysis(self, analysis_type: str) -> Dict[str, Any]:
         """Provide fallback analysis when AI is unavailable."""
@@ -587,7 +561,7 @@ Format as JSON with analysis, insights, confidence, and key_findings."""
             user_stats = self.usage_tracker.get_user_stats(user_id)
             total_calls_today += user_stats.get("requests_today", 0)
 
-        # Build cost breakdown by detective (simulated for now)
+        # Build cost breakdown by detective
         cost_breakdown = {
             "poirot": self.daily_cost * 0.20,  # 20% of total cost
             "marple": self.daily_cost * 0.15,  # 15% of total cost

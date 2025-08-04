@@ -1,57 +1,53 @@
 #!/usr/bin/env python3
 """
-Ghost Wallet Hunter Server Launcher
-Enhanced with JuliaOS AI-powered transaction analysis
+Ghost Wallet Hunter Backend Server Starter
+Inicia o servidor backend com integração JuliaOS ativa.
 """
 
-import os
 import sys
-import uvicorn
+import os
+import subprocess
+import logging
 from pathlib import Path
 
-def main():
-    """Start the Ghost Wallet Hunter server."""
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
-    # Ensure we're in the correct directory
-    backend_dir = Path(__file__).parent
-    os.chdir(backend_dir)
-
-    # Add current directory to Python path
-    sys.path.insert(0, str(backend_dir))
-
-    print("🚀 Starting Ghost Wallet Hunter Server")
-    print("=" * 50)
-    print("🔍 Enhanced with JuliaOS AI Analysis")
-    print("🤖 AI-powered transaction pattern detection")
-    print("🎯 Blockchain compliance monitoring")
-    print("=" * 50)
-
+def start_server():
+    """Start Ghost Wallet Hunter backend server"""
     try:
-        # Test import main module
-        import main
-        print("✅ Main module imported successfully")
-        print(f"✅ FastAPI app: {main.app}")
+        logger.info("🚀 Starting Ghost Wallet Hunter Backend Server...")
+        logger.info("🔗 JuliaOS Integration: Enabled (port 8052)")
+        logger.info("🕵️‍♂️ Detective Squad: Phase 4 Active")
+        logger.info("🧠 Swarm Intelligence: Coordinated Analysis")
+        logger.info("📡 Backend Server: Starting on port 8001...")
 
-        # Start the server
-        print("\n🌐 Server starting on http://localhost:8001")
-        print("📊 API Documentation: http://localhost:8001/docs")
-        print("🔄 Health Check: http://localhost:8001/health")
-        print("📈 Analysis Endpoint: http://localhost:8001/api/v1/analyze")
+        # Start FastAPI server directly
+        cmd = [
+            sys.executable, "-m", "uvicorn",
+            "main:app",
+            "--host", "0.0.0.0",
+            "--port", "8001",
+            "--reload",
+            "--timeout-keep-alive", "30",
+            "--timeout-graceful-shutdown", "30"
+        ]
 
-        uvicorn.run(
-            main.app,
-            host="0.0.0.0",
-            port=8001,
-            log_level="info",
-            reload=False  # Disable reload to avoid import issues
-        )
+        subprocess.run(cmd, check=True)
 
-    except ImportError as e:
-        print(f"❌ Failed to import main module: {e}")
+    except KeyboardInterrupt:
+        logger.info("👋 Shutting down Ghost Wallet Hunter Backend...")
+    except subprocess.CalledProcessError as e:
+        logger.error(f"❌ Failed to start server: {e}")
+        logger.info("💡 Try: pip install uvicorn fastapi")
         sys.exit(1)
     except Exception as e:
-        print(f"❌ Server startup failed: {e}")
+        logger.error(f"❌ Unexpected error: {e}")
         sys.exit(1)
 
 if __name__ == "__main__":
-    main()
+    start_server()

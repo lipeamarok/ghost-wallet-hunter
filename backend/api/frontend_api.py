@@ -451,3 +451,43 @@ async def test_full_integration():
     except Exception as e:
         logger.error(f"❌ Integration test failed: {e}")
         raise HTTPException(status_code=500, detail=f"Integration test failed: {str(e)}")
+
+
+@router.get("/test/juliaos")
+async def test_juliaos_connection():
+    """
+    Test connection to JuliaOS backend.
+    """
+    try:
+        logger.info("🔍 Testing JuliaOS connection...")
+
+        from services.juliaos_service import JuliaOSClient
+
+        async with JuliaOSClient() as client:
+            # Test connection
+            connection_result = await client.connect()
+
+            # Test status if connection successful
+            status_result = None
+            if connection_result:
+                try:
+                    status_result = await client.get_status()
+                except Exception as e:
+                    logger.warning(f"Status check failed: {e}")
+
+            return {
+                "juliaos_status": "available" if connection_result else "unavailable",
+                "connection_test": {"connected": connection_result},
+                "status_check": status_result,
+                "timestamp": datetime.utcnow().isoformat(),
+                "integration": "successful" if connection_result else "failed"
+            }
+
+    except Exception as e:
+        logger.error(f"❌ JuliaOS connection test failed: {e}")
+        return {
+            "juliaos_status": "unavailable",
+            "error": str(e),
+            "timestamp": datetime.utcnow().isoformat(),
+            "integration": "failed"
+        }

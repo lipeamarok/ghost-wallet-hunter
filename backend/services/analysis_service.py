@@ -13,7 +13,7 @@ from collections import defaultdict, deque
 import statistics
 
 from services.solana_service import SolanaService
-from services.juliaos_service import get_juliaos_client, JuliaOSAPIError
+from services.juliaos_service import get_juliaos_service, JuliaOSService
 from schemas.analysis import WalletCluster, AnalysisMetadata, RiskLevel
 from config.settings import settings
 
@@ -50,7 +50,7 @@ class AnalysisService:
 
             # Initialize services
             self.solana_service = SolanaService()
-            juliaos_client = await get_juliaos_client()
+            juliaos_service = get_juliaos_service()
 
             # Get wallet transactions
             transactions = await self._get_wallet_transactions(wallet_address)
@@ -69,7 +69,7 @@ class AnalysisService:
                 wallet_address,
                 transactions,
                 clusters,
-                juliaos_client
+                juliaos_service
             )
 
             # Combine traditional and AI analysis
@@ -430,7 +430,7 @@ class AnalysisService:
         juliaos_client
     ) -> Dict[str, Any]:
         """
-        Perform AI-enhanced analysis using JuliaOS.
+        Perform AI-enhanced analysis using JuliaOS with real detective agents.
 
         Args:
             wallet_address: Target wallet address
@@ -442,8 +442,18 @@ class AnalysisService:
             AI analysis results
         """
         try:
-            # Prepare transaction data for JuliaOS analysis
-            analysis_data = {
+            # 1. Check if JuliaOS agents are available
+            agents = await juliaos_client.list_agents()
+            ghost_agents = [a for a in agents if a.id.startswith("ghost_")]
+
+            if not ghost_agents:
+                logger.warning("No Ghost Wallet Hunter agents found in JuliaOS - using fallback")
+                return self._fallback_analysis()
+
+            logger.info(f"🕵️ Found {len(ghost_agents)} JuliaOS detective agents available")
+
+            # 2. Prepare investigation payload for detective_investigation strategy
+            investigation_payload = {
                 "wallet_address": wallet_address,
                 "transactions": transactions[:50],  # Limit for performance
                 "clusters": [
@@ -456,34 +466,72 @@ class AnalysisService:
                     }
                     for cluster in clusters
                 ],
-                "analysis_type": "suspicious_wallet_clustering",
-                "network": "solana"
+                "analysis_depth": "comprehensive",
+                "investigation_type": "suspicious_wallet_clustering",
+                "network": "solana",
+                "timestamp": datetime.now(UTC).isoformat()
             }
 
-            # Perform JuliaOS AI analysis
-            ai_result = await juliaos_client.analyze_transaction_with_llm(analysis_data)
+            # 3. Use primary detective agent as coordinator (typically Poirot)
+            primary_agent = ghost_agents[0]  # Use first available agent as coordinator
+            logger.info(f"🎯 Using {primary_agent.name} as primary detective coordinator")
 
-            logger.info(f"JuliaOS analysis completed for {wallet_address}")
-            return ai_result
+            # 4. Trigger detective investigation via webhook
+            webhook_success = await juliaos_client.trigger_agent_webhook(
+                agent_id=primary_agent.id,
+                payload=investigation_payload
+            )
 
-        except JuliaOSAPIError as e:
-            logger.warning(f"JuliaOS analysis failed: {e}")
-            return {
-                "risk_score": 0,
-                "risk_level": "unknown",
-                "suspicious_patterns": [],
-                "ai_insights": f"JuliaOS analysis unavailable: {e}",
-                "analysis_method": "fallback"
-            }
+            if not webhook_success:
+                logger.warning("JuliaOS webhook trigger failed - using fallback")
+                return self._fallback_analysis()
+
+            # 5. Wait a moment for processing and get analysis output
+            await asyncio.sleep(2)  # Give JuliaOS time to process
+
+            analysis_output = await juliaos_client.get_agent_output(primary_agent.id)
+
+            if analysis_output:
+                logger.info("✅ JuliaOS detective analysis completed successfully")
+                return self._parse_juliaos_output(analysis_output)
+            else:
+                logger.warning("No output received from JuliaOS analysis")
+                return self._fallback_analysis()
+
         except Exception as e:
-            logger.error(f"Unexpected error in JuliaOS analysis: {e}")
+            logger.error(f"JuliaOS analysis failed: {e}")
+            return self._fallback_analysis()
+
+    def _parse_juliaos_output(self, juliaos_output: Dict[str, Any]) -> Dict[str, Any]:
+        """Parse JuliaOS detective analysis output into expected format"""
+        try:
+            # Extract meaningful data from JuliaOS output
+            risk_score = juliaos_output.get("risk_score", 0)
+            risk_level = juliaos_output.get("risk_level", "unknown")
+            insights = juliaos_output.get("analysis", "JuliaOS analysis completed")
+            patterns = juliaos_output.get("suspicious_patterns", [])
+
             return {
-                "risk_score": 0,
-                "risk_level": "unknown",
-                "suspicious_patterns": [],
-                "ai_insights": f"Analysis error: {e}",
-                "analysis_method": "error"
+                "risk_score": risk_score,
+                "risk_level": risk_level,
+                "suspicious_patterns": patterns,
+                "ai_insights": insights,
+                "analysis_method": "juliaos_detective_investigation"
             }
+
+        except Exception as e:
+            logger.error(f"Error parsing JuliaOS output: {e}")
+            return self._fallback_analysis()
+
+    def _fallback_analysis(self) -> Dict[str, Any]:
+        """Fallback analysis when JuliaOS is unavailable"""
+        return {
+            "risk_score": 0,
+            "risk_level": "unknown",
+            "suspicious_patterns": [],
+            "ai_insights": "JuliaOS analysis unavailable - using traditional analysis only",
+            "analysis_method": "traditional_fallback"
+        }
 
     def _combine_risk_scores(self, traditional_score: float, ai_score: float) -> float:
         """

@@ -172,6 +172,22 @@ export const costService = {
   }
 };
 
+// Legendary Squad Investigation API
+export const legendarySquadService = {
+  // Full squad investigation (the main investigation endpoint)
+  investigate: async (walletAddress, investigationType = 'comprehensive') => {
+    return detectiveAPI.post('/api/agents/legendary-squad/investigate', {
+      wallet_address: walletAddress,
+      investigation_type: investigationType
+    });
+  },
+
+  // Squad status check
+  getStatus: async () => {
+    return detectiveAPI.get('/api/agents/legendary-squad/status');
+  }
+};
+
 // System Health API
 export const systemService = {
   // Backend health check

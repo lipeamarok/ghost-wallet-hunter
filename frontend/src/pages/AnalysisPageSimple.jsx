@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { legendarySquadService } from '../services/detectiveAPI';
 
 export default function AnalysisPageSimple() {
   const location = useLocation();
@@ -8,6 +9,8 @@ export default function AnalysisPageSimple() {
   const [progress, setProgress] = useState(0);
   const [currentPhase, setCurrentPhase] = useState('Starting investigation...');
   const [walletAddress, setWalletAddress] = useState('');
+  const [isInvestigating, setIsInvestigating] = useState(false);
+  const [realTimeUpdates, setRealTimeUpdates] = useState([]);
 
   // Investigation phases
   const phases = [
@@ -28,9 +31,10 @@ export default function AnalysisPageSimple() {
   ];
 
   useEffect(() => {
-    // Get wallet address from URL or state
+    // Get wallet address from state or URL
     const searchParams = new URLSearchParams(location.search);
     const wallet = searchParams.get('wallet') || location.state?.walletAddress || '';
+
     setWalletAddress(wallet);
 
     if (!wallet) {
@@ -39,23 +43,23 @@ export default function AnalysisPageSimple() {
       return;
     }
 
-    // Simulate investigation progress
+    // Start real investigation immediately
+    performRealTimeInvestigation(wallet);
+  }, [location, navigate]);
+
+  // Function to perform real-time investigation with progress updates
+  const performRealTimeInvestigation = async (wallet) => {
+    setIsInvestigating(true);
+
+    // Start progress simulation
     let currentProgress = 0;
     let phaseIndex = 0;
 
-    const interval = setInterval(() => {
-      currentProgress += Math.random() * 8 + 2; // Random increment between 2-10
+    const progressInterval = setInterval(() => {
+      currentProgress += Math.random() * 3 + 1; // Slower increment for real investigation
 
-      if (currentProgress >= 100) {
-        currentProgress = 100;
-        setProgress(100);
-        setCurrentPhase('Investigation completed! Redirecting...');
-
-        // Make real request to backend
-        performRealInvestigation(wallet);
-
-        clearInterval(interval);
-        return;
+      if (currentProgress >= 95) {
+        currentProgress = 95; // Stop at 95% until real API completes
       }
 
       setProgress(currentProgress);
@@ -65,47 +69,64 @@ export default function AnalysisPageSimple() {
       if (expectedPhaseIndex !== phaseIndex && expectedPhaseIndex < phases.length) {
         phaseIndex = expectedPhaseIndex;
         setCurrentPhase(phases[phaseIndex]);
+
+        // Add real-time update
+        setRealTimeUpdates(prev => [...prev, {
+          time: new Date().toLocaleTimeString(),
+          phase: phases[phaseIndex],
+          progress: Math.round(currentProgress)
+        }]);
       }
-    }, 800); // Update every 800ms
+    }, 1000); // Update every second
 
-    return () => clearInterval(interval);
-  }, []); // Empty dependency array to run only once
-
-  // Function to perform real investigation
-  const performRealInvestigation = async (wallet) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8001'}/api/v1/wallet/investigate`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          wallet_address: wallet,
-          investigation_type: 'comprehensive',
-          notify_frontend: false
-        })
-      });
+      // Make real API call
+      console.log('🔍 Starting real investigation for:', wallet);
+      const investigationData = await legendarySquadService.investigate(wallet, 'comprehensive');
 
-      const result = await response.json();
+      // Investigation completed
+      clearInterval(progressInterval);
+      setProgress(100);
+      setCurrentPhase('Investigation completed! Redirecting to results...');
 
-      // Redirect to results with investigation data
-      setTimeout(() => {
-        navigate(`/results-simple?wallet=${wallet}`, {
-          state: { investigationResult: result, walletAddress: wallet }
-        });
-      }, 2000);
+      setRealTimeUpdates(prev => [...prev, {
+        time: new Date().toLocaleTimeString(),
+        phase: '✅ Investigation completed successfully!',
+        progress: 100
+      }]);
 
-    } catch (error) {
-      console.error('Investigation error:', error);
-      // In case of error, still redirect but with error data
+      // Redirect to results after a brief delay
       setTimeout(() => {
         navigate(`/results-simple?wallet=${wallet}`, {
           state: {
-            error: 'Error during investigation. Please try again.',
+            investigationResults: investigationData,
             walletAddress: wallet
           }
         });
       }, 2000);
+
+    } catch (error) {
+      console.error('Investigation failed:', error);
+      clearInterval(progressInterval);
+
+      setCurrentPhase('❌ Investigation failed');
+      setRealTimeUpdates(prev => [...prev, {
+        time: new Date().toLocaleTimeString(),
+        phase: `❌ Error: ${error.message}`,
+        progress: Math.round(currentProgress)
+      }]);
+
+      // Redirect to results with error after delay
+      setTimeout(() => {
+        navigate(`/results-simple?wallet=${wallet}`, {
+          state: {
+            error: `Investigation failed: ${error.message}`,
+            walletAddress: wallet
+          }
+        });
+      }, 3000);
+    } finally {
+      setIsInvestigating(false);
     }
   };
 
@@ -198,6 +219,35 @@ export default function AnalysisPageSimple() {
           ))}
         </motion.div>
 
+        {/* Real-time updates */}
+        {realTimeUpdates.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8 }}
+            className="bg-gray-800/30 rounded-xl p-4 backdrop-blur-sm border border-gray-700 mb-6"
+          >
+            <h3 className="text-white font-semibold mb-3 flex items-center">
+              📋 Live Investigation Log
+            </h3>
+            <div className="space-y-2 max-h-40 overflow-y-auto">
+              {realTimeUpdates.slice(-5).map((update, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="flex justify-between items-center text-sm"
+                >
+                  <span className="text-gray-300">{update.phase}</span>
+                  <span className="text-blue-400 font-mono text-xs">
+                    {update.time} ({update.progress}%)
+                  </span>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
         {/* Informational note */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -205,8 +255,11 @@ export default function AnalysisPageSimple() {
           transition={{ delay: 0.6 }}
           className="text-center text-gray-400 text-sm"
         >
-          ⚡ This is a real investigation being processed by our backend<br/>
-          Results will be accurate and based on real blockchain data
+          ⚡ Live investigation in progress with real AI detectives<br/>
+          {isInvestigating ?
+            '🔄 Connecting to blockchain and analyzing patterns...' :
+            '✅ Analysis complete - preparing results...'
+          }
         </motion.div>
 
       </div>

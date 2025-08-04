@@ -19,8 +19,9 @@ anchorpy>=0.19.1
 # ========================================
 # AI & MACHINE LEARNING
 # ========================================
-openai>=1.40.0
+openai>=1.52.0
 tiktoken>=0.5.2
+anthropic>=0.35.0
 
 # ========================================
 # JULIAOS INTEGRATION
@@ -44,10 +45,23 @@ python-dateutil==2.8.2
 # ========================================
 # UTILITIES & CONFIGURATION
 # ========================================
-python-dotenv==1.0.0
-structlog==23.2.0
-marshmallow==3.20.1
-jsonschema==4.20.0
+python-dotenv==1.0.1
+structlog==24.4.0
+marshmallow==3.23.1
+jsonschema==4.23.0
+rich>=13.8.0
+
+# ========================================
+# CACHING & STORAGE (Optional)
+# ========================================
+redis>=4.5.0
+
+# ========================================
+# CLOUD SERVICES (AWS Integration)
+# ========================================
+boto3>=1.35.0
+botocore>=1.35.0
+aioboto3>=13.1.1
 
 # ========================================
 # DEVELOPMENT TOOLS (Optional)

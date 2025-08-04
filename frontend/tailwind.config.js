@@ -8,6 +8,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
+        'Orbitron': ['Orbitron', 'sans-serif'],
+        'JetBrains Mono': ['JetBrains Mono', 'monospace'],
         'inter': ['Inter', 'sans-serif', 'Montserrat', 'Poppins', 'Roboto'],
         'barlow': ['Barlow', 'Inter', 'sans-serif'],
       },
@@ -20,6 +22,8 @@ export default {
         'blue-accent': '#3B82F6',
         'blue-light': '#3B82F6',
         'blue-dark': '#1E40AF',
+        'green-safe': '#22C55E',
+        'purple-400': '#A855F7',
         primary: {
           50: '#f0f9ff',
           100: '#e0f2fe',

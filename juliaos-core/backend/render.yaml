@@ -1,0 +1,48 @@
+services:
+  - type: web
+    name: ghost-julia-backend
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    repo: https://github.com/lipeamarok/ghost-wallet-hunter.git
+    rootDir: juliaos-core/backend
+    plan: starter
+    region: oregon
+    dockerCommand: julia run_server.jl
+    envVars:
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        value: 8052
+      - key: DB_HOST
+        fromDatabase:
+          name: ghost-julia-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: ghost-julia-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: ghost-julia-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: ghost-julia-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: ghost-julia-db
+          property: password
+      - key: OPENAI_API_KEY
+        sync: false  # Set manually in Render dashboard
+      - key: GROQ_API_KEY
+        sync: false  # Set manually in Render dashboard
+      - key: GEMINI_API_KEY
+        value: dummy-key-not-configured
+
+databases:
+  - name: ghost-julia-db
+    databaseName: juliaos_production
+    user: juliaos_user
+    plan: starter
+    region: oregon

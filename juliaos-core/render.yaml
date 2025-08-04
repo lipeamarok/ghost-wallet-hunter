@@ -1,0 +1,51 @@
+# render.yaml - Ghost Wallet Hunter JuliaOS
+# Deploy configuration for Julia service
+
+services:
+  - type: web
+    name: ghost-julia
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: starter
+    region: oregon
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        value: 8052
+      # Database connection
+      - key: DB_HOST
+        fromDatabase:
+          name: ghost-julia-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: ghost-julia-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: ghost-julia-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: ghost-julia-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: ghost-julia-db
+          property: password
+      # AI API Keys
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GROK_API_KEY
+        sync: false
+
+# Database for JuliaOS
+databases:
+  - name: ghost-julia-db
+    databaseName: juliaos
+    user: juliaos_user
+    plan: starter
+    region: oregon

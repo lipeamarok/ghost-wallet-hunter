@@ -31,10 +31,10 @@ RUN julia --project=. -e '\
     println("✅ Julia dependencies installed successfully");'
 
 # 📄 Copy application code
-COPY backend/ ./backend/
-COPY julia/ ./julia/
-COPY config/ ./config/
-COPY db/ ./db/
+COPY . ./backend/
+COPY ../julia/ ./julia/
+COPY ../config/ ./config/
+COPY ../db/ ./db/
 
 # 🔧 Create startup script for Render
 RUN echo '#!/usr/bin/env julia' > /app/start.jl && \

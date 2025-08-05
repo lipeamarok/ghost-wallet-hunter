@@ -25,8 +25,8 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean
 
 # 📁 Copy project files
-COPY Project.toml ./
-COPY Manifest.toml ./
+COPY core/Project.toml ./
+COPY core/Manifest.toml ./
 
 # ⚡ Install Julia dependencies
 RUN julia --project=. -e '\
@@ -39,10 +39,10 @@ RUN julia --project=. -e '\
 COPY . ./
 
 # 🐍 Install Python A2A dependencies
-COPY ../a2a/pyproject.toml ./a2a/pyproject.toml
-COPY ../python/pyproject.toml ./python/pyproject.toml
-COPY ../a2a/ ./a2a/
-COPY ../python/ ./python/
+COPY a2a/pyproject.toml ./a2a/pyproject.toml
+COPY python/pyproject.toml ./python/pyproject.toml
+COPY a2a/ ./a2a/
+COPY python/ ./python/
 
 RUN cd python && pip3 install -e . && \
     cd ../a2a && pip3 install -e . && \
@@ -50,7 +50,7 @@ RUN cd python && pip3 install -e . && \
     echo "✅ A2A dependencies installed successfully"
 
 # 📋 Create supervisor configuration
-COPY supervisor.conf /etc/supervisor/conf.d/ghost-services.conf
+COPY docker/supervisor.conf /etc/supervisor/conf.d/ghost-services.conf
 
 # 🔍 Debug: Verify installation
 RUN ls -la /app/ && \

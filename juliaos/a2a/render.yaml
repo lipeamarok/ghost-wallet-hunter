@@ -2,21 +2,20 @@
 services:
   - type: web
     name: ghost-a2a-server
-    runtime: python
-    buildCommand: |
-      pip install --upgrade pip
-      pip install uvicorn httpx starlette pydantic
-    startCommand: cd src/a2a && python server.py
+    runtime: docker
+    dockerfilePath: docker/Dockerfile
     plan: starter
     region: oregon
     rootDir: juliaos/a2a
     envVars:
       - key: ENVIRONMENT
         value: production
-      - key: JULIA_URL
+      - key: JULIA_HOST
         value: https://ghost-wallet-hunter-juliaos.onrender.com
+      - key: A2A_PORT
+        value: "10000"
       - key: PORT
-        value: "9100"
+        value: "10000"
     healthCheckPath: /health
     autoDeploy: true
     branch: main

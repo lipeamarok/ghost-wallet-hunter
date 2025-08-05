@@ -1,7 +1,7 @@
 # A2A Protocol Server - Lightweight Service
 # Located at: juliaos/a2a/docker/Dockerfile
 
-FROM python:3.9.2-slim
+FROM python:3.11-slim
 
 # Set working directory specific for A2A
 WORKDIR /app/a2a
@@ -19,13 +19,13 @@ COPY requirements-a2a.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements-a2a.txt
 
-# Copy only A2A source code (avoiding conflicts with Julia)
-COPY src/a2a/server.py ./
+# Copy A2A source code with correct structure
+COPY src/ ./src/
 
 # Set environment variables
 ENV HOST=0.0.0.0
 ENV A2A_PORT=10000
-ENV JULIA_HOST=https://ghost-wallet-hunter-julia.onrender.com
+ENV JULIA_HOST=https://ghost-wallet-hunter-juliaos.onrender.com
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
@@ -34,5 +34,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 # Expose port
 EXPOSE 10000
 
-# Start A2A server
-CMD ["python", "server.py"]
+# Start A2A server with correct path
+CMD ["python", "src/a2a/server.py"]

@@ -26,7 +26,8 @@ from .a2a_types import AgentCard, AgentCapabilities, InvestigationRequest, A2APr
 from .julia_bridge import GhostDetectiveFactory, JuliaOSConnection
 from .ghost_swarm_coordinator import GhostSwarmCoordinator
 
-# Port will be configured via environment variables in main()
+# Default port configuration
+DEFAULT_A2A_PORT = 10000
 
 class GhostA2AServer:
     """
@@ -44,7 +45,7 @@ class GhostA2AServer:
         self.solana_rpc = "https://api.mainnet-beta.solana.com"
         # Swarm Coordinator for coordinated investigations
         self.swarm_coordinator = GhostSwarmCoordinator(
-            a2a_url=f"http://127.0.0.1:{PORT}",
+            a2a_url=f"http://127.0.0.1:{DEFAULT_A2A_PORT}",
             julia_url=julia_url
         )
 
@@ -662,7 +663,7 @@ class GhostA2AServer:
         return JSONResponse({
             "server": "Ghost A2A Server",
             "status": "running",
-            "port": PORT,
+            "port": DEFAULT_A2A_PORT,
             "agents_loaded": len(self.agents),
             "julia_url": self.julia_url,
             "timestamp": datetime.now().isoformat()
@@ -757,7 +758,7 @@ async def create_app():
 async def main():
     """Main function"""
     print("🚀 Ghost A2A Server - FINAL VERSION WITH JULIA BRIDGE")
-    print(f"📡 Running on: http://127.0.0.1:{PORT}")
+    print(f"📡 Running on: http://127.0.0.1:{DEFAULT_A2A_PORT}")
     print("🔗 Julia Bridge Integration")
     print("🚫 NO MOCKS - Real Data Only")
     print("📋 Endpoints:")
@@ -772,7 +773,7 @@ async def main():
 
     # Get host from environment or use 0.0.0.0 for Docker compatibility
     host = os.getenv("HOST", "0.0.0.0")
-    port = int(os.getenv("A2A_PORT", str(PORT)))
+    port = int(os.getenv("A2A_PORT", str(DEFAULT_A2A_PORT)))
 
     config = uvicorn.Config(
         app=app,

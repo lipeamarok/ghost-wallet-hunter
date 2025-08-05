@@ -20,7 +20,7 @@ from typing import Dict, List, Optional, Any
 from datetime import datetime, timezone
 from dataclasses import dataclass
 
-from julia_bridge import JuliaOSConnection
+from .julia_bridge import JuliaOSConnection
 
 logger = logging.getLogger(__name__)
 

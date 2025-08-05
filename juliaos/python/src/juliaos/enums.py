@@ -1,7 +1,7 @@
-from enum import StrEnum
+from enum import Enum
 
-class AgentState(StrEnum):
-    CREATED = "CREATED",
-    RUNNING = "RUNNING",
-    PAUSED = "PAUSED",
-    STOPPED = "STOPPED",
+class AgentState(str, Enum):
+    CREATED = "CREATED"
+    RUNNING = "RUNNING"
+    PAUSED = "PAUSED"
+    STOPPED = "STOPPED"

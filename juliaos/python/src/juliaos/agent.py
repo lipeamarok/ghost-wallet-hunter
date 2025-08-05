@@ -8,7 +8,7 @@ else:
     except ImportError:
         from typing_extensions import Self
 
-from _juliaos_client_api import CreateAgentRequest, AgentBlueprint, DefaultApi, AgentSummary
+from _juliaos_client_api import CreateAgentRequest, AgentBlueprint, DefaultApi, AgentSummary, AgentUpdate
 from _juliaos_client_api.exceptions import BadRequestException
 from juliaos.juliaos_connection import JuliaOSConnection
 from juliaos.enums import AgentState
@@ -42,7 +42,7 @@ class Agent:
         return self.conn.get_agent_summary(self.id)
 
     def set_state(self, state: AgentState):
-        update_request = {"state": state.value}
+        update_request = AgentUpdate(state=state.value)
         api_response = self.conn.api.update_agent(self.id, update_request)
         if api_response is None:
             raise ValueError("Failed to update agent state, no response received.")

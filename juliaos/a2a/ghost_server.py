@@ -30,6 +30,9 @@ sys.path.insert(0, root_dir)
 
 import httpx
 
+# Imports dos módulos Ghost
+from src.a2a.julia_bridge import GhostDetectiveFactory, JuliaOSConnection
+
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
@@ -170,7 +173,9 @@ class GhostA2AServer:
             """Obtém detalhes de um agente específico"""
             try:
                 async with JuliaOSConnection(self.julia_url) as conn:
-                    agent = await conn.get_agent_details(agent_id)
+                    agent = await conn.get_agent_by_id(agent_id)
+                    if not agent:
+                        raise HTTPException(status_code=404, detail=f"Agent {agent_id} not found")
 
                     return {
                         "success": True,
@@ -202,7 +207,9 @@ class GhostA2AServer:
                 # Verificar se o agente de destino existe
                 async with JuliaOSConnection(self.julia_url) as conn:
                     try:
-                        target_agent = await conn.get_agent_details(message.to_agent)
+                        # Validar agente de destino
+                        if message.to_agent:
+                            target_agent = await conn.get_agent_by_id(message.to_agent)
                     except:
                         raise HTTPException(status_code=404, detail=f"Target agent {message.to_agent} not found")
 
@@ -234,7 +241,9 @@ class GhostA2AServer:
 
                 # Verificar se detetive existe
                 async with JuliaOSConnection(self.julia_url) as conn:
-                    detective = await conn.get_agent_details(detective_id)
+                    detective = await conn.get_agent_by_id(detective_id)
+                    if not detective:
+                        raise HTTPException(status_code=404, detail=f"Detective {detective_id} not found")
 
                 # Criar investigação
                 investigation_id = f"inv_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{detective_id}"
@@ -298,7 +307,9 @@ class GhostA2AServer:
         elif message_type == "investigation_request":
             # Delegar para o detetive específico
             async with JuliaOSConnection(self.julia_url) as conn:
-                agent = await conn.get_agent_details(message.to_agent)
+                agent = await conn.get_agent_by_id(message.to_agent)
+                if not agent:
+                    return {"response": "error", "message": f"Agent {message.to_agent} not found"}
                 return {
                     "response": "investigation_accepted",
                     "detective": agent["name"],
@@ -308,7 +319,9 @@ class GhostA2AServer:
 
         elif message_type == "status_check":
             async with JuliaOSConnection(self.julia_url) as conn:
-                agent = await conn.get_agent_details(message.to_agent)
+                agent = await conn.get_agent_by_id(message.to_agent)
+                if not agent:
+                    return {"agent_status": "not_found", "message": f"Agent {message.to_agent} not found"}
                 return {
                     "agent_status": "active",
                     "agent_name": agent["name"],

@@ -26,7 +26,7 @@ from .a2a_types import AgentCard, AgentCapabilities, InvestigationRequest, A2APr
 from .julia_bridge import GhostDetectiveFactory, JuliaOSConnection
 from .ghost_swarm_coordinator import GhostSwarmCoordinator
 
-PORT = 9100
+# Port will be configured via environment variables in main()
 
 class GhostA2AServer:
     """

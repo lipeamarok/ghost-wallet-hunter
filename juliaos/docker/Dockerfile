@@ -1,15 +1,15 @@
-# 🚀 Ghost Wallet Hunter - JuliaOS + A2A Service
-# Unified Dockerfile for Render deployment with A2A integration
+# 🚀 Ghost Wallet Hunter - Julia Core Service
+# Pure Julia service for AI analysis and database operations
 
 FROM julia:1.11-bullseye
 
 # Build info
 LABEL maintainer="Ghost Wallet Hunter Team"
-LABEL description="JuliaOS Backend + A2A Communication for Ghost Wallet Hunter"
+LABEL description="Julia Core Service for Ghost Wallet Hunter - AI & Database"
 
 WORKDIR /app
 
-# 📦 Install system dependencies including Python for A2A
+# 📦 Install system dependencies
 RUN apt-get update && apt-get install -y \
     curl \
     postgresql-client \
@@ -17,18 +17,12 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     git \
     ca-certificates \
-    python3 \
-    python3-pip \
-    python3-venv \
-    supervisor \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
-# 📁 Copy project files
+# 📁 Copy Julia project files first
 COPY core/Project.toml ./
-
-# 📄 Copy all application code first (needed for JuliaOS package)
-COPY . ./
+COPY core/Manifest.toml ./
 
 # ⚡ Install Julia dependencies
 RUN julia --project=. -e '\
@@ -37,43 +31,21 @@ RUN julia --project=. -e '\
     Pkg.precompile(); \
     println("✅ Julia dependencies installed successfully");'
 
-# 🐍 Install Python A2A dependencies
-COPY a2a/pyproject.toml ./a2a/pyproject.toml
-COPY python/pyproject.toml ./python/pyproject.toml
-COPY a2a/ ./a2a/
-COPY python/ ./python/
+# � Copy Julia core application code
+COPY core/ ./core/
 
-RUN pip3 install --upgrade pip && \
-    cd python && pip3 install . && \
-    cd ../a2a && pip3 install . && \
-    echo "✅ A2A dependencies installed successfully"
-
-# 📋 Create supervisor configuration
-COPY docker/supervisor.conf /etc/supervisor/conf.d/ghost-services.conf
-
-# 🔍 Debug: Verify installation
-RUN ls -la /app/ && \
-    julia --project=. -e 'using Pkg; Pkg.status()' && \
-    echo "✅ Skipping import test - will check at runtime"
-
-# 🛡️ Security: Create non-root user
-RUN useradd -m -u 1001 juliaos && \
-    chown -R juliaos:juliaos /app && \
-    mkdir -p /var/log/supervisor && \
-    chown -R juliaos:juliaos /var/log/supervisor
-
-USER juliaos
-
-# 🌐 Environment variables
-ENV JULIA_PROJECT=@.
-ENV JULIA_DEPOT_PATH=/app/.julia
-ENV JULIA_NUM_THREADS=auto
+# Set environment variables for Julia service
 ENV HOST=0.0.0.0
 ENV PORT=8052
-ENV A2A_PORT=9100
+ENV JULIA_DEPOT_PATH=/app/.julia
+ENV JULIA_PROJECT=/app
 
-# 📡 Expose ports
-EXPOSE 8052 9100
+# Health check for Julia service
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:${PORT}/health || exit 1
 
-# 🎬 Start both services with supervisor
-CMD ["supervisord", "-n", "-c", "/etc/supervisor/conf.d/ghost-services.conf"]
+# Expose Julia service port
+EXPOSE 8052
+
+# Start Julia server
+CMD ["julia", "core/start_julia_server.jl"]

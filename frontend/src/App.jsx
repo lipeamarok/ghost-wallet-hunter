@@ -13,6 +13,7 @@ import AnalysisPageSimple from './pages/AnalysisPageSimple';
 import ResultsPageSimple from './pages/ResultsPageSimple';
 import BlockchainTravelPlayground from './pages/BlockchainTravelPlayground';
 import TransitionTest from './pages/TransitionTest';
+import ResultsComboTest from './pages/ResultsComboTest';
 
 import './index.css';
 
@@ -58,6 +59,8 @@ function App() {
             <Route path="/loading" element={<Layout><BlockchainTravelPlayground /></Layout>} />
             {/* Página de teste de resultados */}
             <Route path="/results-test" element={<Layout><ResultsTest /></Layout>} />
+            {/* Página de teste de combo de resultados */}
+            <Route path="/results-combo-test" element={<Layout><ResultsComboTest /></Layout>} />
 
           </Routes>
           <Toaster

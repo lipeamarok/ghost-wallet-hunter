@@ -78,6 +78,10 @@ class Settings(BaseSettings):
     JULIAOS_API_KEY: Optional[str] = None
     JULIAOS_ENVIRONMENT: str = "development"
     JULIAOS_ENABLED: bool = True
+
+    # A2A Protocol Integration
+    A2A_HOST: str = "localhost"  # For production: https://ghost-wallet-hunter-a2a.onrender.com
+    A2A_PORT: int = 9100  # For production HTTPS: 443
     JULIAOS_TIMEOUT: int = 30
     JULIAOS_RETRY_ATTEMPTS: int = 3
     JULIAOS_HEALTH_CHECK_INTERVAL: int = 60

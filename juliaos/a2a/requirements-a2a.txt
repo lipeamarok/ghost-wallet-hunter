@@ -1,0 +1,14 @@
+# Requirements for A2A Protocol Server
+# Minimal dependencies for lightweight service
+
+# Core web framework
+starlette==0.37.2
+
+# ASGI server
+uvicorn[standard]==0.30.1
+
+# HTTP client for Julia communication
+httpx==0.27.0
+
+# Optional: Faster JSON parsing
+orjson==3.10.6

@@ -473,6 +473,49 @@ function handle_request(req::HTTP.Request)
             end
         end
 
+        # Rota de investigação A2A-compliant
+        if path == "/api/v1/investigate" && method == "POST"
+            try
+                request_body = String(req.body)
+                params = JSON3.read(request_body, Dict{String, Any})
+
+                wallet_address = get(params, "wallet_address", "")
+                agent_id = get(params, "agent_id", "poirot")  # Default agent
+
+                if isempty(wallet_address)
+                    return HTTP.Response(400,
+                        ["Content-Type" => "application/json"],
+                        JSON3.write(Dict(
+                            "success" => false,
+                            "error" => "wallet_address parameter required"
+                        ))
+                    )
+                end
+
+                # Execute REAL wallet analysis
+                result = execute_wallet_investigation(wallet_address, agent_id)
+
+                return HTTP.Response(200,
+                    ["Content-Type" => "application/json"],
+                    JSON3.write(Dict(
+                        "success" => true,
+                        "investigation" => result,
+                        "wallet_address" => wallet_address,
+                        "agent_id" => agent_id
+                    ))
+                )
+
+            catch e
+                return HTTP.Response(500,
+                    ["Content-Type" => "application/json"],
+                    JSON3.write(Dict(
+                        "success" => false,
+                        "error" => "Investigation failed: $(string(e))"
+                    ))
+                )
+            end
+        end
+
         # Rota para executar ferramenta - REAL EXECUTION
         if startswith(path, "/api/v1/tools/")
             tool_name = replace(path, "/api/v1/tools/" => "")
@@ -555,6 +598,7 @@ function start_server()
         println("  • GET  /api/health             - Health check (alt)")
         println("  • GET  /api/v1/test/hello      - Teste básico")
         println("  • GET  /api/v1/agents          - Listar agentes")
+        println("  • POST /api/v1/investigate     - Investigar wallet (A2A)")
         println("  • POST /api/v1/tools/*         - Executar ferramentas")
 
         println("\n🚀 Iniciando servidor HTTP...")

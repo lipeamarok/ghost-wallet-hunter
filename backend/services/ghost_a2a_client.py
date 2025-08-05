@@ -7,6 +7,7 @@ Seguindo a arquitetura: 1 detetive = 1 definição = 1 local (A2A + JuliaOS)
 
 import aiohttp
 import asyncio
+import os
 from typing import Dict, List, Any, Optional, Union
 from datetime import datetime
 import json
@@ -18,9 +19,20 @@ logger = logging.getLogger(__name__)
 class GhostA2AClient:
     """Cliente para comunicação com os Ghost Detectives via A2A Protocol"""
 
-    def __init__(self, a2a_host: str = "localhost", a2a_port: int = 9100):
-        self.base_url = f"http://{a2a_host}:{a2a_port}"
+    def __init__(self, a2a_host: str = None, a2a_port: int = None):
+        # Use environment variables with fallbacks
+        a2a_host = a2a_host or os.getenv("A2A_HOST", "localhost")
+        a2a_port = a2a_port or int(os.getenv("A2A_PORT", "9100"))
+        
+        # Handle HTTPS URLs from environment
+        if a2a_host.startswith(("http://", "https://")):
+            self.base_url = a2a_host
+        else:
+            protocol = "https" if a2a_port == 443 else "http"
+            self.base_url = f"{protocol}://{a2a_host}:{a2a_port}" if a2a_port not in [80, 443] else f"{protocol}://{a2a_host}"
+            
         self.session = None
+        logger.info(f"🔗 GhostA2AClient configured for: {self.base_url}")
 
     async def _get_session(self):
         """Obtém ou cria uma sessão HTTP"""

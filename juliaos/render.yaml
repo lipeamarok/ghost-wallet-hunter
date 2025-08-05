@@ -3,7 +3,7 @@ services:
   - type: web
     name: ghost-wallet-hunter-juliaos
     runtime: docker
-    plan: starter
+    plan: standard  # 🚀 2GB RAM - NO MORE LIMITATIONS!
     dockerfilePath: ./docker/Dockerfile
     rootDir: juliaos
     envVars:
@@ -16,13 +16,13 @@ services:
       - key: A2A_PORT
         value: "9100"
       - key: JULIA_NUM_THREADS
-        value: "1"
+        value: "4"
       - key: JULIA_NUM_GC_THREADS
-        value: "1"
+        value: "2"
       - key: JULIA_DEPOT_PATH
-        value: "/tmp/.julia"
-      - key: JULIA_MAX_NUM_PRECOMPILE_FILES
-        value: "20"
+        value: "/app/.julia"
+      - key: JULIA_PROJECT
+        value: "/app"
     healthCheckPath: /health
     autoDeploy: true
     branch: main

@@ -1,38 +1,42 @@
-# 🚀 Ghost Wallet Hunter - Julia Core Service (Memory Optimized)
+# 🚀 Ghost Wallet Hunter - Julia Core Service (FULL VERSION - 2GB)
 FROM julia:1.11-bullseye
 
 WORKDIR /app
 
-# 📦 Install minimal system dependencies only
+# 📦 Install ALL system dependencies (no more restrictions!)
 RUN apt-get update && apt-get install -y \
     curl \
+    postgresql-client \
+    libpq-dev \
+    build-essential \
+    git \
     ca-certificates \
+    python3 \
+    python3-pip \
+    python3-dev \
     && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean \
-    && apt-get autoremove -y
+    && apt-get clean
 
 # 📁 Copy Julia project structure completely
 COPY core/ ./
 
-# Use minimal dependencies to save memory during build
-RUN cp Project.minimal.toml Project.toml
+# 💪 Use FULL Project.toml with ALL dependencies (no more minimal!)
+# Project.toml already has everything: Flux, PyCall, LibPQ, etc.
 
-# ⚡ Install Julia dependencies with aggressive memory optimization
-RUN JULIA_NUM_THREADS=1 julia --project=. --optimize=0 --check-bounds=no --math-mode=fast -e '\
+# ⚡ Install Julia dependencies with FULL power (2GB available!)
+RUN julia --project=. -e '\
     using Pkg; \
     Pkg.instantiate(); \
-    println("✅ Julia dependencies installed successfully");' \
-    && rm -rf ~/.julia/logs \
-    && rm -rf ~/.julia/scratchspaces
+    Pkg.precompile(); \
+    println("✅ Julia FULL dependencies installed and precompiled!");'
 
-# Set environment variables for memory optimization
+# Set environment variables for FULL performance
 ENV HOST=0.0.0.0
 ENV PORT=8052
-ENV JULIA_DEPOT_PATH=/tmp/.julia
+ENV JULIA_DEPOT_PATH=/app/.julia
 ENV JULIA_PROJECT=/app
-ENV JULIA_NUM_THREADS=1
-ENV JULIA_NUM_GC_THREADS=1
-ENV JULIA_MAX_NUM_PRECOMPILE_FILES=50
+ENV JULIA_NUM_THREADS=4
+ENV JULIA_NUM_GC_THREADS=2
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
@@ -41,5 +45,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 # Expose port
 EXPOSE 8052
 
-# Start minimal server for memory-constrained environments
-CMD ["julia", "--project=.", "--optimize=0", "--check-bounds=no", "start_julia_server_minimal.jl"]
+# Start FULL JuliaOS server (no more minimal restrictions!)
+CMD ["julia", "--project=.", "start_julia_server.jl"]

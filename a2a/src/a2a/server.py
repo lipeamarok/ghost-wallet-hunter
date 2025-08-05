@@ -23,7 +23,7 @@ from starlette.routing import Route
 from starlette.responses import JSONResponse
 from starlette.requests import Request
 
-# Import local modules with relative imports (works when run as module)
+# Import local modules with relative imports
 from .a2a_types import AgentCard, AgentCapabilities, InvestigationRequest, A2AProtocolMessage
 from .julia_bridge import GhostDetectiveFactory, JuliaOSConnection
 from .ghost_swarm_coordinator import GhostSwarmCoordinator

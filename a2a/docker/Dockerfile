@@ -1,5 +1,5 @@
 # A2A Protocol Server - Lightweight Service
-# Located at: juliaos/a2a/docker/Dockerfile
+# Located at: a2a/docker/Dockerfile
 
 FROM python:3.11-slim
 
@@ -26,6 +26,7 @@ COPY src/ ./src/
 ENV HOST=0.0.0.0
 ENV A2A_PORT=10000
 ENV JULIA_HOST=https://ghost-wallet-hunter-juliaos.onrender.com
+ENV PYTHONPATH=/app/a2a/src
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
@@ -34,6 +35,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 # Expose port
 EXPOSE 10000
 
-# Start A2A server as module to handle relative imports
-# Start A2A server with correct path
-CMD ["python", "-m", "a2a.server"]
+# Start A2A server directly (avoiding module import issues)
+CMD ["python", "src/a2a/server.py"]

@@ -31,18 +31,18 @@ async def investigate_wallet(request):
     try:
         body = await request.json()
         wallet_address = body.get("wallet_address", "unknown")
-        
+
         # Try to call Julia service
         julia_host = os.getenv("JULIA_HOST", "http://localhost:8052")
-        
+
         try:
             async with httpx.AsyncClient(timeout=5.0) as client:
-                response = await client.post(f"{julia_host}/analyze", 
+                response = await client.post(f"{julia_host}/analyze",
                                            json={"wallet": wallet_address})
                 julia_result = response.json()
         except Exception as e:
             julia_result = {"error": str(e), "fallback": True}
-        
+
         return JSONResponse({
             "wallet_address": wallet_address,
             "investigation_id": f"min_{int(datetime.now().timestamp())}",
@@ -50,7 +50,7 @@ async def investigate_wallet(request):
             "julia_analysis": julia_result,
             "timestamp": datetime.now().isoformat()
         })
-    
+
     except Exception as e:
         return JSONResponse({
             "error": str(e),
@@ -68,8 +68,8 @@ app = Starlette(routes=routes)
 if __name__ == "__main__":
     host = os.getenv("HOST", "0.0.0.0")
     port = int(os.getenv("A2A_PORT", str(DEFAULT_A2A_PORT)))
-    
+
     print(f"🚀 Starting Minimal A2A Server on {host}:{port}")
     print(f"🔗 Julia Host: {os.getenv('JULIA_HOST', 'not_configured')}")
-    
+
     uvicorn.run(app, host=host, port=port)

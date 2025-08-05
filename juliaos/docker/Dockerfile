@@ -17,8 +17,11 @@ RUN apt-get update && apt-get install -y \
 # 📁 Copy Julia project structure completely
 COPY core/ ./
 
-# ⚡ Install Julia dependencies (WITHOUT precompilation to save memory)
-RUN julia --project=. -e '\
+# Use minimal dependencies to save memory during build
+RUN cp Project.minimal.toml Project.toml
+
+# ⚡ Install Julia dependencies with memory optimization
+RUN julia --project=. --threads=1 --optimize=0 -e '\
     using Pkg; \
     Pkg.instantiate(); \
     println("✅ Julia dependencies installed successfully");'

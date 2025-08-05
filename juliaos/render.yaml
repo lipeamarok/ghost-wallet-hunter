@@ -4,7 +4,7 @@ services:
     name: ghost-wallet-hunter-juliaos
     runtime: docker
     plan: starter
-    dockerfilePath: ./docker/Dockerfile.minimal
+    dockerfilePath: ./docker/Dockerfile
     rootDir: juliaos
     envVars:
       - key: JULIA_VERSION
@@ -15,6 +15,10 @@ services:
         value: "8052"
       - key: A2A_PORT
         value: "9100"
+      - key: JULIA_NUM_THREADS
+        value: "1"
+      - key: JULIA_DEPOT_PATH
+        value: "/tmp/.julia"
     healthCheckPath: /health
     autoDeploy: true
     branch: main

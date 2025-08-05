@@ -34,7 +34,7 @@ High-performance Julia server (`juliaos/core/`) providing:
 
 #### **🌉 A2A Protocol Layer**
 
-Agent-to-Agent communication system (`juliaos/a2a/`) featuring:
+Agent-to-Agent communication system (`a2a/`) featuring:
 
 - **A2A Server**: 25+ endpoints for inter-agent communication
 - **Swarm Coordinator**: Intelligent multi-agent orchestration
@@ -139,7 +139,7 @@ julia start_julia_server.jl
 
 ```bash
 # Navigate to A2A directory
-cd juliaos/a2a
+cd a2a
 
 # Create Python virtual environment
 python -m venv venv
@@ -340,9 +340,9 @@ ghost-wallet-hunter/
 
 #### **A2A Protocol Layer (1,475+ lines)**
 
-- `juliaos/a2a/src/a2a/server.py` (785 lines) - Main A2A protocol server
-- `juliaos/a2a/src/a2a/ghost_swarm_coordinator.py` (446 lines) - Swarm intelligence
-- `juliaos/a2a/src/a2a/julia_bridge.py` (244 lines) - Python-Julia bridge
+- `a2a/src/a2a/server.py` (785 lines) - Main A2A protocol server
+- `a2a/src/a2a/ghost_swarm_coordinator.py` (446 lines) - Swarm intelligence
+- `a2a/src/a2a/julia_bridge.py` (244 lines) - Python-Julia bridge
 
 #### **Python Backend (680+ lines)**
 

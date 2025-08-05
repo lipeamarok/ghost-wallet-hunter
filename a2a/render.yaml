@@ -6,7 +6,7 @@ services:
     dockerfilePath: docker/Dockerfile.minimal
     plan: starter
     region: oregon
-    rootDir: juliaos/a2a
+    rootDir: a2a
     envVars:
       - key: ENVIRONMENT
         value: production

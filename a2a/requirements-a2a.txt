@@ -1,6 +1,9 @@
 # Requirements for A2A Protocol Server
 # Minimal dependencies for lightweight service
 
+# Data validation and serialization
+pydantic==2.8.2
+
 # Core web framework
 starlette==0.37.2
 

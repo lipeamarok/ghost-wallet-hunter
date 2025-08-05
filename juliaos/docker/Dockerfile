@@ -27,15 +27,15 @@ RUN apt-get update && apt-get install -y \
 # 📁 Copy project files
 COPY core/Project.toml ./
 
+# 📄 Copy all application code first (needed for JuliaOS package)
+COPY . ./
+
 # ⚡ Install Julia dependencies
 RUN julia --project=. -e '\
     using Pkg; \
     Pkg.instantiate(); \
     Pkg.precompile(); \
     println("✅ Julia dependencies installed successfully");'
-
-# 📄 Copy all application code
-COPY . ./
 
 # 🐍 Install Python A2A dependencies
 COPY a2a/pyproject.toml ./a2a/pyproject.toml

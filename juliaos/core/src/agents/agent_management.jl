@@ -1,5 +1,5 @@
 using .CommonTypes: Agent, AgentBlueprint, AgentContext, AgentState, InstantiatedTool, InstantiatedStrategy, CommonTypes
-using ...Resources: Errors
+using ..Resources: Errors
 
 const AGENTS = Dict{String, Agent}()
 

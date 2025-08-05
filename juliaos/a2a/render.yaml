@@ -1,9 +1,9 @@
-# A2A Server Deploy - Render.yaml
+# A2A Server Deploy - MINIMAL VERSION
 services:
   - type: web
     name: ghost-a2a-server
     runtime: docker
-    dockerfilePath: docker/Dockerfile
+    dockerfilePath: docker/Dockerfile.minimal
     plan: starter
     region: oregon
     rootDir: juliaos/a2a

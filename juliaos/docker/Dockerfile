@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y \
 # 📁 Copy Julia project structure completely
 COPY core/ ./
 
-# ⚡ Install Julia dependencies
+# ⚡ Install Julia dependencies (WITHOUT precompilation to save memory)
 RUN julia --project=. -e '\
     using Pkg; \
     Pkg.instantiate(); \

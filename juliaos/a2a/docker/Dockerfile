@@ -34,5 +34,6 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 # Expose port
 EXPOSE 10000
 
+# Start A2A server as module to handle relative imports
 # Start A2A server with correct path
-CMD ["python", "src/a2a/server.py"]
+CMD ["python", "-m", "a2a.server"]

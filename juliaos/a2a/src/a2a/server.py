@@ -10,6 +10,7 @@ UM ÚNICO servidor A2A para Ghost Detectives.
 """
 
 import os
+import sys
 import uvicorn
 import asyncio
 import httpx
@@ -22,6 +23,7 @@ from starlette.routing import Route
 from starlette.responses import JSONResponse
 from starlette.requests import Request
 
+# Import local modules with relative imports (works when run as module)
 from .a2a_types import AgentCard, AgentCapabilities, InvestigationRequest, A2AProtocolMessage
 from .julia_bridge import GhostDetectiveFactory, JuliaOSConnection
 from .ghost_swarm_coordinator import GhostSwarmCoordinator

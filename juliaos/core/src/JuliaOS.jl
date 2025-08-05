@@ -16,9 +16,14 @@ include("agents/AgentMetrics.jl")
 include("agents/Persistence.jl")
 include("agents/LLMIntegration.jl")
 include("agents/utils.jl")
+
+# Include resources BEFORE agent_management
+include("resources/Resources.jl")
+using .Resources
+
+# Now include agent_management (that depends on Resources)
 include("agents/agent_management.jl")
 include("agents/Agents.jl")
-include("resources/Resources.jl")
 
 using .Config
 using .AgentCore
@@ -26,7 +31,6 @@ using .AgentMetrics
 using .Persistence
 using .LLMIntegration
 using .Agents
-using .Resources
 
 # Include database after agents are loaded
 include("db/JuliaDB.jl")

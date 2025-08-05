@@ -41,5 +41,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 # Expose port
 EXPOSE 8052
 
-# Start server with memory constraints
-CMD ["julia", "--optimize=0", "--check-bounds=no", "start_julia_server.jl"]
+# Start minimal server for memory-constrained environments
+CMD ["julia", "--optimize=0", "--check-bounds=no", "start_julia_server_minimal.jl"]

@@ -1,4 +1,12 @@
-from typing import Self
+from typing import Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing import Self
+else:
+    try:
+        from typing import Self
+    except ImportError:
+        from typing_extensions import Self
 
 from _juliaos_client_api import CreateAgentRequest, AgentBlueprint, DefaultApi, AgentSummary
 from _juliaos_client_api.exceptions import BadRequestException
@@ -7,7 +15,7 @@ from juliaos.enums import AgentState
 
 class Agent:
     @classmethod
-    def create(cls, conn: JuliaOSConnection, blueprint: AgentBlueprint, _id: str, name: str, description: str) -> Self | None:
+    def create(cls, conn: JuliaOSConnection, blueprint: AgentBlueprint, _id: str, name: str, description: str) -> Optional['Agent']:
         api_response = conn.api.create_agent(CreateAgentRequest(
             id=_id,
             name=name,
@@ -20,7 +28,7 @@ class Agent:
         pass
 
     @classmethod
-    def load(cls, conn: JuliaOSConnection, _id: str) -> Self | None:
+    def load(cls, conn: JuliaOSConnection, _id: str) -> Optional['Agent']:
         if conn.get_agent_summary(_id):
             return cls(conn, _id)
         else:

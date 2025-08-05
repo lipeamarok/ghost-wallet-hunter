@@ -1,3 +1,4 @@
+from typing import Optional
 from _juliaos_client_api import ApiClient, Configuration, DefaultApi, AgentSummary
 
 class JuliaOSConnection:
@@ -12,7 +13,7 @@ class JuliaOSConnection:
         self.close()
 
     def close(self):
-        if not self.closed:
+        if self.client is not None:
             self.client.close()
             self.client = None
 
@@ -20,7 +21,7 @@ class JuliaOSConnection:
     def closed(self) -> bool:
         return self.client is None
 
-    def get_agent_summary(self, agent_id: str) -> AgentSummary | None:
+    def get_agent_summary(self, agent_id: str) -> Optional[AgentSummary]:
         """
         Get a summary of the agent with the given ID.
         """

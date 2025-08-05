@@ -38,11 +38,11 @@ function init_minimal_agents()
         MinimalAgent("detective_002", "Detective Beta", "risk_assessment", "active", ["risk_analysis", "fraud_detection"]),
         MinimalAgent("detective_003", "Detective Gamma", "pattern_analysis", "active", ["pattern_detection", "behavioral_analysis"])
     ]
-    
+
     for agent in agents
         AGENTS[agent.id] = agent
     end
-    
+
     @info "Initialized $(length(AGENTS)) minimal agents"
 end
 
@@ -56,7 +56,7 @@ function health_handler(req::HTTP.Request)
         "memory_optimized" => true,
         "agents_count" => length(AGENTS)
     )
-    
+
     return HTTP.Response(200, ["Content-Type" => "application/json"], JSON3.write(response))
 end
 
@@ -72,13 +72,13 @@ function agents_handler(req::HTTP.Request)
             "type" => "minimal_detective"
         ) for agent in values(AGENTS)
     ]
-    
+
     response = Dict(
         "agents" => agents_list,
         "total" => length(agents_list),
         "server_mode" => "minimal"
     )
-    
+
     return HTTP.Response(200, ["Content-Type" => "application/json"], JSON3.write(response))
 end
 
@@ -87,12 +87,12 @@ function agent_card_handler(req::HTTP.Request)
     # Extract agent_id from URL path
     uri_parts = split(HTTP.URI(req.target).path, "/")
     agent_id = length(uri_parts) >= 2 ? uri_parts[end-1] : ""
-    
+
     if !haskey(AGENTS, agent_id)
         error_response = Dict("error" => "Agent not found", "agent_id" => agent_id)
         return HTTP.Response(404, ["Content-Type" => "application/json"], JSON3.write(error_response))
     end
-    
+
     agent = AGENTS[agent_id]
     card = Dict(
         "id" => agent.id,
@@ -106,7 +106,7 @@ function agent_card_handler(req::HTTP.Request)
         "last_active" => string(now()),
         "mode" => "minimal"
     )
-    
+
     return HTTP.Response(200, ["Content-Type" => "application/json"], JSON3.write(card))
 end
 
@@ -116,16 +116,16 @@ function investigate_handler(req::HTTP.Request)
         # Extract agent_id from URL
         uri_parts = split(HTTP.URI(req.target).path, "/")
         agent_id = length(uri_parts) >= 2 ? uri_parts[end-1] : ""
-        
+
         if !haskey(AGENTS, agent_id)
             error_response = Dict("error" => "Agent not found")
             return HTTP.Response(404, ["Content-Type" => "application/json"], JSON3.write(error_response))
         end
-        
+
         # Parse request body
         body = String(req.body)
         request_data = JSON3.read(body)
-        
+
         # Minimal investigation response
         investigation_result = Dict(
             "investigation_id" => string(uuid4()),
@@ -141,9 +141,9 @@ function investigate_handler(req::HTTP.Request)
             "timestamp" => string(now()),
             "processing_time_ms" => 100
         )
-        
+
         return HTTP.Response(200, ["Content-Type" => "application/json"], JSON3.write(investigation_result))
-        
+
     catch e
         @error "Investigation error" exception=(e, catch_backtrace())
         error_response = Dict("error" => "Investigation failed", "message" => string(e))
@@ -154,15 +154,15 @@ end
 # Setup routes
 function setup_routes()
     router = HTTP.Router()
-    
+
     # Health check
     HTTP.register!(router, "GET", "/health", health_handler)
-    
+
     # A2A Protocol endpoints
     HTTP.register!(router, "GET", "/api/v1/agents", agents_handler)
     HTTP.register!(router, "GET", "/api/v1/agents/*", agent_card_handler)
     HTTP.register!(router, "POST", "/api/v1/agents/*/investigate", investigate_handler)
-    
+
     return router
 end
 
@@ -171,22 +171,22 @@ function start_server()
     # Get configuration from environment
     host = get(ENV, "HOST", "0.0.0.0")
     port = parse(Int, get(ENV, "PORT", "8052"))
-    
+
     @info "🚀 Starting Ghost Wallet Hunter - Minimal Julia Server"
     @info "📡 Host: $host"
     @info "🔌 Port: $port"
     @info "💾 Memory Optimized Mode: Enabled"
-    
+
     # Initialize minimal agents
     init_minimal_agents()
-    
+
     # Setup routes
     router = setup_routes()
-    
+
     @info "✅ Server ready - A2A Protocol endpoints available"
     @info "🔗 Health: http://$host:$port/health"
     @info "🔗 Agents: http://$host:$port/api/v1/agents"
-    
+
     # Start server
     try
         HTTP.serve(router, host, port; verbose=false)

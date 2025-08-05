@@ -139,7 +139,7 @@ class GhostA2AServer:
                 await self.load_real_agents()
             except Exception as e:
                 print(f"⚠️  Failed to reload agents: {e}")
-        
+
         agents_list = []
         for agent_id, agent_data in self.agents.items():
             agents_list.append({

@@ -9,6 +9,7 @@ UM ÚNICO servidor A2A para Ghost Detectives.
 ✅ Sem mocks, sem duplicatas
 """
 
+import os
 import uvicorn
 import asyncio
 import httpx
@@ -769,10 +770,14 @@ async def main():
 
     app = await create_app()
 
+    # Get host from environment or use 0.0.0.0 for Docker compatibility
+    host = os.getenv("HOST", "0.0.0.0")
+    port = int(os.getenv("A2A_PORT", str(PORT)))
+
     config = uvicorn.Config(
         app=app,
-        host="127.0.0.1",
-        port=PORT,
+        host=host,
+        port=port,
         log_level="info"
     )
 

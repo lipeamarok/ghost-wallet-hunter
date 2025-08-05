@@ -22,9 +22,8 @@ RUN apt-get update && apt-get install -y \
 
 # 📁 Copy Julia project files first
 COPY core/Project.toml ./
-COPY core/Manifest.toml ./
 
-# ⚡ Install Julia dependencies
+# ⚡ Install Julia dependencies (Manifest.toml será gerado automaticamente)
 RUN julia --project=. -e '\
     using Pkg; \
     Pkg.instantiate(); \

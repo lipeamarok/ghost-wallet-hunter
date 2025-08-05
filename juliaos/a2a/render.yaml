@@ -4,14 +4,12 @@ services:
     name: ghost-a2a-server
     runtime: python
     buildCommand: |
-      cd juliaos/a2a
       pip install --upgrade pip
-      pip install -e .
-      pip install uvicorn httpx starlette
-    startCommand: cd juliaos/a2a/src/a2a && python final_server.py
+      pip install uvicorn httpx starlette pydantic
+    startCommand: cd src/a2a && python server.py
     plan: starter
     region: oregon
-    rootDir: .
+    rootDir: juliaos/a2a
     envVars:
       - key: ENVIRONMENT
         value: production

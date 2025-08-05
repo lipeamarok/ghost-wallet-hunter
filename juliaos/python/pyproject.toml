@@ -1,7 +1,7 @@
 [project]
 name = "juliaos"
 version = "0.1.1"
-requires-python = ">=3.11"
+requires-python = ">=3.9"
 dependencies = [
 
   # Dependencies for generated code:

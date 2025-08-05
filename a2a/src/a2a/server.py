@@ -108,7 +108,9 @@ class GhostA2AServer:
 
         except Exception as e:
             print(f"❌ Fallback also failed: {e}")
-            raise RuntimeError("CANNOT LOAD ANY AGENTS")
+            print("⚠️  Starting A2A server without Julia agents (will retry later)")
+            # Initialize with empty agents dict - will retry connection later
+            self.agents = {}
 
     async def health(self, request: Request):
         """Health check integrado"""
@@ -129,7 +131,15 @@ class GhostA2AServer:
         })
 
     async def list_agents(self, request: Request):
-        """Lista agentes reais"""
+        """Lista agentes reais - tenta recarregar se vazio"""
+        # Se não temos agentes, tenta recarregar
+        if not self.agents:
+            try:
+                print("🔄 No agents available, trying to reload...")
+                await self.load_real_agents()
+            except Exception as e:
+                print(f"⚠️  Failed to reload agents: {e}")
+        
         agents_list = []
         for agent_id, agent_data in self.agents.items():
             agents_list.append({

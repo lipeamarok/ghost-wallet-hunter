@@ -4,7 +4,7 @@ services:
     name: ghost-wallet-hunter-juliaos
     runtime: docker
     plan: starter
-    dockerfilePath: ./Dockerfile
+    dockerfilePath: ./docker/Dockerfile
     rootDir: juliaos
     envVars:
       - key: JULIA_VERSION

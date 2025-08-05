@@ -3,8 +3,8 @@
 
 FROM python:3.11-slim
 
-# Set working directory specific for A2A
-WORKDIR /app/a2a
+# Set working directory at the src level for proper module imports
+WORKDIR /app/a2a/src
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -13,14 +13,14 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy A2A requirements first (for better caching)
-COPY requirements-a2a.txt .
+COPY requirements-a2a.txt ../
 
 # Install Python dependencies
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements-a2a.txt
+    pip install --no-cache-dir -r ../requirements-a2a.txt
 
 # Copy A2A source code with correct structure
-COPY src/ ./src/
+COPY src/ ./
 
 # Set environment variables
 ENV HOST=0.0.0.0
@@ -35,5 +35,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 # Expose port
 EXPOSE 10000
 
-# Start A2A server directly (avoiding module import issues)
-CMD ["python", "src/a2a/server.py"]
+# Start A2A server as module to properly handle relative imports
+CMD ["python", "-m", "a2a.server"]

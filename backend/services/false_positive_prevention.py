@@ -13,7 +13,7 @@ from .blacklist_checker import BlacklistChecker
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from agents.shared_models import RiskLevel
+from services.ghost_a2a_client import RiskLevel
 
 logger = logging.getLogger(__name__)
 
@@ -271,8 +271,8 @@ class FalsePositivePreventionService:
             "original_analysis": analysis_context
         }
 
-    def _score_to_risk_level(self, score: float) -> RiskLevel:
-        """Convert risk score to RiskLevel enum."""
+    def _score_to_risk_level(self, score: float) -> str:
+        """Convert risk score to RiskLevel string."""
         if score >= 0.8:
             return RiskLevel.CRITICAL
         elif score >= 0.6:

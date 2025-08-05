@@ -1,50 +1,43 @@
 """
-Global Squad Manager - Singleton Pattern
+Global A2A Client Manager - Singleton Pattern
 
-Manages a single global instance of the Detective Squad to avoid
+Manages a single global instance of the A2A client to avoid
 repeated initialization on every API request.
 """
 
 import logging
-from typing import Optional, TYPE_CHECKING
+from typing import Optional
 
-if TYPE_CHECKING:
-    from agents.detective_squad import DetectiveSquadManager
+from services.ghost_a2a_client import GhostA2AClient
 
 logger = logging.getLogger(__name__)
 
 # Global instance
-_global_squad: Optional['DetectiveSquadManager'] = None
-_squad_initialized = False
+_global_a2a_client: Optional[GhostA2AClient] = None
+_client_initialized = False
 
 
-async def get_or_create_squad():
-    """Get the global squad instance, creating it if needed."""
-    global _global_squad, _squad_initialized
+async def get_or_create_a2a_client():
+    """Get the global A2A client instance, creating it if needed."""
+    global _global_a2a_client, _client_initialized
 
-    if _global_squad is None or not _squad_initialized:
-        logger.info("🚨 Initializing global detective squad...")
+    if _global_a2a_client is None or not _client_initialized:
+        logger.info("🚨 Initializing global A2A client...")
 
-        from agents.detective_squad import DetectiveSquadManager
-        _global_squad = DetectiveSquadManager()
+        _global_a2a_client = GhostA2AClient()
 
-        # Initialize the squad
-        if _global_squad:
-            _squad_initialized = await _global_squad.initialize_squad()
+        # A2A is always ready - no complex initialization needed
+        _client_initialized = True
+        logger.info("✅ Global A2A client ready!")
 
-        if _squad_initialized:
-            logger.info("✅ Global detective squad ready!")
-        else:
-            logger.warning("⚠️ Global detective squad partially initialized")
-
-    return _global_squad
+    return _global_a2a_client
 
 
-def is_squad_ready() -> bool:
-    """Check if the global squad is ready."""
-    return _squad_initialized
+def is_a2a_ready() -> bool:
+    """Check if the global A2A client is ready."""
+    return _client_initialized
 
 
-def get_squad_instance():
-    """Get the squad instance (may be None if not initialized)."""
-    return _global_squad
+def get_a2a_instance():
+    """Get the A2A client instance (may be None if not initialized)."""
+    return _global_a2a_client

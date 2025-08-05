@@ -8,7 +8,7 @@ from fastapi import APIRouter, HTTPException, BackgroundTasks
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 import logging
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 
 from services.solana_service import SolanaService
 from services.analysis_service import AnalysisService
@@ -92,7 +92,7 @@ async def analyze_wallet(
             risk_level=analysis_result.risk_level,
             total_connections=analysis_result.total_connections,
             explanation=explanation,
-            analysis_timestamp=datetime.now(UTC),
+            analysis_timestamp=datetime.now(timezone.utc),
             metadata=analysis_result.metadata or AnalysisMetadata(
                 analysis_duration_ms=0.0,
                 transactions_analyzed=0,
@@ -149,7 +149,7 @@ async def quick_analyze_wallet(wallet_address: str):
             risk_level=quick_result.risk_level,
             cluster_count=len(quick_result.clusters),
             total_connections=quick_result.total_connections,
-            analysis_timestamp=datetime.now(UTC)
+            analysis_timestamp=datetime.now(timezone.utc)
         )
 
     except HTTPException:

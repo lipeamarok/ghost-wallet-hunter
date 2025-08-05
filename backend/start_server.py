@@ -26,9 +26,21 @@ def start_server():
         logger.info("🧠 Swarm Intelligence: Coordinated Analysis")
         logger.info("📡 Backend Server: Starting on port 8001...")
 
-        # Start FastAPI server directly
+        # Get the project root directory
+        project_root = Path(__file__).parent.parent
+        venv_python = project_root / ".venv" / "Scripts" / "python.exe"
+
+        # Check if virtual environment exists
+        if venv_python.exists():
+            logger.info(f"✅ Using virtual environment: {venv_python}")
+            python_cmd = str(venv_python)
+        else:
+            logger.warning("⚠️ Virtual environment not found, using system Python")
+            python_cmd = sys.executable
+
+        # Start FastAPI server with virtual environment Python
         cmd = [
-            sys.executable, "-m", "uvicorn",
+            python_cmd, "-m", "uvicorn",
             "main:app",
             "--host", "0.0.0.0",
             "--port", "8001",
@@ -37,6 +49,7 @@ def start_server():
             "--timeout-graceful-shutdown", "30"
         ]
 
+        logger.info(f"🔧 Running command: {' '.join(cmd)}")
         subprocess.run(cmd, check=True)
 
     except KeyboardInterrupt:

@@ -1,0 +1,24 @@
+# A2A Server Deploy - Render.yaml
+services:
+  - type: web
+    name: ghost-a2a-server
+    runtime: python
+    buildCommand: |
+      cd juliaos/a2a
+      pip install --upgrade pip
+      pip install -e .
+      pip install uvicorn httpx starlette
+    startCommand: cd juliaos/a2a/src/a2a && python final_server.py
+    plan: starter
+    region: oregon
+    rootDir: .
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: JULIA_URL
+        value: https://ghost-wallet-hunter-juliaos.onrender.com
+      - key: PORT
+        value: "9100"
+    healthCheckPath: /health
+    autoDeploy: true
+    branch: main

@@ -52,4 +52,4 @@ ENV HOST=0.0.0.0
 EXPOSE 8052
 
 # 🎬 Start command
-CMD ["julia", "--project=@.", "start_julia_server.jl"]
+CMD ["julia", "--project=@.", "core/start_julia_server.jl"]

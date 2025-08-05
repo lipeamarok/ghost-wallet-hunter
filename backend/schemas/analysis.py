@@ -4,9 +4,9 @@ Analysis Schemas
 Pydantic models for wallet analysis requests and responses.
 """
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, validator
 from typing import List, Optional, Dict, Any
-from datetime import datetime, UTC
+from datetime import datetime
 from enum import Enum
 
 
@@ -27,12 +27,12 @@ class WalletCluster(BaseModel):
     last_activity: Optional[datetime] = Field(None, description="Last transaction timestamp")
     patterns: List[str] = Field(default_factory=list, description="Detected patterns")
 
-    @field_validator('risk_level', mode='before')
+    @validator('risk_level', pre=True, always=True)
     @classmethod
-    def determine_risk_level(cls, v, info):
+    def determine_risk_level(cls, v, values):
         """Automatically determine risk level from risk score."""
-        if info.data and 'risk_score' in info.data:
-            score = info.data['risk_score']
+        if values and 'risk_score' in values:
+            score = values['risk_score']
             if score < 0.3:
                 return RiskLevel.LOW
             elif score < 0.7:

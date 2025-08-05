@@ -1,0 +1,128 @@
+{
+  "timestamp": "2025-08-04T21:00:05.281916",
+  "status": "complete",
+  "julia_server": "connected",
+  "detectives": {
+    "total_expected": 8,
+    "found_count": 8,
+    "missing_count": 0,
+    "found_detectives": {
+      "poirot": {
+        "name": "Detective Hercule Poirot",
+        "status": "available",
+        "description": "",
+        "blueprint": {}
+      },
+      "marple": {
+        "name": "Detective Miss Jane Marple",
+        "status": "available",
+        "description": "",
+        "blueprint": {}
+      },
+      "spade": {
+        "name": "Detective Sam Spade",
+        "status": "available",
+        "description": "",
+        "blueprint": {}
+      },
+      "marlowee": {
+        "name": "Detective Philip Marlowe",
+        "status": "available",
+        "description": "",
+        "blueprint": {}
+      },
+      "dupin": {
+        "name": "Detective C. Auguste Dupin",
+        "status": "available",
+        "description": "",
+        "blueprint": {}
+      },
+      "shadow": {
+        "name": "Detective The Shadow",
+        "status": "available",
+        "description": "",
+        "blueprint": {}
+      },
+      "raven": {
+        "name": "Detective Edgar Raven",
+        "status": "available",
+        "description": "",
+        "blueprint": {}
+      },
+      "compliance": {
+        "name": "Detective Compliance Officer",
+        "status": "available",
+        "description": "",
+        "blueprint": {}
+      }
+    },
+    "missing_detectives": [],
+    "all_agents": [
+      {
+        "specialty": "transaction_analysis",
+        "name": "Detective Hercule Poirot",
+        "status": "active",
+        "persona": "Belgian master of deduction",
+        "id": "poirot",
+        "catchphrase": "Ah, mon ami, the little grey cells, they work!"
+      },
+      {
+        "specialty": "pattern_anomaly_detection",
+        "name": "Detective Miss Jane Marple",
+        "status": "active",
+        "persona": "Perceptive observer from St. Mary Mead",
+        "id": "marple",
+        "catchphrase": "Oh my dear, that's rather peculiar, isn't it?"
+      },
+      {
+        "specialty": "hard_boiled_investigation",
+        "name": "Detective Sam Spade",
+        "status": "active",
+        "persona": "Hard-boiled private detective",
+        "id": "spade",
+        "catchphrase": "When you're slapped, you'll take it and like it."
+      },
+      {
+        "specialty": "deep_analysis_investigation",
+        "name": "Detective Philip Marlowe",
+        "status": "active",
+        "persona": "Knight of the mean streets",
+        "id": "marlowee",
+        "catchphrase": "Down these mean streets a man must go who is not himself mean."
+      },
+      {
+        "specialty": "analytical_investigation",
+        "name": "Detective C. Auguste Dupin",
+        "status": "active",
+        "persona": "Original analytical detective",
+        "id": "dupin",
+        "catchphrase": "The mental features discoursed of as the analytical are, in themselves, but little susceptible of analysis."
+      },
+      {
+        "specialty": "stealth_investigation",
+        "name": "Detective The Shadow",
+        "status": "active",
+        "persona": "Master of stealth investigations",
+        "id": "shadow",
+        "catchphrase": "Who knows what evil lurks in the hearts of men? The Shadow knows!"
+      },
+      {
+        "specialty": "dark_pattern_investigation",
+        "name": "Detective Edgar Raven",
+        "status": "active",
+        "persona": "Investigator of darkest crimes",
+        "id": "raven",
+        "catchphrase": "Nevermore shall crime go undetected in the blockchain."
+      },
+      {
+        "specialty": "regulatory_compliance",
+        "name": "Detective Compliance Officer",
+        "status": "active",
+        "persona": "Regulatory compliance specialist",
+        "id": "compliance",
+        "catchphrase": "Justice and compliance guide every investigation."
+      }
+    ]
+  },
+  "a2a_ready": true
+}

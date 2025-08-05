@@ -8,7 +8,7 @@ from fastapi import APIRouter
 from config.settings import settings
 import logging
 import time
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -19,7 +19,7 @@ async def health_check():
     """Basic health check endpoint."""
     return {
         "status": "healthy",
-        "timestamp": datetime.now(UTC).isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "service": settings.APP_NAME,
         "version": settings.APP_VERSION
     }
@@ -32,7 +32,7 @@ async def detailed_health_check():
 
     health_status = {
         "status": "healthy",
-        "timestamp": datetime.now(UTC).isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "service": settings.APP_NAME,
         "version": settings.APP_VERSION,
         "environment": settings.ENVIRONMENT,

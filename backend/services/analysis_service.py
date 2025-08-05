@@ -7,7 +7,7 @@ Enhanced with JuliaOS AI-powered analysis capabilities.
 
 import asyncio
 import logging
-from datetime import datetime, timedelta, UTC
+from datetime import datetime, timedelta, timezone
 from typing import List, Dict, Any, Set, Tuple, Optional
 from collections import defaultdict, deque
 import statistics
@@ -43,7 +43,7 @@ class AnalysisService:
         depth: int = 2
     ) -> AnalysisResult:
         """Perform comprehensive wallet analysis enhanced with JuliaOS AI."""
-        start_time = datetime.now(UTC)
+        start_time = datetime.now(timezone.utc)
 
         try:
             logger.info(f"Starting AI-enhanced analysis for {wallet_address} with depth {depth}")
@@ -86,7 +86,7 @@ class AnalysisService:
             result.total_connections = len(graph.get(wallet_address, {}))
 
             # Enhanced metadata with AI insights
-            end_time = datetime.now(UTC)
+            end_time = datetime.now(timezone.utc)
             result.metadata = AnalysisMetadata(
                 analysis_duration_ms=(end_time - start_time).total_seconds() * 1000,
                 transactions_analyzed=len(transactions),
@@ -469,7 +469,7 @@ class AnalysisService:
                 "analysis_depth": "comprehensive",
                 "investigation_type": "suspicious_wallet_clustering",
                 "network": "solana",
-                "timestamp": datetime.now(UTC).isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
 
             # 3. Use primary detective agent as coordinator (typically Poirot)

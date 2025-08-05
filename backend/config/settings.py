@@ -5,7 +5,7 @@ This module handles all configuration settings for the Ghost Wallet Hunter backe
 including environment variables, database settings, and API configurations.
 """
 
-from pydantic_settings import BaseSettings
+from pydantic import BaseSettings
 from typing import List, Optional
 import os
 from pathlib import Path
@@ -78,6 +78,9 @@ class Settings(BaseSettings):
     JULIAOS_API_KEY: Optional[str] = None
     JULIAOS_ENVIRONMENT: str = "development"
     JULIAOS_ENABLED: bool = True
+    JULIAOS_TIMEOUT: int = 30
+    JULIAOS_RETRY_ATTEMPTS: int = 3
+    JULIAOS_HEALTH_CHECK_INTERVAL: int = 60
 
     def get_juliaos_url(self) -> str:
         """Get JuliaOS URL based on environment"""
@@ -88,9 +91,10 @@ class Settings(BaseSettings):
         return self.JULIAOS_BASE_URL
 
     class Config:
-        env_file = BACKEND_DIR / ".env"
+        """Pydantic v1 configuration"""
+        env_file = ".env"
         env_file_encoding = "utf-8"
-        case_sensitive = True
+        case_sensitive = False
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

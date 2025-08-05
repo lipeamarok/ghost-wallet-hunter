@@ -1,13 +1,12 @@
 # Ghost Wallet Hunter - Backend Dependencies
-# Cleaned and optimized for production
+# Production-ready with Pydantic v2 for FastAPI compatibility
 
 # ========================================
 # CORE FRAMEWORK
 # ========================================
 fastapi>=0.104.1
 uvicorn[standard]>=0.24.0
-pydantic>=2.5.0
-pydantic-settings>=2.1.0
+pydantic>=1.10.5,<2.0.0
 
 # ========================================
 # BLOCKCHAIN & SOLANA
@@ -24,14 +23,9 @@ tiktoken>=0.5.2
 anthropic>=0.35.0
 
 # ========================================
-# JULIAOS INTEGRATION
-# ========================================
-git+https://github.com/juliaoscode/juliaos.git@main#subdirectory=packages/pythonWrapper
-
-# ========================================
 # HTTP & NETWORKING
 # ========================================
-httpx<0.24.0,>=0.23.0
+httpx>=0.27.0
 aiohttp>=3.9.1
 websockets>=12.0
 
@@ -40,14 +34,22 @@ websockets>=12.0
 # ========================================
 pandas>=2.2.0
 numpy>=1.26.0
-python-dateutil==2.8.2
+python-dateutil>=2.8.2
 
 # ========================================
 # UTILITIES & CONFIGURATION
 # ========================================
-python-dotenv==1.0.1
-structlog==24.4.0
-marshmallow==3.23.1
+python-dotenv>=1.0.1
+structlog>=24.4.0
+marshmallow>=3.23.1
+
+# ========================================
+# BACKEND SPECIFIC
+# ========================================
+redis>=5.0.0
+celery>=5.3.0
+sqlalchemy>=2.0.0
+alembic>=1.13.0
 jsonschema==4.23.0
 rich>=13.8.0
 

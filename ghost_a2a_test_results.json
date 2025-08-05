@@ -1,0 +1,80 @@
+{
+  "summary": {
+    "total_tests": 5,
+    "passed_tests": 5,
+    "failed_tests": 0,
+    "success_rate": 100.0,
+    "duration_seconds": 9.752229,
+    "timestamp": "2025-08-04T21:02:25.527331"
+  },
+  "test_details": {
+    "server_health": true,
+    "list_agents": true,
+    "individual_agents": {
+      "poirot": {
+        "details": true,
+        "name": "Detective Hercule Poirot",
+        "specialty": "transaction_analysis"
+      },
+      "marple": {
+        "details": true,
+        "name": "Detective Miss Jane Marple",
+        "specialty": "pattern_anomaly_detection"
+      },
+      "spade": {
+        "details": true,
+        "name": "Detective Sam Spade",
+        "specialty": "hard_boiled_investigation"
+      },
+      "marlowee": {
+        "details": true,
+        "name": "Detective Philip Marlowe",
+        "specialty": "deep_analysis_investigation"
+      },
+      "dupin": {
+        "details": true,
+        "name": "Detective C. Auguste Dupin",
+        "specialty": "analytical_investigation"
+      },
+      "shadow": {
+        "details": true,
+        "name": "Detective The Shadow",
+        "specialty": "stealth_investigation"
+      },
+      "raven": {
+        "details": true,
+        "name": "Detective Edgar Raven",
+        "specialty": "dark_pattern_investigation"
+      },
+      "compliance": {
+        "details": true,
+        "name": "Detective Compliance Officer",
+        "specialty": "regulatory_compliance"
+      }
+    },
+    "a2a_messaging": {
+      "message_1": true,
+      "message_2": true,
+      "message_3": true
+    },
+    "investigation_workflow": {
+      "investigation_1": {
+        "started": true,
+        "id": "inv_20250804_210224_poirot",
+        "detective": "Detective Hercule Poirot"
+      },
+      "investigation_2": {
+        "started": true,
+        "id": "inv_20250804_210224_marple",
+        "detective": "Detective Miss Jane Marple"
+      },
+      "investigation_3": {
+        "started": true,
+        "id": "inv_20250804_210225_spade",
+        "detective": "Detective Sam Spade"
+      }
+    }
+  },
+  "a2a_protocol_version": "v1.0",
+  "target_wallet_tested": "0x742ebDE3e7b5D12A88f6AdFDd3DB96D3Ab29DFE0"
+}

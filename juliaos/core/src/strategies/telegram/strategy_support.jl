@@ -17,7 +17,7 @@ function strategy_support_initialization(
     cfg::StrategySupportConfig,
     ctx::AgentContext
 )
-    host_url = ENV["HOST_URL"]
+    host_url = get(ENV, "HOST_URL", "")
     if isempty(host_url)
         push!(ctx.logs, "ERROR: HOST_URL is not set in environment.")
         return ctx

@@ -4,7 +4,7 @@ DotEnv.load!()
 # using ...Resources: Gemini  # REMOVED - not used
 using ..CommonTypes: ToolSpecification, ToolMetadata, ToolConfig
 
-GEMINI_API_KEY = ENV["GEMINI_API_KEY"]
+GEMINI_API_KEY = get(ENV, "GEMINI_API_KEY", "")
 GEMINI_MODEL = "models/gemini-1.5-pro"
 
 Base.@kwdef struct ToolDetectSwearConfig <: ToolConfig

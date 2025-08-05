@@ -5,7 +5,7 @@ using ..Resources: OpenAI
 using ..CommonTypes: ToolSpecification, ToolMetadata, ToolConfig
 
 
-OPENAI_API_KEY = ENV["OPENAI_API_KEY"]
+OPENAI_API_KEY = get(ENV, "OPENAI_API_KEY", "")
 OPENAI_MODEL = "gpt-3.5-turbo"
 
 Base.@kwdef struct ToolLLMChatConfig <: ToolConfig

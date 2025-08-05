@@ -1,5 +1,5 @@
 using LibPQ, JSON3, SQLStrings
-using ..Agents: trigger_type_to_string, agent_state_to_string, Agent, AgentState
+# Note: Agent and AgentState are now imported by parent JuliaDB module
 
 function insert_agent(
     agent::Agent,

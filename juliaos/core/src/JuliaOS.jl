@@ -37,8 +37,8 @@ include("db/JuliaDB.jl")
 using .JuliaDB
 
 # Now include tools and strategies that depend on Resources
-include("agents/tools/Tools.jl")
-include("agents/strategies/Strategies.jl")
+include("tools/Tools.jl")
+include("strategies/Strategies.jl")
 include("agents/Triggers.jl")
 
 using .Tools

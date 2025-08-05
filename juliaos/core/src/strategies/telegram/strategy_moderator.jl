@@ -1,5 +1,5 @@
 using ..CommonTypes: StrategyConfig, AgentContext, StrategySpecification, StrategyMetadata, StrategyInput
-using ...Resources: Telegram
+using ..Resources: Telegram
 using HTTP
 using JSON
 

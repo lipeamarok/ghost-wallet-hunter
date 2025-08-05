@@ -1,7 +1,7 @@
 using DotEnv
 DotEnv.load!()
 
-using ...Resources: OpenAI
+using ..Resources: OpenAI
 using ..CommonTypes: ToolSpecification, ToolMetadata, ToolConfig
 
 

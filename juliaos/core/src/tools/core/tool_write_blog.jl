@@ -2,7 +2,7 @@ using DotEnv
 DotEnv.load!()
 
 # using ...Resources: Gemini  # CHANGED TO OPENAI
-using ...Resources: OpenAI
+using ..Resources: OpenAI
 using ..CommonTypes: ToolSpecification, ToolMetadata, ToolConfig
 
 

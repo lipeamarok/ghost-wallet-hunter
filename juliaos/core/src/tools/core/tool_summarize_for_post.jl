@@ -3,7 +3,7 @@ DotEnv.load!()
 
 using ..CommonTypes: ToolConfig, ToolMetadata, ToolSpecification
 # using ...Resources: Gemini  # CHANGED TO OPENAI
-using ...Resources: OpenAI
+using ..Resources: OpenAI
 
 # OPENAI_API_KEY = ENV["OPENAI_API_KEY"]  # Using shared
 OPENAI_MODEL = "gpt-3.5-turbo"

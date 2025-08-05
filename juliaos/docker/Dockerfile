@@ -43,9 +43,9 @@ COPY python/pyproject.toml ./python/pyproject.toml
 COPY a2a/ ./a2a/
 COPY python/ ./python/
 
-RUN cd python && pip3 install -e . && \
-    cd ../a2a && pip3 install -e . && \
-    pip3 install -e ../python && \
+RUN pip3 install --upgrade pip && \
+    cd python && pip3 install . && \
+    cd ../a2a && pip3 install . && \
     echo "✅ A2A dependencies installed successfully"
 
 # 📋 Create supervisor configuration

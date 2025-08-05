@@ -26,7 +26,6 @@ RUN apt-get update && apt-get install -y \
 
 # 📁 Copy project files
 COPY core/Project.toml ./
-COPY core/Manifest.toml ./
 
 # ⚡ Install Julia dependencies
 RUN julia --project=. -e '\

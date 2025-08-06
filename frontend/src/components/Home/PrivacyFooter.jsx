@@ -10,8 +10,8 @@ export default function AppFooter() {
       transition={{ delay: 1.4, duration: 0.8 }}
       className="fixed bottom-0 left-0 w-full z-50 py-3 bg-transparent"
       style={{
-        // Use transparent to mostrar o background que você já usa
-        // Troque para 'bg-[#10141a]' se quiser um fundo escuro sólido
+        // Use transparent para mostrar o background já existente
+        // Troque para 'bg-[#10141a]' se quiser fundo escuro sólido
         backdropFilter: 'blur(2px)',
       }}
     >
@@ -25,7 +25,9 @@ export default function AppFooter() {
         {/* Links centralizados abaixo */}
         <div className="flex items-center space-x-6 text-xs text-gray-400 pt-1">
           <motion.a
-            href="#"
+            href="https://github.com/lipeamarok/ghost-wallet-hunter.git"
+            target="_blank"
+            rel="noopener noreferrer"
             className="hover:text-blue-accent transition-colors"
             whileHover={{ scale: 1.05 }}
           >
@@ -33,7 +35,9 @@ export default function AppFooter() {
           </motion.a>
           <span className="text-gray-600">•</span>
           <motion.a
-            href="#"
+            href="https://github.com/lipeamarok/ghost-wallet-hunter.git"
+            target="_blank"
+            rel="noopener noreferrer"
             className="hover:text-blue-accent transition-colors"
             whileHover={{ scale: 1.05 }}
           >
@@ -41,7 +45,7 @@ export default function AppFooter() {
           </motion.a>
           <span className="text-gray-600">•</span>
           <motion.a
-            href="#"
+            href="/privacy-policy" // Crie uma página /privacy-policy futuramente!
             className="hover:text-blue-accent transition-colors"
             whileHover={{ scale: 1.05 }}
           >

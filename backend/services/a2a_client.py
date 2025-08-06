@@ -80,8 +80,9 @@ class GhostA2AClient:
             }
 
         except Exception as e:
-            logger.error(f"A2A swarm investigation failed: {str(e)}")
-            return {"success": False, "error": str(e)}
+            error_msg = f"Type: {type(e).__name__}, Message: {str(e)}, Args: {e.args}"
+            logger.error(f"A2A swarm investigation failed: {error_msg}")
+            return {"success": False, "error": error_msg}
 
     async def investigate_wallet_individual(self, detective_id: str, wallet_address: str) -> Dict[str, Any]:
         """
@@ -129,8 +130,8 @@ class GhostA2AClient:
 
             # Formatação conforme especificado no guia
             return {
-                "agents": result.get("available_agents", []),
-                "total": len(result.get("available_agents", [])),
+                "agents": result.get("agents", []),
+                "total": len(result.get("agents", [])),
                 "success": True
             }
 

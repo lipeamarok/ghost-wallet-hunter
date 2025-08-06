@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import ExampleAddress from './ExampleAddress';
 import { legendarySquadService } from '../../services/detectiveAPI';
+import { getInvestigateUrl } from '../../config/api';
 
 export default function WalletInput() {
   const [inputValue, setInputValue] = useState('');
@@ -31,16 +32,16 @@ export default function WalletInput() {
     setIsAnalyzing(true);
 
     try {
-      // 🎯 USAR A2A DIRETO - SABEMOS QUE FUNCIONA!
-      toast.loading('🕵️ Starting REAL investigation via A2A...', { duration: 3000 });
+      // 🎯 USAR BACKEND PRINCIPAL - Port 8001 que está funcionando
+      toast.loading('🕵️ Starting REAL investigation...', { duration: 3000 });
 
-      // Usar A2A direto que está funcionando perfeitamente
+      // Usar backend principal que integra com Julia + A2A
       const investigationPayload = {
         wallet_address: inputValue.trim()
       };
 
-      // Chamar A2A que está 100% funcional (Port 9100)
-      const response = await fetch('http://localhost:9100/swarm/investigate', {
+      // Chamar backend principal (Produção Render)
+      const response = await fetch(getInvestigateUrl(), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(investigationPayload)
@@ -52,7 +53,7 @@ export default function WalletInput() {
         toast.success('✅ Investigation started! Redirecting...', { duration: 2000 });
 
         // Navigate to analysis page with investigation data
-        navigate('/analysis-simple', {
+        navigate('/analysis', {
           state: {
             walletAddress: inputValue.trim(),
             investigationData: investigationData,
@@ -69,7 +70,7 @@ export default function WalletInput() {
       toast.error('Failed to start investigation. Please try again.');
 
       // Fallback: Navigate anyway but without real-time data
-      navigate('/analysis-simple', {
+      navigate('/analysis', {
         state: {
           walletAddress: inputValue.trim(),
           fallbackMode: true

@@ -270,27 +270,7 @@ class GhostA2AServer:
             if not wallet_address:
                 return JSONResponse({"error": "wallet_address required"}, status_code=400)
 
-            # 🚨 BLACKLIST CHECK CRÍTICO - PRIMEIRA PRIORIDADE
-            blacklist_result = await self._check_security_blacklist(wallet_address)
-            if blacklist_result:
-                agent = self.agents[agent_id]
-                return JSONResponse({
-                    "success": True,
-                    "agent_id": agent_id,
-                    "agent_name": agent['name'],
-                    "specialty": agent['specialty'],
-                    "wallet_address": wallet_address,
-                    "investigation": blacklist_result,
-                    "specialized_analysis": {
-                        "method": f"{agent['name']}_security_analysis",
-                        "findings": "CRITICAL SECURITY THREAT DETECTED",
-                        "notes": f"Wallet identified in security blacklist by {agent['name']}",
-                        "confidence": "absolute"
-                    },
-                    "timestamp": datetime.now().isoformat(),
-                    "data_source": "security_blacklist"
-                })
-
+            # ✅ ANÁLISE REAL SEM BLACKLIST HARDCODED
             agent = self.agents[agent_id]
 
             # Tentar investigação via Julia bridge primeiro
@@ -630,52 +610,7 @@ class GhostA2AServer:
 
         return JSONResponse(debug_info)
 
-    async def _check_security_blacklist(self, wallet_address: str) -> Optional[Dict[str, Any]]:
-        """Verificação de blacklist de segurança - PRIORIDADE MÁXIMA"""
-
-        # 🚨 BLACKLIST DE CARTEIRAS MALICIOSAS CONHECIDAS
-        known_malicious_wallets = {
-            "6sEk1enayZBGFyNvvJMTP7qs5S3uC7KLrQWaEk38hSHH": {
-                "threat_type": "FTX Hacker",
-                "description": "Wallet received $650M in stolen funds from FTX exchange hack",
-                "severity": "CRITICAL",
-                "stolen_amount": "$650,000,000",
-                "incident_date": "2022-11-11",
-                "source": "FTX exchange hack investigation",
-                "action": "IMMEDIATE_BLOCK"
-            },
-            "3NCLmEhcGE6sqpV7T4XfJ1sQl7G8CjhE6k5zJf3s4Lge": {
-                "threat_type": "Known Scammer",
-                "description": "Multiple confirmed scam operations",
-                "severity": "HIGH",
-                "source": "Community reports"
-            }
-        }
-
-        if wallet_address in known_malicious_wallets:
-            threat_info = known_malicious_wallets[wallet_address]
-
-            return {
-                "status": "CRITICAL_THREAT_DETECTED",
-                "message": f"🚨 BLACKLISTED WALLET: {threat_info['threat_type']}",
-                "wallet_address": wallet_address,
-                "threat_details": threat_info,
-                "execution_type": "SECURITY_BLACKLIST_DETECTION",
-                "analysis_results": {
-                    "risk_score": 100,
-                    "risk_level": "CRITICAL",
-                    "threat_confirmed": True,
-                    "confidence_score": 1.0,
-                    "immediate_action_required": True,
-                    "blacklist_reason": threat_info["description"],
-                    "severity": threat_info["severity"],
-                    "data_source": "security_intelligence"
-                },
-                "timestamp": datetime.now().isoformat(),
-                "verification": "CONFIRMED MALICIOUS ACTOR - DO NOT INTERACT"
-            }
-
-        return None
+    # ✅ BLACKLIST REMOVIDA - APENAS ANÁLISE REAL DA BLOCKCHAIN
 
     async def get_server_status(self, request: Request):
         """Status geral do servidor A2A"""

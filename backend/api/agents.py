@@ -36,7 +36,7 @@ async def investigate_with_legendary_squad(request: LegendarySquadRequest):
     Todos os detetives trabalham em equipe via A2A Protocol
     """
     try:
-        logger.info(f"🚀 A2A Swarm Investigation: {request.wallet_address}")
+        logger.info(f"A2A Swarm Investigation: {request.wallet_address}")
 
         # NOVA IMPLEMENTAÇÃO: Usar A2A Swarm em vez de agentes Python
         swarm_result = await a2a_client.investigate_wallet_swarm(request.wallet_address)
@@ -64,7 +64,7 @@ async def investigate_with_legendary_squad(request: LegendarySquadRequest):
         }
 
     except Exception as e:
-        logger.error(f"❌ A2A Swarm investigation failed: {str(e)}")
+        logger.error(f"A2A Swarm investigation failed: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/detective/{detective_id}/analyze")

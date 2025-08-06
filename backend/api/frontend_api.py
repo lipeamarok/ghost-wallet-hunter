@@ -124,7 +124,7 @@ async def test_investigate_simple(request: WalletInvestigationRequest):
     """
     Test Endpoint - Simple Investigation Verification
     ===============================================
-    
+
     Quick test endpoint for verifying A2A system functionality.
     Uses a single detective for basic wallet analysis.
     """
@@ -152,13 +152,13 @@ async def investigate_wallet(request: WalletInvestigationRequest):
     """
     Main Investigation Endpoint - Legendary Squad Analysis
     ====================================================
-    
+
     Primary endpoint for comprehensive wallet investigations.
     Deploys the full legendary detective squad via A2A Protocol.
-    
+
     Args:
         request: Investigation parameters including wallet address and type
-        
+
     Returns:
         Complete investigation results with risk assessment and detailed findings
     """
@@ -167,7 +167,7 @@ async def investigate_wallet(request: WalletInvestigationRequest):
 
         # Use A2A swarm investigation directly
         case_id = f"CASE_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-        
+
         # Send initial update to frontend via WebSocket
         if request.notify_frontend:
             await manager.send_investigation_update(
@@ -225,7 +225,7 @@ async def get_squad_status():
     """
     Legendary Squad Status Monitor
     =============================
-    
+
     Real-time operational status of the distributed detective squad.
     Monitors A2A connectivity and agent availability.
     """
@@ -251,7 +251,7 @@ async def list_detectives():
     """
     Detective Squad Directory
     ========================
-    
+
     Complete roster of available legendary detectives with specializations.
     Each detective operates via A2A Protocol with unique analytical capabilities.
     """
@@ -319,7 +319,7 @@ async def get_ai_cost_dashboard():
     """
     AI Cost Monitoring Dashboard
     ============================
-    
+
     Real-time monitoring of AI usage costs and budget management.
     Provides comprehensive analytics for cost optimization.
     """
@@ -356,7 +356,7 @@ async def update_ai_cost_limits(daily_limit: float, per_user_limit: float):
     """
     AI Budget Control Management
     ============================
-    
+
     Update cost limits and budget controls for AI service usage.
     Enables dynamic budget management and cost optimization.
     """
@@ -389,7 +389,7 @@ async def health_check():
     """
     System Health Monitor
     ====================
-    
+
     Comprehensive health check for all system components.
     Monitors A2A connectivity, AI services, and detective availability.
     """
@@ -424,7 +424,7 @@ async def test_full_integration():
     """
     System Integration Test Suite
     =============================
-    
+
     Comprehensive verification of all system components and integrations.
     Validates A2A Protocol, AI services, and end-to-end functionality.
     """
@@ -475,7 +475,7 @@ async def test_juliaos_connection():
     """
     A2A Backend Connectivity Test
     =============================
-    
+
     Validates connectivity and communication with the A2A backend services.
     Tests JuliaOS integration and detective agent availability.
     """

@@ -17,7 +17,7 @@ from typing import Dict, List, Any, Optional
 import logging
 from datetime import datetime
 
-from ..services.juliaos_detective_integration import JuliaOSDetectiveIntegration
+from ..services.julia_detective_integration import execute_julia_investigation
 from ..services.solana_service import SolanaService
 
 logger = logging.getLogger(__name__)
@@ -64,15 +64,15 @@ async def investigate_wallet_with_real_ai(
         logger.info("📊 Phase 1: Collecting REAL Solana blockchain data...")
 
         solana_service = SolanaService()
-        
+
         # Collect comprehensive data
         transactions = await solana_service.get_wallet_transactions(
-            request.wallet_address, 
+            request.wallet_address,
             limit=request.max_transactions
         )
-        
+
         token_accounts = await solana_service.get_token_accounts(request.wallet_address)
-        
+
         wallet_analysis = {
             "transactions": transactions,
             "token_accounts": token_accounts,
@@ -101,24 +101,10 @@ async def investigate_wallet_with_real_ai(
         # Phase 2: Analysis with REAL AI (Julia agents + OpenAI GPT-4)
         logger.info("🤖 Phase 2: Analysis with REAL AI (Julia agents + OpenAI GPT-4)...")
 
-        julia_service = JuliaOSDetectiveIntegration()
-        
-        # Initialize Julia service
-        await julia_service.initialize()
-        
-        # Check AI system health
-        health = await julia_service.health_check()
-        if not health.get("available", False):
-            raise HTTPException(
-                status_code=503,
-                detail=f"AI system unavailable: {health.get('error', 'Unknown error')}"
-            )
-
-        # Execute collaborative investigation with REAL AI
-        from ..services.juliaos_detective_integration import execute_enhanced_investigation
-        ai_investigation = await execute_enhanced_investigation(
+        # Execute Julia detective investigation
+        ai_investigation = await execute_julia_investigation(
             wallet_address=request.wallet_address,
-            use_swarm=True
+            detective_type="poirot"  # Use Poirot as default detective
         )
 
         if ai_investigation.get("error"):
@@ -200,9 +186,9 @@ async def investigate_wallet_with_real_ai(
 async def check_real_ai_health():
     """Check health of real AI systems"""
     try:
-        julia_service = JuliaOSDetectiveIntegration()
-        await julia_service.initialize()
-        julia_health = await julia_service.health_check()
+        # Check Julia integration
+        from ..services.julia_detective_integration import test_julia_integration
+        julia_health = await test_julia_integration()
 
         solana_service = SolanaService()
         # Simple connectivity test for blockchain
@@ -228,9 +214,9 @@ async def check_real_ai_health():
 async def get_ai_agent_status():
     """Status of Julia AI agents"""
     try:
-        julia_service = JuliaOSDetectiveIntegration()
-        await julia_service.initialize()
-        agents = await julia_service.get_available_detectives()
+        from ..services.julia_detective_integration import get_julia_detective_integration
+        julia_service = await get_julia_detective_integration()
+        agents = await julia_service.get_detective_list()
         return {
             "agents_found": len(agents),
             "agents": agents,
@@ -317,7 +303,7 @@ def extract_key_concerns(blockchain_data: Dict[str, Any], ai_analysis: Dict[str,
 
     if transaction_count > 100:
         concerns.append("Very high transaction volume detected")
-    
+
     if token_accounts_count > 20:
         concerns.append("High number of different tokens")
 

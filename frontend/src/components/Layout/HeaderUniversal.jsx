@@ -10,9 +10,20 @@ export default function UniversalHeader() {
 
   return (
     <header
-      className="fixed top-0 left-0 w-full z-50 bg-transparent"
-      // Sugestão: adicione 'bg-[#10141a]/90' se quiser leve blur/transparência
+      className="fixed top-0 left-0 w-full z-50 bg-black/30 backdrop-blur-[1.5px]"
+      // Blur fraquinho + preto transparente
+      style={{
+        WebkitBackdropFilter: 'blur(1.5px)',
+        backdropFilter: 'blur(1.5px)'
+      }}
     >
+      {/* TAG BETA */}
+      <div className="absolute top-2 left-2">
+        <span className="bg-gradient-to-r from-purple-600 to-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm tracking-widest border border-white/10 drop-shadow-lg select-none pointer-events-none" style={{ letterSpacing: "0.13em" }}>
+          BETA
+        </span>
+      </div>
+
       <motion.div
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}

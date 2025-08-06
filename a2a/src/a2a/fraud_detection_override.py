@@ -26,6 +26,13 @@ class FraudDetectionOverride:
                 "stolen_amount": "$650,000,000",
                 "incident_date": "2022-11-11"
             },
+            "5WwBYgQG6BdErM2nNNyUmQXfcUnB68b6kesxBywh1J3n": {
+                "type": "Suspected Scam Wallet",
+                "description": "User-reported scam wallet with fraudulent activities",
+                "severity": "CRITICAL",
+                "stolen_amount": "Under investigation",
+                "incident_date": "2025-08-06"
+            },
             "2SDN4vEJdCdW3pGyhx2km9gB3LeHzMGLrG2j4uVNZfrx": {
                 "type": "Known Fraud Wallet",
                 "description": "Address associated with confirmed fraudulent activities",

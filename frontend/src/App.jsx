@@ -15,6 +15,10 @@ import BlockchainTravelPlayground from './pages/BlockchainTravelPlayground';
 import TransitionTest from './pages/TransitionTest';
 import ResultsComboTest from './pages/ResultsComboTest';
 
+// NOVAS PÁGINAS FINAIS
+import Analysis from './pages/Analysis';
+import Results from './pages/Results';
+
 import './index.css';
 
 // React Query client
@@ -42,13 +46,17 @@ function App() {
             {/* HomePage sem Layout - página de entrada limpa */}
             <Route path="/" element={<HomePage />} />
 
+            {/* PÁGINAS FINAIS DE PRODUÇÃO */}
+            <Route path="/analysis" element={<Analysis />} />
+            <Route path="/results" element={<Results />} />
+
             {/* Páginas simples sem Layout - investigação rápida */}
             <Route path="/analysis-simple" element={<AnalysisPageSimple />} />
             <Route path="/results-simple" element={<ResultsPageSimple />} />
 
-            {/* Outras páginas com Layout (com Header) */}
-            <Route path="/analysis" element={<Layout><AnalysisPage /></Layout>} />
-            <Route path="/results/:walletAddress" element={<Layout><ResultsPage /></Layout>} />
+            {/* Outras páginas com Layout (com Header) - ANTIGAS */}
+            <Route path="/analysis-old" element={<Layout><AnalysisPage /></Layout>} />
+            <Route path="/results-old/:walletAddress" element={<Layout><ResultsPage /></Layout>} />
             <Route path="/about" element={<Layout><AboutPage /></Layout>} />
 
             {/* Página de teste 3D */}

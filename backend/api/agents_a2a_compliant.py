@@ -44,10 +44,10 @@ async def investigate_with_legendary_squad(request: LegendarySquadRequest):
     """
     Coordinated Multi-Agent Blockchain Investigation
     ===============================================
-    
+
     Deploys the full legendary detective squad for comprehensive wallet analysis.
     All detectives work collaboratively via A2A Protocol with JuliaOS backend.
-    
+
     Returns:
         Comprehensive investigation report with risk assessment and detailed findings
     """
@@ -88,14 +88,14 @@ async def analyze_with_specific_detective(detective_id: str, request: DetectiveA
     """
     Individual Detective Blockchain Analysis
     =======================================
-    
+
     Deploy a specific detective for specialized wallet analysis.
     Each detective has unique capabilities and analysis approaches.
-    
+
     Args:
         detective_id: Detective identifier (poirot, marple, spade, raven)
         request: Analysis parameters and wallet address
-        
+
     Returns:
         Specialized analysis report from the selected detective
     """
@@ -132,10 +132,10 @@ async def list_available_detectives():
     """
     Available Detective Agents Directory
     ===================================
-    
+
     Retrieves the complete roster of available detective agents from the A2A network.
     Each detective has specialized capabilities for different types of blockchain analysis.
-    
+
     Returns:
         List of available detectives with their specialties and current status
     """
@@ -159,10 +159,10 @@ async def a2a_system_health():
     """
     A2A System Health Check
     ======================
-    
+
     Comprehensive health status of the Agent-to-Agent network and JuliaOS backend.
     Monitors connectivity, agent availability, and system performance metrics.
-    
+
     Returns:
         Complete system health report including all connected services
     """

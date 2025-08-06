@@ -1,9 +1,26 @@
 # julia/src/agents/AgentCore.jl
 module AgentCore
 
-using ..Config
+# Config is loaded by the framework
+try
+    using ..Config
+catch
+    # If standalone, try to include config manually
+    include("../../config/config.jl")
+    using .Config
+end
 export Agent, AgentConfig, AgentStatus, AgentType,
-       AbstractAgentMemory, AbstractAgentQueue, AbstractLLMIntegration, AGENTS_LOCK, ABILITY_REGISTRY, register_ability, AGENTS
+       AbstractAgentMemory, AbstractAgentQueue, AbstractLLMIntegration, AGENTS_LOCK, ABILITY_REGISTRY, register_ability, AGENTS,
+       # Detective Agent Types and Structures
+       DetectiveMemory, InvestigationTask, DetectiveAgentConfig,
+       get_detective_abilities, get_detective_name,
+       add_investigation!, get_investigation_history, cache_pattern!, get_cached_pattern,
+       store_wallet_profile!, get_wallet_profile,
+       # Detective Type Constants
+       DETECTIVE_POIROT, DETECTIVE_MARPLE, DETECTIVE_SPADE, DETECTIVE_MARLOWEE,
+       DETECTIVE_DUPIN, DETECTIVE_SHADOW, DETECTIVE_RAVEN, DETECTIVE_GENERIC,
+       # Task and Agent Thread Storage
+       AGENT_THREADS
 
 using UUIDs, Dates
 using DataStructures
@@ -23,7 +40,11 @@ abstract type Schedule end
 # ----------------------------------------------------------------------
 @enum AgentType begin
     TRADING = 1; MONITOR = 2; ARBITRAGE = 3; DATA_COLLECTION = 4;
-    NOTIFICATION = 5; CUSTOM = 99; DEV = 100 # Added DEV type
+    NOTIFICATION = 5; CUSTOM = 99; DEV = 100; # Added DEV type
+    # Ghost Wallet Hunter Detective Types
+    DETECTIVE_POIROT = 200; DETECTIVE_MARPLE = 201; DETECTIVE_SPADE = 202;
+    DETECTIVE_MARLOWEE = 203; DETECTIVE_DUPIN = 204; DETECTIVE_SHADOW = 205;
+    DETECTIVE_RAVEN = 206; DETECTIVE_GENERIC = 299
 end
 
 @enum AgentStatus begin
@@ -202,9 +223,9 @@ end
 Holds the lifecycle info and outcome of a single agent task.
 
 # Fields
-- `task_id::String`               – unique identifier for this task  
-- `status::TaskStatus`            – current lifecycle status  
-- `submitted_time::DateTime`           – when the task was enqueued  
+- `task_id::String`               – unique identifier for this task
+- `status::TaskStatus`            – current lifecycle status
+- `submitted_time::DateTime`           – when the task was enqueued
 - `start_time::Union{DateTime,Nothing}`    – when execution began (nothing if never started)
 - `end_time::Union{DateTime,Nothing}`   – when execution ended (nothing if still pending/running)
 - `input_task::Dict{String, Any}`: Input task data
@@ -221,7 +242,7 @@ mutable struct TaskResult
     output_result::Any
     error_details::Union{Exception, Nothing}
 
-    function TaskResult(task_id::String; 
+    function TaskResult(task_id::String;
                         status::TaskStatus=TASK_PENDING,
                         submitted_time::DateTime=now(),
                         start_time::Union{DateTime,Nothing}=nothing,
@@ -286,6 +307,199 @@ const AGENTS          = Dict{String,Agent}() # Global dictionary of agents
 const AGENT_THREADS = Dict{String,Task}() # Map agent ID to its running task
 const ABILITY_REGISTRY = Dict{String,Function}() # Global registry of ability functions
 const AGENTS_LOCK     = ReentrantLock() # Lock for concurrent access to AGENTS dict and AGENT_THREADS
+
+# ----------------------------------------------------------------------
+# DETECTIVE AGENT SPECIALIZED TYPES & MEMORY
+# ----------------------------------------------------------------------
+
+"""
+    DetectiveMemory <: AbstractAgentMemory
+
+Specialized memory for detective agents with investigation history and pattern caching.
+"""
+mutable struct DetectiveMemory <: AbstractAgentMemory
+    base_memory::OrderedDictAgentMemory
+    investigation_history::Vector{Dict{String, Any}}
+    pattern_cache::Dict{String, Any}
+    wallet_profiles::Dict{String, Any}
+    max_investigations::Int
+
+    function DetectiveMemory(max_size::Int=1000, max_investigations::Int=100)
+        base = OrderedDictAgentMemory(OrderedDict{String, Any}(), max_size)
+        new(base, Vector{Dict{String, Any}}(), Dict{String, Any}(), Dict{String, Any}(), max_investigations)
+    end
+end
+
+# Implement AbstractAgentMemory interface for DetectiveMemory
+get_value(mem::DetectiveMemory, key::String) = get_value(mem.base_memory, key)
+set_value!(mem::DetectiveMemory, key::String, val) = set_value!(mem.base_memory, key, val)
+delete_value!(mem::DetectiveMemory, key::String) = delete_value!(mem.base_memory, key)
+clear!(mem::DetectiveMemory) = (clear!(mem.base_memory); empty!(mem.investigation_history); empty!(mem.pattern_cache); empty!(mem.wallet_profiles))
+Base.length(mem::DetectiveMemory) = length(mem.base_memory)
+Base.keys(mem::DetectiveMemory) = keys(mem.base_memory)
+
+# Detective-specific memory functions
+function add_investigation!(mem::DetectiveMemory, investigation::Dict{String, Any})
+    push!(mem.investigation_history, investigation)
+    while length(mem.investigation_history) > mem.max_investigations
+        popfirst!(mem.investigation_history)
+    end
+end
+
+function get_investigation_history(mem::DetectiveMemory, wallet_address::String="")
+    if isempty(wallet_address)
+        return mem.investigation_history
+    else
+        return filter(inv -> get(inv, "wallet_address", "") == wallet_address, mem.investigation_history)
+    end
+end
+
+function cache_pattern!(mem::DetectiveMemory, pattern_key::String, pattern_data::Any)
+    mem.pattern_cache[pattern_key] = pattern_data
+end
+
+function get_cached_pattern(mem::DetectiveMemory, pattern_key::String)
+    return get(mem.pattern_cache, pattern_key, nothing)
+end
+
+function store_wallet_profile!(mem::DetectiveMemory, wallet_address::String, profile::Dict{String, Any})
+    mem.wallet_profiles[wallet_address] = profile
+end
+
+function get_wallet_profile(mem::DetectiveMemory, wallet_address::String)
+    return get(mem.wallet_profiles, wallet_address, nothing)
+end
+
+"""
+    InvestigationTask
+
+Specialized task type for detective investigations.
+"""
+struct InvestigationTask
+    task_id::String
+    wallet_address::String
+    investigation_type::String
+    priority::Float64
+    detective_type::AgentType
+    additional_params::Dict{String, Any}
+    created_at::DateTime
+
+    function InvestigationTask(wallet_address::String, investigation_type::String="general",
+                              detective_type::AgentType=DETECTIVE_GENERIC;
+                              priority::Float64=1.0, additional_params::Dict{String, Any}=Dict{String, Any}())
+        task_id = "investigation_" * string(UUIDs.uuid4())[1:8]
+        new(task_id, wallet_address, investigation_type, priority, detective_type, additional_params, now())
+    end
+end
+
+"""
+    DetectiveAgentConfig
+
+Specialized configuration for detective agents with blockchain-specific settings.
+"""
+struct DetectiveAgentConfig
+    base_config::AgentConfig
+    blockchain::String
+    analysis_depth::String
+    max_transactions::Int
+    rate_limit_delay::Float64
+    specialty_skills::Vector{String}
+    investigation_style::String
+
+    function DetectiveAgentConfig(name::String, detective_type::AgentType;
+                                 blockchain::String="solana",
+                                 analysis_depth::String="deep",
+                                 max_transactions::Int=1000,
+                                 rate_limit_delay::Float64=1.0,
+                                 specialty_skills::Vector{String}=String[],
+                                 investigation_style::String="methodical",
+                                 abilities::Vector{String}=["investigate_wallet", "analyze_patterns", "generate_report"],
+                                 parameters::Dict{String,Any}=Dict())
+
+        # Create specialized memory config for detectives
+        memory_config = Dict(
+            "type" => "detective_memory",
+            "max_size" => 2000,
+            "max_investigations" => 200,
+            "retention_policy" => "investigation_based"
+        )
+
+        # Detective-specific parameters
+        detective_params = merge(parameters, Dict(
+            "blockchain" => blockchain,
+            "analysis_depth" => analysis_depth,
+            "max_transactions" => max_transactions,
+            "rate_limit_delay" => rate_limit_delay,
+            "specialty_skills" => specialty_skills,
+            "investigation_style" => investigation_style
+        ))
+
+        base = AgentConfig(name, detective_type;
+                          abilities=abilities,
+                          parameters=detective_params,
+                          memory_config=memory_config)
+
+        new(base, blockchain, analysis_depth, max_transactions, rate_limit_delay, specialty_skills, investigation_style)
+    end
+end
+
+# ----------------------------------------------------------------------
+# DETECTIVE AGENT FACTORY HELPERS
+# ----------------------------------------------------------------------
+
+"""
+    get_detective_abilities(detective_type::AgentType) -> Vector{String}
+
+Returns the standard abilities for a specific detective type.
+"""
+function get_detective_abilities(detective_type::AgentType)
+    base_abilities = ["investigate_wallet", "analyze_patterns", "generate_report", "update_memory"]
+
+    specialty_abilities = if detective_type == DETECTIVE_POIROT
+        ["methodical_analysis", "transaction_tracing", "precision_detection"]
+    elseif detective_type == DETECTIVE_MARPLE
+        ["pattern_recognition", "anomaly_detection", "behavioral_analysis"]
+    elseif detective_type == DETECTIVE_SPADE
+        ["risk_assessment", "compliance_checking", "criminal_pattern_detection"]
+    elseif detective_type == DETECTIVE_MARLOWEE
+        ["deep_analysis", "corruption_detection", "narrative_investigation"]
+    elseif detective_type == DETECTIVE_DUPIN
+        ["logical_deduction", "analytical_reasoning", "pattern_synthesis"]
+    elseif detective_type == DETECTIVE_SHADOW
+        ["stealth_analysis", "hidden_pattern_detection", "network_mapping"]
+    elseif detective_type == DETECTIVE_RAVEN
+        ["dark_analytics", "ominous_pattern_detection", "cryptic_interpretation"]
+    else
+        ["general_investigation"]
+    end
+
+    return vcat(base_abilities, specialty_abilities)
+end
+
+"""
+    get_detective_name(detective_type::AgentType) -> String
+
+Returns the standard name for a detective type.
+"""
+function get_detective_name(detective_type::AgentType)
+    if detective_type == DETECTIVE_POIROT
+        return "Detective Hercule Poirot"
+    elseif detective_type == DETECTIVE_MARPLE
+        return "Detective Miss Jane Marple"
+    elseif detective_type == DETECTIVE_SPADE
+        return "Detective Sam Spade"
+    elseif detective_type == DETECTIVE_MARLOWEE
+        return "Detective Philip Marlowe"
+    elseif detective_type == DETECTIVE_DUPIN
+        return "Detective Auguste Dupin"
+    elseif detective_type == DETECTIVE_SHADOW
+        return "The Shadow"
+    elseif detective_type == DETECTIVE_RAVEN
+        return "Detective Raven"
+    else
+        return "Generic Detective"
+    end
+end
 
 # ----------------------------------------------------------------------
 # ABILITY REGISTRY (Definition here, registration function above) ------

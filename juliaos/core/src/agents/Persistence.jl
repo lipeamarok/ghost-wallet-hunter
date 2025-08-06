@@ -12,11 +12,12 @@ using DataStructures # For OrderedDict used in Agent memory
 # using Atomic # Not directly used, mv is atomic on POSIX, consider alternatives for Windows if needed
 
 # Import necessary types and global structures from sibling modules
+# Config import - now loaded by framework
 import ..Config: get_config # For configuration values
 import ..AgentMetrics: init_agent_metrics # To initialize metrics for loaded agents
 using ..AgentCore: Agent, AgentConfig, AgentStatus, AgentType, CUSTOM,
         AbstractAgentMemory, AbstractAgentQueue, AbstractLLMIntegration,
-        OrderedDictAgentMemory,
+        OrderedDictAgentMemory, DetectiveMemory, InvestigationTask,
         AGENTS_LOCK, AGENTS,
         TaskResult
 
@@ -54,6 +55,190 @@ function _update_config_dependent_constants!()
     end
 end
 
+# ----------------------------------------------------------------------
+# DETECTIVE-SPECIFIC PERSISTENCE FUNCTIONS
+# ----------------------------------------------------------------------
+
+"""
+    serialize_detective_memory(memory::DetectiveMemory) -> Dict{String, Any}
+
+Serializes DetectiveMemory for persistence.
+"""
+function serialize_detective_memory(memory::DetectiveMemory)
+    # Serialize investigation history
+    serialized_history = []
+    for task in memory.investigation_history
+        push!(serialized_history, Dict(
+            "id" => task.id,
+            "wallet_address" => task.wallet_address,
+            "task_type" => task.task_type,
+            "parameters" => task.parameters,
+            "result" => task.result,
+            "created_at" => string(task.created_at),
+            "completed_at" => task.completed_at !== nothing ? string(task.completed_at) : nothing,
+            "status" => string(task.status)
+        ))
+    end
+
+    return Dict(
+        "type" => "detective_memory",
+        "investigation_history" => serialized_history,
+        "pattern_cache" => memory.pattern_cache,
+        "contextual_data" => memory.contextual_data,
+        "last_investigation" => memory.last_investigation !== nothing ? string(memory.last_investigation) : nothing
+    )
+end
+
+"""
+    deserialize_detective_memory(data::Dict{String, Any}) -> DetectiveMemory
+
+Deserializes DetectiveMemory from persistence data.
+"""
+function deserialize_detective_memory(data::Dict{String, Any})
+    # Deserialize investigation history
+    investigation_history = Vector{InvestigationTask}()
+    for task_data in get(data, "investigation_history", [])
+        created_at = DateTime(task_data["created_at"])
+        completed_at = task_data["completed_at"] !== nothing ? DateTime(task_data["completed_at"]) : nothing
+
+        task = InvestigationTask(
+            task_data["id"],
+            task_data["wallet_address"],
+            task_data["task_type"],
+            task_data["parameters"],
+            task_data["result"],
+            created_at,
+            completed_at,
+            Symbol(task_data["status"])
+        )
+        push!(investigation_history, task)
+    end
+
+    pattern_cache = get(data, "pattern_cache", Dict{String, Any}())
+    contextual_data = get(data, "contextual_data", nothing)
+    last_investigation = data["last_investigation"] !== nothing ? DateTime(data["last_investigation"]) : nothing
+
+    return DetectiveMemory(investigation_history, pattern_cache, contextual_data, last_investigation)
+end
+
+"""
+    save_investigation_result(agent_id::String, investigation::InvestigationTask)
+
+Saves a specific investigation result for audit and recovery purposes.
+"""
+function save_investigation_result(agent_id::String, investigation::InvestigationTask)
+    investigations_dir = joinpath(dirname(STORE_PATH[]), "investigations")
+    try
+        ispath(investigations_dir) || mkpath(investigations_dir)
+
+        investigation_file = joinpath(investigations_dir, "$(agent_id)_$(investigation.id).json")
+
+        investigation_data = Dict(
+            "agent_id" => agent_id,
+            "investigation_id" => investigation.id,
+            "wallet_address" => investigation.wallet_address,
+            "task_type" => investigation.task_type,
+            "parameters" => investigation.parameters,
+            "result" => investigation.result,
+            "created_at" => string(investigation.created_at),
+            "completed_at" => investigation.completed_at !== nothing ? string(investigation.completed_at) : nothing,
+            "status" => string(investigation.status),
+            "saved_at" => string(now())
+        )
+
+        open(investigation_file, "w") do io
+            JSON3.write(io, investigation_data)
+        end
+
+        @debug "Investigation result saved: $investigation_file"
+
+    catch e
+        @error "Failed to save investigation result for $agent_id: $e"
+    end
+end
+
+"""
+    load_investigation_results(agent_id::String) -> Vector{InvestigationTask}
+
+Loads all investigation results for a specific agent.
+"""
+function load_investigation_results(agent_id::String)
+    investigations_dir = joinpath(dirname(STORE_PATH[]), "investigations")
+    investigations = Vector{InvestigationTask}()
+
+    if !ispath(investigations_dir)
+        return investigations
+    end
+
+    try
+        for file in readdir(investigations_dir)
+            if startswith(file, "$(agent_id)_") && endswith(file, ".json")
+                investigation_file = joinpath(investigations_dir, file)
+
+                investigation_data = JSON3.read(read(investigation_file, String))
+
+                created_at = DateTime(investigation_data["created_at"])
+                completed_at = investigation_data["completed_at"] !== nothing ? DateTime(investigation_data["completed_at"]) : nothing
+
+                investigation = InvestigationTask(
+                    investigation_data["investigation_id"],
+                    investigation_data["wallet_address"],
+                    investigation_data["task_type"],
+                    investigation_data["parameters"],
+                    investigation_data["result"],
+                    created_at,
+                    completed_at,
+                    Symbol(investigation_data["status"])
+                )
+
+                push!(investigations, investigation)
+            end
+        end
+
+        @debug "Loaded $(length(investigations)) investigation results for agent $agent_id"
+
+    catch e
+        @error "Failed to load investigation results for $agent_id: $e"
+    end
+
+    return investigations
+end
+
+"""
+    cleanup_old_investigations(days_to_keep::Int=30)
+
+Removes investigation files older than specified days.
+"""
+function cleanup_old_investigations(days_to_keep::Int=30)
+    investigations_dir = joinpath(dirname(STORE_PATH[]), "investigations")
+
+    if !ispath(investigations_dir)
+        return
+    end
+
+    cutoff_date = now() - Day(days_to_keep)
+    removed_count = 0
+
+    try
+        for file in readdir(investigations_dir)
+            if endswith(file, ".json")
+                investigation_file = joinpath(investigations_dir, file)
+                file_time = unix2datetime(stat(investigation_file).mtime)
+
+                if file_time < cutoff_date
+                    rm(investigation_file)
+                    removed_count += 1
+                end
+            end
+        end
+
+        @info "Cleaned up $removed_count old investigation files (older than $days_to_keep days)"
+
+    catch e
+        @error "Failed to cleanup old investigations: $e"
+    end
+end
+
 
 """
     _save_state()
@@ -74,7 +259,7 @@ function _save_state()
     end
 
     data_to_save = Dict{String, Dict{String, Any}}()
-    
+
     # AGENTS_LOCK must be held by the caller (e.g., persistence task or specific lifecycle functions)
     # to safely iterate over the AGENTS dictionary.
     for (id, agent_instance) in AGENTS # Iterate over the global AGENTS store
@@ -98,6 +283,8 @@ function _save_state()
             serialized_memory_data = nothing
             if isa(agent_instance.memory, OrderedDictAgentMemory)
                  serialized_memory_data = Dict("type"=>"ordered_dict", "data"=>collect(agent_instance.memory.data))
+            elseif isa(agent_instance.memory, DetectiveMemory)
+                 serialized_memory_data = serialize_detective_memory(agent_instance.memory)
             # TODO: Add serialization for other AbstractAgentMemory implementations
             # elseif isa(agent_instance.memory, SomeOtherMemoryType)
             #    serialized_memory_data = Dict("type"=>"some_other_type", "data"=>agent_instance.memory.some_internal_data)
@@ -147,7 +334,7 @@ Initializes agent-specific locks, conditions, and reconstructs pluggable compone
 """
 function _load_state()
     isfile(STORE_PATH[]) || ( @info "No agent state file found at $(STORE_PATH[]). Starting fresh."; return )
-    
+
     raw_data_from_file = nothing
     try
         raw_data_from_file = JSON3.read(read(STORE_PATH[], String)) # Read file then parse
@@ -203,7 +390,7 @@ function _load_state()
                         submitted_time = try DateTime(get(tr_data, "submitted_time", string(now(UTC)))) catch eDateTime @warn "Parse error for submitted_time" e=eDateTime; now(UTC) end
                         start_time = haskey(tr_data, "start_time") && !isnothing(tr_data["start_time"]) ? (try DateTime(tr_data["start_time"]) catch eDateTime @warn "Parse error for start_time" e=eDateTime; nothing end) : nothing
                         end_time = haskey(tr_data, "end_time") && !isnothing(tr_data["end_time"]) ? (try DateTime(tr_data["end_time"]) catch eDateTime @warn "Parse error for end_time" e=eDateTime; nothing end) : nothing
-                        
+
                         loaded_task_results[task_id_str] = TaskResult(
                              get(tr_data, "task_id", task_id_str),
                              Agents.TaskStatus(Int(get(tr_data, "status", Int(Agents.TASK_UNKNOWN)))),
@@ -231,6 +418,13 @@ function _load_state()
                         @warn "Could not reconstruct OrderedDict memory for agent $agent_id_str from saved data. Memory will be empty." exception=dict_err
                     end
                  end
+            elseif isa(memory_component, DetectiveMemory) && isa(memory_snapshot, Dict) && get(memory_snapshot, "type", "") == "detective_memory"
+                try
+                    memory_component = deserialize_detective_memory(memory_snapshot)
+                    @debug "Restored DetectiveMemory for agent $agent_id_str with $(length(memory_component.investigation_history)) investigations"
+                catch detective_err
+                    @warn "Could not reconstruct DetectiveMemory for agent $agent_id_str from saved data. Memory will be empty." exception=detective_err
+                end
             # TODO: Add deserialization for other AbstractAgentMemory implementations
             end
 
@@ -324,7 +518,7 @@ function start_persistence_task()::Bool
 
         # Ensure config-dependent constants are up-to-date before starting task
         _update_config_dependent_constants!()
-        
+
         if PERSIST_INTERVAL_SECONDS[] <= 0
             @warn "Persistence interval is non-positive ($(PERSIST_INTERVAL_SECONDS[])s). Auto-persistence task will not start."
             return false

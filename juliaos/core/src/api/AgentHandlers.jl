@@ -5,8 +5,8 @@ using HTTP
 using ..Utils # Updated from ApiUtils to Utils, assuming Utils.jl is in the same api/ directory
 
 # Import from the 'agents' subdirectory
-using ..Agents
-using ..Agents: AgentConfig, AgentType, TaskStatus # Specific types
+using ..DetectiveAgents  # CORRIGIDO
+using ..DetectiveAgents: AgentConfig, AgentType, TaskStatus # Specific types
 
 # --- Agent CRUD Handlers ---
 

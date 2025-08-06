@@ -2,7 +2,7 @@ module JuliaDB
 
 # Import necessary types and functions from parent module
 using ..CommonTypes: AgentState
-using ..Agents: Agent
+using ..DetectiveAgents: Agent  # CORRIGIDO: usar DetectiveAgents ao invés de Agents
 
 # Note: trigger_type_to_string and agent_state_to_string are included directly in parent JuliaOS module
 # They will be available through the parent scope

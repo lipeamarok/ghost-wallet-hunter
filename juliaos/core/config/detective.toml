@@ -1,0 +1,198 @@
+# Detective Agent Configuration for Ghost Wallet Hunter
+
+[detective]
+investigation_timeout = 300  # 5 minutes max per investigation
+max_concurrent_investigations = 10
+pattern_cache_max_size = 1000
+memory_retention_days = 30
+
+[detective.blockchain_analysis]
+max_transaction_depth = 100
+suspicious_amount_threshold = 1000000  # 1M USD equivalent
+quick_scan_transaction_limit = 50
+deep_scan_transaction_limit = 500
+pattern_confidence_threshold = 0.7
+
+# Solana-specific settings
+[detective.blockchain_analysis.solana]
+rpc_url = "https://api.mainnet-beta.solana.com"
+cluster = "mainnet-beta"
+commitment = "confirmed"
+max_retries = 3
+timeout = 30
+
+[detective.ai_analysis]
+enabled = true
+model = "gpt-4"
+max_tokens = 4000
+temperature = 0.1  # Low temperature for consistent analysis
+analysis_depth = "comprehensive"  # quick, standard, comprehensive
+api_key_env = "OPENAI_API_KEY"
+
+[detective.detection_rules]
+min_suspicious_score = 0.6
+ghost_wallet_indicators = [
+    "high_frequency_small_transactions",
+    "circular_transaction_patterns",
+    "unusual_gas_patterns",
+    "cross_chain_obfuscation",
+    "temporal_clustering",
+    "privacy_coin_mixing",
+    "layered_transactions"
+]
+
+[detective.detection_rules.alert_thresholds]
+high_risk = 0.8
+medium_risk = 0.6
+low_risk = 0.4
+
+# Individual Detective Agent Configurations
+[detective.agents.poirot]
+name = "Hercule Poirot"
+specialty = "meticulous_analysis"
+description = "Methodical detective focused on logical sequences and careful analysis"
+transaction_depth = 100
+pattern_focus = ["methodical_patterns", "logical_sequences", "financial_inconsistencies"]
+analysis_style = "systematic"
+confidence_requirement = 0.8
+
+[detective.agents.marple]
+name = "Miss Jane Marple"
+specialty = "intuitive_detection"
+description = "Intuitive detective with keen insight into human nature and community patterns"
+social_analysis = true
+community_patterns = true
+pattern_focus = ["social_networks", "behavioral_patterns", "community_anomalies"]
+analysis_style = "intuitive"
+confidence_requirement = 0.7
+
+[detective.agents.spade]
+name = "Sam Spade"
+specialty = "hard_boiled_investigation"
+description = "Tough, no-nonsense detective for aggressive blockchain analysis"
+aggressive_scanning = true
+deep_blockchain_analysis = true
+pattern_focus = ["criminal_patterns", "money_laundering", "illicit_activities"]
+analysis_style = "aggressive"
+confidence_requirement = 0.6
+
+[detective.agents.marlowee]
+name = "Philip Marlowee"
+specialty = "cynical_analysis"
+description = "Cynical detective specialized in corruption and power structure analysis"
+corruption_detection = true
+power_structure_analysis = true
+pattern_focus = ["corruption_indicators", "power_abuse", "institutional_fraud"]
+analysis_style = "cynical"
+confidence_requirement = 0.7
+
+[detective.agents.dupin]
+name = "C. Auguste Dupin"
+specialty = "analytical_reasoning"
+description = "Analytical detective using mathematical and statistical approaches"
+mathematical_analysis = true
+statistical_patterns = true
+pattern_focus = ["mathematical_anomalies", "statistical_outliers", "algorithmic_patterns"]
+analysis_style = "analytical"
+confidence_requirement = 0.8
+
+[detective.agents.shadow]
+name = "The Shadow"
+specialty = "stealth_investigation"
+description = "Mysterious detective focusing on hidden connections and covert operations"
+covert_patterns = true
+hidden_connections = true
+pattern_focus = ["hidden_networks", "stealth_operations", "covert_activities"]
+analysis_style = "covert"
+confidence_requirement = 0.7
+
+[detective.agents.raven]
+name = "The Raven"
+specialty = "dark_psychology"
+description = "Psychological detective analyzing behavioral patterns and dark motivations"
+behavioral_analysis = true
+psychological_profiling = true
+pattern_focus = ["psychological_patterns", "behavioral_anomalies", "dark_motivations"]
+analysis_style = "psychological"
+confidence_requirement = 0.7
+
+# Investigation Types Configuration
+[detective.investigation_types.quick]
+timeout = 100  # ~1.5 minutes
+transaction_limit = 25
+analysis_depth = "surface"
+ai_enabled = false
+max_transaction_depth = 25
+description = "Fast surface-level scan for immediate threats"
+
+[detective.investigation_types.standard]
+timeout = 300  # 5 minutes
+transaction_limit = 100
+analysis_depth = "standard"
+ai_enabled = true
+max_transaction_depth = 100
+description = "Balanced investigation with good depth and reasonable time"
+
+[detective.investigation_types.deep]
+timeout = 900  # 15 minutes
+transaction_limit = 500
+analysis_depth = "comprehensive"
+ai_enabled = true
+max_transaction_depth = 200
+description = "Thorough investigation for complex cases"
+
+[detective.investigation_types.forensic]
+timeout = 1800  # 30 minutes
+transaction_limit = 1000
+analysis_depth = "forensic"
+ai_enabled = true
+max_transaction_depth = 500
+description = "Complete forensic analysis for legal cases"
+
+# Pattern Detection Configuration
+[detective.patterns.ghost_wallet_indicators]
+high_frequency_small_transactions = { weight = 0.8, threshold = 50 }
+circular_transaction_patterns = { weight = 0.9, threshold = 3 }
+unusual_gas_patterns = { weight = 0.6, threshold = 2.0 }
+cross_chain_obfuscation = { weight = 0.9, threshold = 2 }
+temporal_clustering = { weight = 0.7, threshold = 0.8 }
+privacy_coin_mixing = { weight = 0.9, threshold = 1 }
+layered_transactions = { weight = 0.8, threshold = 5 }
+
+# Monitoring and Performance
+[detective.monitoring]
+performance_tracking = true
+investigation_logging = true
+pattern_cache_monitoring = true
+memory_usage_alerts = true
+success_rate_tracking = true
+
+[detective.performance]
+cache_hit_ratio_target = 0.7
+average_investigation_time_target = 180  # 3 minutes
+success_rate_target = 0.85
+false_positive_rate_target = 0.1
+
+# Security and Rate Limiting
+[detective.security]
+max_investigation_rate = 60  # per hour per detective
+suspicious_activity_threshold = 10  # investigations per minute
+auto_shutdown_on_abuse = true
+investigation_audit_logging = true
+
+# External Service Integration
+[detective.external_services]
+moralis_api_enabled = false
+etherscan_api_enabled = false
+chainalysis_api_enabled = false
+elliptic_api_enabled = false
+
+[detective.external_services.moralis]
+api_key_env = "MORALIS_API_KEY"
+rate_limit = 100  # per minute
+timeout = 30
+
+[detective.external_services.etherscan]
+api_key_env = "ETHERSCAN_API_KEY"
+rate_limit = 100  # per minute
+timeout = 30

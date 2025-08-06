@@ -1,5 +1,5 @@
 using LibPQ, JSON3, SQLStrings
-using ..Agents: string_to_agent_state, string_to_trigger_type, trigger_type_to_params_type, create_agent, set_agent_state
+using ..DetectiveAgents: string_to_agent_state, string_to_trigger_type, trigger_type_to_params_type, create_agent, set_agent_state  # CORRIGIDO
 using ..CommonTypes: TriggerParams, TriggerConfig, AgentBlueprint, ToolBlueprint, StrategyBlueprint, CREATED_STATE
 
 function load_state()

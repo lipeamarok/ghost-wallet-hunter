@@ -2,33 +2,261 @@
 module JuliaOSFramework
 
 using Logging
+using Pkg
 
-export initialize
+export initialize, initialize_detective_system, create_detective_agent, start_investigation
+export get_system_health, get_performance_metrics
 
-# --- Include Core Agent Modules ---
-# Paths are relative to this file (julia/src/framework/)
-# going up to julia/src/ then down to the specific module directory
+# Dependency verification
+const REQUIRED_PACKAGES = [
+    "DataStructures",
+    "StructTypes",
+    "JSON3",
+    "TOML",
+    "Dates",
+    "UUIDs"
+]
+
+"""
+Verify and install required dependencies
+"""
+function verify_dependencies()
+    @info "🔍 Checking JuliaOS dependencies..."
+
+    missing_packages = String[]
+
+    for pkg in REQUIRED_PACKAGES
+        try
+            Base.require(Main, Symbol(pkg))
+        catch
+            push!(missing_packages, pkg)
+        end
+    end
+
+    if !isempty(missing_packages)
+        @warn "Missing packages: $(join(missing_packages, ", "))"
+        @info "Installing missing packages..."
+
+        for pkg in missing_packages
+            try
+                Pkg.add(pkg)
+                @info "✅ Installed: $pkg"
+            catch e
+                @error "❌ Failed to install $pkg: $e"
+                return false
+            end
+        end
+    end
+
+    @info "✅ All dependencies verified"
+    return true
+end
+
+# Verify dependencies before loading modules
+if !verify_dependencies()
+    @error "Failed to verify dependencies. JuliaOSFramework initialization aborted."
+    error("Dependency verification failed")
+end
+
+# Import required packages
+using DataStructures
+using StructTypes
+using JSON3
+using TOML
+using Dates
+using UUIDs
+
+# --- Include Core Agent Modules (CORRECTED ORDER) ---
+# Paths are relative to this file (src/framework/) going to src/agents/
 try
-    include("../agents/Config.jl")
-    include("../agents/AgentCore.jl")
-    include("../agents/AgentMetrics.jl")
-    include("../agents/Persistence.jl")
-    include("../agents/LLMIntegration.jl")
-    include("../agents/Agents.jl")
-    include("../agents/PlanAndExecute.jl")
-    # include("../agents/AgentMonitor.jl")
-    
-    # Make Agent modules available
+    # Load in correct dependency order
+    include("../../config/config.jl")        # First - load config from config/config.jl
+    include("../agents/AgentCore.jl")        # Second - depends on Config
+    include("../agents/CommonTypes.jl")      # Third - depends on AgentCore
+    include("../agents/AgentMetrics.jl")     # Fourth - depends on AgentCore
+    include("../agents/Persistence.jl")     # Fifth - depends on AgentCore, AgentMetrics
+    include("../agents/LLMIntegration.jl")   # Sixth - depends on AgentCore, Config
+    include("../agents/Triggers.jl")         # Seventh - depends on AgentCore
+    include("../agents/DetectiveAgents.jl")  # Eighth - INTEGRATION: Individual detective agents (replaces Agents.jl)
+    include("../agents/PlanAndExecute.jl")   # Ninth - depends on LLMIntegration, AgentCore
+    include("../agents/AgentMonitor.jl")     # Tenth - depends on AgentMetrics, AgentCore
+    include("../agents/Agent_Management.jl") # Eleventh - depends on all above
+    include("../agents/utils.jl")           # Last - utility functions (after all modules loaded)
+
+    # Make Agent modules available in correct order
     using .Config
     using .AgentCore
-    using .AgentMetrics
-    using .LLMIntegration
-    using .Agents
+    using .CommonTypes
     using .Persistence
+    using .AgentMetrics
+    using .Triggers
+    using .LLMIntegration
     using .PlanAndExecute
-    @info "JuliaOSFramework: Agent modules included and using'd successfully."
+    using .AgentMonitor
+    using .DetectiveAgents  # INTEGRATION: New detective agents system
+
+    @info "🤖 JuliaOSFramework: Agent modules loaded successfully"
+
 catch e
-    @error "JuliaOSFramework: Critical error including Agent modules." exception=(e, catch_backtrace())
+    @error "💥 JuliaOSFramework: Critical error loading Agent modules" exception=(e, catch_backtrace())
+    rethrow(e)
+end
+
+# --- Detective System Functions ---
+
+"""
+Initialize the Detective System
+"""
+function initialize_detective_system()
+    try
+        @info "🕵️ Initializing Detective Agent System..."
+
+        # Load detective configuration
+        config_result = Config.load_detective_config()
+        if isnothing(config_result)
+            @warn "Failed to load detective configuration, using defaults"
+        end
+
+        # Initialize metrics system
+        AgentMetrics.initialize_detective_metrics()
+
+        # Create all detective agents
+        agents = create_all_detective_agents()
+
+        @info "✅ Detective system initialized with $(length(agents)) agents"
+        return Dict(
+            "status" => "success",
+            "agents_created" => length(agents),
+            "message" => "Detective system ready"
+        )
+
+    catch e
+        @error "❌ Failed to initialize detective system: $e"
+        return Dict(
+            "status" => "error",
+            "error" => string(e),
+            "message" => "Detective system initialization failed"
+        )
+    end
+end
+
+"""
+Create a detective agent of specified type using the new DetectiveAgents system
+"""
+function create_detective_agent(detective_type::String)
+    try
+        @info "🕵️ Creating detective agent: $detective_type"
+
+        # Use the new DetectiveAgents system for agent creation
+        agent = DetectiveAgents.create_detective_by_type(detective_type)
+
+        if !isnothing(agent)
+            @info "✅ Detective agent '$detective_type' created successfully"
+            return agent
+        else
+            @warn "⚠️ Failed to create detective agent '$detective_type'"
+            return nothing
+        end
+
+    catch e
+        @error "❌ Failed to create detective agent '$detective_type': $e"
+        return nothing
+    end
+end
+
+"""
+Create all detective agents using the new DetectiveAgents system
+"""
+function create_all_detective_agents()
+    # Updated to match the refactored detective agents
+    detective_types = ["poirot", "marple", "spade", "marlowee", "dupin", "shadow", "raven"]
+    agents = Dict{String, Any}()
+
+    @info "🕵️ Creating all detective agents..."
+
+    for detective_type in detective_types
+        agent = create_detective_agent(detective_type)
+        if !isnothing(agent)
+            agents[detective_type] = agent
+            @info "✅ Created detective: $detective_type"
+        else
+            @warn "⚠️ Failed to create detective: $detective_type"
+        end
+    end
+
+    @info "📊 Detective squad ready: $(length(agents))/$(length(detective_types)) agents created"
+    return agents
+end
+
+"""
+Start a detective investigation using the new DetectiveAgents system
+"""
+function start_investigation(detective_type::String, wallet_address::String, params::Dict{String, Any} = Dict())
+    try
+        @info "🔍 Starting investigation: $detective_type -> $wallet_address"
+
+        # Use the new DetectiveAgents investigation system
+        investigation_id = get(params, "investigation_id", string(UUIDs.uuid4()))
+
+        # Perform investigation using DetectiveAgents module
+        result = DetectiveAgents.investigate_with_agent(detective_type, wallet_address, params)
+
+        if !isnothing(result) && haskey(result, "status") && result["status"] != "error"
+            # Record metrics
+            try
+                AgentMetrics.record_investigation_metric(detective_type, wallet_address, time())
+            catch e
+                @warn "Failed to record metrics: $e"
+            end
+
+            @info "✅ Investigation completed: $detective_type"
+            return result
+        else
+            @warn "⚠️ Investigation returned with issues: $detective_type"
+            return result
+        end
+
+    catch e
+        @error "❌ Investigation failed: $e"
+        return Dict(
+            "status" => "error",
+            "error" => string(e),
+            "message" => "Investigation failed"
+        )
+    end
+end
+
+"""
+Get system health status
+"""
+function get_system_health()
+    try
+        health = AgentMonitor.get_detective_system_health()
+        return health
+    catch e
+        @error "Failed to get system health: $e"
+        return Dict(
+            "status" => "UNKNOWN",
+            "error" => string(e),
+            "timestamp" => now()
+        )
+    end
+end
+
+"""
+Get performance metrics
+"""
+function get_performance_metrics()
+    try
+        metrics = AgentMetrics.get_detective_performance_metrics()
+        return metrics
+    catch e
+        @error "Failed to get performance metrics: $e"
+        return Dict(
+            "error" => string(e),
+            "timestamp" => now()
+        )
+    end
 end
 
 # --- Include Core Swarm Modules ---
@@ -39,129 +267,12 @@ try
     # Make Swarm modules available
     using .SwarmBase
     using .Swarms
-    @info "JuliaOSFramework: Swarm modules included and using'd successfully."
+    @info "🐝 JuliaOSFramework: Swarm modules loaded successfully"
 catch e
-    @error "JuliaOSFramework: Critical error including Swarm modules." exception=(e, catch_backtrace())
+    @error "🐝 JuliaOSFramework: Error loading Swarm modules" exception=(e, catch_backtrace())
+    # Swarm modules not available - continuing without them
+    @warn "Swarm functionality disabled"
 end
-
-# --- Include Core Blockchain Modules ---
-# try
-#     # EthereumClient.jl is included by Blockchain.jl
-#     include("../blockchain/Blockchain.jl")
-    
-#     # Make Blockchain module and its sub-modules/exports available
-#     using .Blockchain # This makes Blockchain.EthereumClient accessible if EthereumClient is a submodule
-#     # Or, if EthereumClient is not a submodule but its contents are exported by Blockchain.jl:
-#     # using .Blockchain: EthereumClient # if EthereumClient module itself is exported
-#     # using .Blockchain: call_contract_evm # if specific functions are re-exported by Blockchain.jl
-#     @info "JuliaOSFramework: Blockchain modules included and using'd successfully."
-# catch e
-#     @error "JuliaOSFramework: Critical error including Blockchain modules." exception=(e, catch_backtrace())
-#     module BlockchainStub end
-#     const Blockchain = BlockchainStub
-# end
-
-# include("../modules/trading/Trading.jl")
-
-# --- Include Core DEX Modules ---
-# try
-#     include("../dex/DEXBase.jl")
-#     include("../dex/UniswapDEX.jl") # Example concrete implementation
-#     include("../dex/DEX.jl")        # Main DEX module with factory
-
-#     # Make DEX modules available
-#     using .DEXBase
-#     using .UniswapDEX # Make specific DEX types available if needed directly
-#     using .DEX       # Exports items from DEXBase and specific DEXs
-#     @info "JuliaOSFramework: DEX modules included and using'd successfully."
-# catch e
-#     @error "JuliaOSFramework: Critical error including DEX modules." exception=(e, catch_backtrace())
-#     module DEXBaseStub end
-#     module UniswapDEXStub end
-#     module DEXStub end
-#     const DEXBase = DEXBaseStub
-#     const UniswapDEX = UniswapDEXStub
-#     const DEX = DEXStub
-# end
-
-# --- Include Core Price Feed Modules ---
-# try
-#     include("../price/PriceFeedBase.jl") # Base types
-#     include("../price/ChainlinkFeed.jl") # Chainlink implementation
-#     include("../price/PriceFeed.jl")     # Main PriceFeed module with factory
-
-#     # Make PriceFeed modules available
-#     using .PriceFeedBase
-#     using .ChainlinkFeed
-#     using .PriceFeed # This exports items from PriceFeedBase and ChainlinkFeed again, which is fine.
-#     @info "JuliaOSFramework: Price Feed modules included and using'd successfully."
-# catch e
-#     @error "JuliaOSFramework: Critical error including Price Feed modules." exception=(e, catch_backtrace())
-#     # Define stubs if loading fails
-#     module PriceFeedBaseStub end
-#     module ChainlinkFeedStub end
-#     module PriceFeedStub end
-#     const PriceFeedBase = PriceFeedBaseStub
-#     const ChainlinkFeed = ChainlinkFeedStub
-#     const PriceFeed = PriceFeedStub
-# end
-
-# --- Include Core Trading Modules ---
-# try
-#     # TradingStrategy.jl itself includes RiskManagement, MovingAverageStrategy, MeanReversionImpl
-#     include("../trading/TradingStrategy.jl")
-#     # If RiskManagement, MovingAverageStrategy, MeanReversionImpl were separate and not sub-included:
-#     # include("../trading/RiskManagement.jl")
-#     # include("../trading/MovingAverageStrategy.jl")
-#     # include("../trading/MeanReversionImpl.jl")
-
-#     # Make Trading modules available
-#     using .TradingStrategy
-#     # using .RiskManagement # Only if not re-exported by TradingStrategy or used directly
-#     # using .MovingAverageStrategy
-#     # using .MeanReversionImpl
-#     @info "JuliaOSFramework: Trading modules included and using'd successfully."
-# catch e
-#     @error "JuliaOSFramework: Critical error including Trading modules." exception=(e, catch_backtrace())
-#     module TradingStrategyStub end
-#     const TradingStrategy = TradingStrategyStub
-# end
-
-# --- Include Core Storage Module ---
-# try
-#     # Storage.jl itself includes storage_interface.jl and specific providers like local_storage.jl
-#     include("../storage/Storage.jl")
-#     using .Storage # Make Storage module and its exports available
-#     @info "JuliaOSFramework: Storage module included and using'd successfully."
-#     # Initialize storage system with a default provider (e.g., local) if not done by Storage.__init__
-#     # This depends on how Storage.initialize_storage_system should be called (app startup vs. module load)
-#     # If Storage.__init__ handles default init, this might not be needed here.
-#     # if !Storage.STORAGE_SYSTEM_INITIALIZED[]
-#     #     Storage.initialize_storage_system() 
-#     # end
-# catch e
-#     @error "JuliaOSFramework: Critical error including Storage module." exception=(e, catch_backtrace())
-#     module StorageStub end
-#     const Storage = StorageStub
-# end
-
-# --- Include API Layer ---
-# try
-#     include("../api/API.jl") # Include the main API module
-#     using .API # Make its exports (like start_server) available within JuliaOSFramework if needed
-#     # To make JuliaOS.API.start_server() work, JuliaOS.jl will need to export API,
-#     # and JuliaOSFramework should make API available to JuliaOS.jl.
-#     # This is typically done by exporting API from JuliaOSFramework.
-#     export API # This makes API accessible as JuliaOSFramework.API
-#     @info "JuliaOSFramework: API module included and using'd successfully."
-# catch e
-#     @error "JuliaOSFramework: Critical error including API module." exception=(e, catch_backtrace())
-#     module APIStub end # Define a stub if API loading fails
-#     const API = APIStub # Make the stub available under the name API
-# end
-
-
-# etc.
 
 """
     initialize(; storage_path::String)
@@ -169,25 +280,26 @@ end
 Initialize the JuliaOS Framework backend components.
 This function will call initialization routines for all included modules.
 """
-function initialize(; storage_path::String="default_storage_path_from_framework") # storage_path might be used by multiple modules
-    @info "Initializing JuliaOSFramework..."
-    
-    # Initialization for Agents is largely handled by their __init__ functions
-    # (Config loading, Persistence loading, Monitor auto-start)
-    # We might pass storage_path to a specific persistence re-init if needed,
-    # but Persistence.jl already gets path from Agents.Config.
-    
-    # Initialization for Swarms (e.g., loading persisted state)
-    # Swarms.jl also has an __init__ that calls _load_swarms_state.
-    
-    # If other modules need explicit initialization with parameters like storage_path,
-    # they would be called here.
-    # Example:
-    # Blockchain.initialize(rpc_config_path="...", main_storage=storage_path)
-    # DEX.initialize(dex_specific_config="...", shared_cache_path=storage_path)
+function initialize(; storage_path::String="default_storage_path_from_framework")
+    @info "🚀 Initializing JuliaOSFramework..."
 
-    @info "JuliaOSFramework initialized."
-    return true # Indicate success
+    try
+        # Initialize detective system
+        detective_init = initialize_detective_system()
+
+        if detective_init["status"] == "success"
+            @info "✅ JuliaOSFramework initialized successfully"
+            @info "📊 System ready with $(detective_init["agents_created"]) detective agents"
+            return true
+        else
+            @warn "⚠️ JuliaOSFramework initialization completed with warnings"
+            return false
+        end
+
+    catch e
+        @error "💥 JuliaOSFramework initialization failed: $e"
+        return false
+    end
 end
 
 end # module JuliaOSFramework

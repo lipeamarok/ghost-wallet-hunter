@@ -5,7 +5,7 @@ using HTTP
 using JSON3
 using Dates
 using Statistics
-using ..CommonTypes: ToolSpecification, ToolMetadata, ToolConfig
+using ...CommonTypes: ToolSpecification, ToolMetadata, ToolConfig
 
 """
 Ghost Wallet Hunter - Wallet Analysis Tool
@@ -24,9 +24,9 @@ const FALLBACK_SOLANA_RPCS = [
     "https://api.mainnet-beta.solana.com"
 ]
 
-# Use shared API keys from parent module to avoid duplications
-# const OPENAI_API_KEY = get(ENV, "OPENAI_API_KEY", "")  # REMOVED - using shared
-# const GROK_API_KEY = get(ENV, "GROK_API_KEY", "")      # REMOVED - using shared
+# Use environment API keys
+const OPENAI_API_KEY = get(ENV, "OPENAI_API_KEY", "")
+const GROK_API_KEY = get(ENV, "GROK_API_KEY", "")
 
 Base.@kwdef struct ToolAnalyzeWalletConfig <: ToolConfig
     solana_rpc_url::String = DEFAULT_SOLANA_RPC
@@ -34,9 +34,9 @@ Base.@kwdef struct ToolAnalyzeWalletConfig <: ToolConfig
     openai_api_key::String = OPENAI_API_KEY
     grok_api_key::String = GROK_API_KEY
     analysis_depth::String = "standard"  # "basic", "standard", "deep"
-    include_ai_analysis::Bool = true
-    max_transactions::Int = 100
-    rate_limit_delay::Float64 = 0.5  # Segundos entre requests
+    include_ai_analysis::Bool = false     # Desabilitar AI por enquanto
+    max_transactions::Int = 1000          # Aumentar limite
+    rate_limit_delay::Float64 = 0.5       # Segundos entre requests
     max_retries::Int = 3
 end
 

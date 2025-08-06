@@ -12,11 +12,14 @@ using Dates, DataStructures, Statistics, Logging
 # Import necessary functions from the Config module.
 # Assumes Config.jl defines "module Config" and is a sibling to this file
 # within the "agents" directory/module scope.
+# Config is now loaded by framework
 import ..Config: get_config
-import ..AgentCore: AGENTS, AGENTS_LOCK, AgentStatus, RUNNING, PAUSED
+import ..AgentCore: AGENTS, AGENTS_LOCK, AgentStatus, RUNNING, PAUSED, DetectiveMemory, InvestigationTask
 
 export record_metric, get_metrics, get_agent_metrics, reset_metrics, get_system_summary_metrics,
-       MetricType, COUNTER, GAUGE, HISTOGRAM, SUMMARY # Export MetricType enum and its values
+       MetricType, COUNTER, GAUGE, HISTOGRAM, SUMMARY, # Export MetricType enum and its values
+       record_investigation_metric, record_risk_detection, get_detective_metrics,
+       get_investigation_stats, get_risk_detection_stats
 
 # Metric types
 @enum MetricType begin
@@ -159,10 +162,10 @@ function get_agent_metrics(agent_id::String;
                 # Apply time filters
                 # Collect converts CircularBuffer to Vector for easier filtering
                 metrics_buffer_view = collect(agent_specific_metrics[name_key])
-                
-                filtered_metrics_list = filter(m -> 
+
+                filtered_metrics_list = filter(m ->
                     (isnothing(start_time) || m.timestamp >= start_time) &&
-                    (isnothing(end_time) || m.timestamp <= end_time), 
+                    (isnothing(end_time) || m.timestamp <= end_time),
                     metrics_buffer_view
                 )
 
@@ -184,7 +187,7 @@ function get_agent_metrics(agent_id::String;
                         # For histograms, concatenate all observed values (each m.value is a Vector{Number})
                         # and compute statistics over the combined set.
                         all_observed_values = vcat(Vector{Number}[m.value for m in filtered_metrics_list if isa(m.value, AbstractVector{<:Number})]...)
-                        
+
                         if !isempty(all_observed_values)
                             processed_result[name_key] = Dict(
                                 "type" => "HISTOGRAM",
@@ -286,7 +289,7 @@ function get_system_summary_metrics()::Dict{String, Any}
     # Agent counts
     total_agents = 0
     active_agents = 0 # RUNNING or PAUSED
-    
+
     # This part requires access to Agents.AGENTS and Agents.AGENTS_LOCK
     # Ensure these are correctly imported or passed if AgentMetrics is truly standalone.
     # For now, assuming direct import works as per the try-catch block above.
@@ -333,13 +336,327 @@ function get_system_summary_metrics()::Dict{String, Any}
         end
     end
     summary["total_tasks_executed_across_all_agents"] = total_tasks_executed_all_types
-    
+
     # Placeholder for actual system CPU/Memory (would require OS-specific calls or a library)
-    summary["system_cpu_usage_placeholder"] = rand() 
-    summary["system_memory_usage_mb_placeholder"] = rand(50:500) 
+    summary["system_cpu_usage_placeholder"] = rand()
+    summary["system_memory_usage_mb_placeholder"] = rand(50:500)
 
     summary["last_updated"] = string(now(UTC))
     return summary
 end
+
+# ----------------------------------------------------------------------
+# DETECTIVE-SPECIFIC METRICS FUNCTIONS
+# ----------------------------------------------------------------------
+
+"""
+    record_investigation_metric(agent_id::String, investigation::InvestigationTask, execution_time::Float64)
+
+Records metrics for a completed investigation.
+"""
+function record_investigation_metric(agent_id::String, investigation::InvestigationTask, execution_time::Float64)
+    tags = Dict(
+        "detective_type" => get(investigation.parameters, "detective_type", "unknown"),
+        "investigation_type" => investigation.task_type,
+        "status" => string(investigation.status)
+    )
+
+    # Record investigation completion
+    record_metric(agent_id, "investigations_completed", COUNTER, 1, tags)
+
+    # Record execution time
+    record_metric(agent_id, "investigation_execution_time", HISTOGRAM, execution_time, tags)
+
+    # Record success/failure
+    if investigation.status == :completed
+        record_metric(agent_id, "investigations_successful", COUNTER, 1, tags)
+    else
+        record_metric(agent_id, "investigations_failed", COUNTER, 1, tags)
+    end
+
+    # Record patterns detected if available
+    if haskey(investigation.result, "patterns_detected")
+        patterns_count = length(investigation.result["patterns_detected"])
+        record_metric(agent_id, "patterns_detected", COUNTER, patterns_count, tags)
+    end
+
+    @debug "Recorded investigation metrics for agent $agent_id: $(investigation.id)"
+end
+
+"""
+    record_risk_detection(agent_id::String, wallet_address::String, risk_score::Float64, risk_level::String)
+
+Records risk detection metrics.
+"""
+function record_risk_detection(agent_id::String, wallet_address::String, risk_score::Float64, risk_level::String)
+    tags = Dict(
+        "risk_level" => risk_level,
+        "wallet_type" => "investigated"
+    )
+
+    # Record risk score distribution
+    record_metric(agent_id, "risk_score", HISTOGRAM, risk_score, tags)
+
+    # Record risk level counts
+    record_metric(agent_id, "risk_detections_$(lowercase(risk_level))", COUNTER, 1, tags)
+
+    # Record high-risk detections specifically
+    if risk_score >= 0.8
+        record_metric(agent_id, "high_risk_detections", COUNTER, 1, tags)
+    elseif risk_score >= 0.6
+        record_metric(agent_id, "medium_risk_detections", COUNTER, 1, tags)
+    else
+        record_metric(agent_id, "low_risk_detections", COUNTER, 1, tags)
+    end
+
+    @debug "Recorded risk detection for agent $agent_id: wallet $wallet_address, score $risk_score"
+end
+
+"""
+    get_detective_metrics(agent_id::String, time_window_hours::Int=24) -> Dict{String, Any}
+
+Gets detective-specific metrics for an agent within a time window.
+"""
+function get_detective_metrics(agent_id::String, time_window_hours::Int=24)
+    metrics_summary = Dict{String, Any}(
+        "agent_id" => agent_id,
+        "time_window_hours" => time_window_hours,
+        "investigations" => Dict{String, Any}(),
+        "risk_detection" => Dict{String, Any}(),
+        "performance" => Dict{String, Any}()
+    )
+
+    cutoff_time = now() - Hour(time_window_hours)
+
+    lock(METRICS_LOCK) do
+        if haskey(METRICS_STORE, agent_id)
+            agent_metrics = METRICS_STORE[agent_id]
+
+            # Investigation metrics
+            investigations_completed = get_metric_count(agent_metrics, "investigations_completed", cutoff_time)
+            investigations_successful = get_metric_count(agent_metrics, "investigations_successful", cutoff_time)
+            investigations_failed = get_metric_count(agent_metrics, "investigations_failed", cutoff_time)
+
+            metrics_summary["investigations"]["completed"] = investigations_completed
+            metrics_summary["investigations"]["successful"] = investigations_successful
+            metrics_summary["investigations"]["failed"] = investigations_failed
+            metrics_summary["investigations"]["success_rate"] = investigations_completed > 0 ? investigations_successful / investigations_completed : 0.0
+
+            # Risk detection metrics
+            high_risk = get_metric_count(agent_metrics, "high_risk_detections", cutoff_time)
+            medium_risk = get_metric_count(agent_metrics, "medium_risk_detections", cutoff_time)
+            low_risk = get_metric_count(agent_metrics, "low_risk_detections", cutoff_time)
+
+            metrics_summary["risk_detection"]["high_risk"] = high_risk
+            metrics_summary["risk_detection"]["medium_risk"] = medium_risk
+            metrics_summary["risk_detection"]["low_risk"] = low_risk
+            metrics_summary["risk_detection"]["total_detections"] = high_risk + medium_risk + low_risk
+
+            # Performance metrics
+            if haskey(agent_metrics, "investigation_execution_time")
+                execution_times = get_histogram_values(agent_metrics["investigation_execution_time"], cutoff_time)
+                if !isempty(execution_times)
+                    metrics_summary["performance"]["avg_execution_time"] = mean(execution_times)
+                    metrics_summary["performance"]["median_execution_time"] = median(execution_times)
+                    metrics_summary["performance"]["p95_execution_time"] = length(execution_times) > 1 ? quantile(execution_times, 0.95) : execution_times[1]
+                end
+            end
+
+            # Pattern detection
+            patterns_detected = get_metric_count(agent_metrics, "patterns_detected", cutoff_time)
+            metrics_summary["performance"]["patterns_detected"] = patterns_detected
+        end
+    end
+
+    metrics_summary["collected_at"] = string(now())
+    return metrics_summary
+end
+
+"""
+    get_investigation_stats(time_window_hours::Int=24) -> Dict{String, Any}
+
+Gets investigation statistics across all detective agents.
+"""
+function get_investigation_stats(time_window_hours::Int=24)
+    stats = Dict{String, Any}(
+        "total_investigations" => 0,
+        "successful_investigations" => 0,
+        "failed_investigations" => 0,
+        "by_detective_type" => Dict{String, Any}(),
+        "performance" => Dict{String, Any}()
+    )
+
+    cutoff_time = now() - Hour(time_window_hours)
+    all_execution_times = Float64[]
+
+    lock(METRICS_LOCK) do
+        for (agent_id, agent_metrics) in METRICS_STORE
+            # Get investigation counts
+            completed = get_metric_count(agent_metrics, "investigations_completed", cutoff_time)
+            successful = get_metric_count(agent_metrics, "investigations_successful", cutoff_time)
+            failed = get_metric_count(agent_metrics, "investigations_failed", cutoff_time)
+
+            stats["total_investigations"] += completed
+            stats["successful_investigations"] += successful
+            stats["failed_investigations"] += failed
+
+            # Collect execution times
+            if haskey(agent_metrics, "investigation_execution_time")
+                execution_times = get_histogram_values(agent_metrics["investigation_execution_time"], cutoff_time)
+                append!(all_execution_times, execution_times)
+            end
+
+            # Group by detective type (if available in agent metadata)
+            # This would need agent type information - simplified for now
+            stats["by_detective_type"][agent_id] = Dict(
+                "completed" => completed,
+                "successful" => successful,
+                "failed" => failed
+            )
+        end
+    end
+
+    # Calculate performance statistics
+    if !isempty(all_execution_times)
+        stats["performance"]["avg_execution_time"] = mean(all_execution_times)
+        stats["performance"]["median_execution_time"] = median(all_execution_times)
+        stats["performance"]["p95_execution_time"] = quantile(all_execution_times, 0.95)
+        stats["performance"]["min_execution_time"] = minimum(all_execution_times)
+        stats["performance"]["max_execution_time"] = maximum(all_execution_times)
+    end
+
+    stats["success_rate"] = stats["total_investigations"] > 0 ? stats["successful_investigations"] / stats["total_investigations"] : 0.0
+    stats["collected_at"] = string(now())
+
+    return stats
+end
+
+"""
+    get_risk_detection_stats(time_window_hours::Int=24) -> Dict{String, Any}
+
+Gets risk detection statistics across all detective agents.
+"""
+function get_risk_detection_stats(time_window_hours::Int=24)
+    stats = Dict{String, Any}(
+        "total_risk_detections" => 0,
+        "high_risk_detections" => 0,
+        "medium_risk_detections" => 0,
+        "low_risk_detections" => 0,
+        "risk_distribution" => Dict{String, Any}()
+    )
+
+    cutoff_time = now() - Hour(time_window_hours)
+    all_risk_scores = Float64[]
+
+    lock(METRICS_LOCK) do
+        for (agent_id, agent_metrics) in METRICS_STORE
+            high_risk = get_metric_count(agent_metrics, "high_risk_detections", cutoff_time)
+            medium_risk = get_metric_count(agent_metrics, "medium_risk_detections", cutoff_time)
+            low_risk = get_metric_count(agent_metrics, "low_risk_detections", cutoff_time)
+
+            stats["high_risk_detections"] += high_risk
+            stats["medium_risk_detections"] += medium_risk
+            stats["low_risk_detections"] += low_risk
+            stats["total_risk_detections"] += (high_risk + medium_risk + low_risk)
+
+            # Collect risk scores
+            if haskey(agent_metrics, "risk_score")
+                risk_scores = get_histogram_values(agent_metrics["risk_score"], cutoff_time)
+                append!(all_risk_scores, risk_scores)
+            end
+        end
+    end
+
+    # Calculate risk score distribution
+    if !isempty(all_risk_scores)
+        stats["risk_distribution"]["avg_risk_score"] = mean(all_risk_scores)
+        stats["risk_distribution"]["median_risk_score"] = median(all_risk_scores)
+        stats["risk_distribution"]["p95_risk_score"] = quantile(all_risk_scores, 0.95)
+        stats["risk_distribution"]["min_risk_score"] = minimum(all_risk_scores)
+        stats["risk_distribution"]["max_risk_score"] = maximum(all_risk_scores)
+    end
+
+    stats["collected_at"] = string(now())
+    return stats
+end
+
+# Helper functions for metric aggregation
+function get_metric_count(agent_metrics::Dict, metric_name::String, cutoff_time::DateTime)
+    if !haskey(agent_metrics, metric_name)
+        return 0
+    end
+
+    count = 0
+    for metric in agent_metrics[metric_name]
+        if metric.timestamp >= cutoff_time && metric.type == COUNTER
+            count += metric.value
+        end
+    end
+    return count
+end
+
+function get_histogram_values(metric_buffer::CircularBuffer, cutoff_time::DateTime)
+    values = Float64[]
+    for metric in metric_buffer
+        if metric.timestamp >= cutoff_time && metric.type == HISTOGRAM
+            if isa(metric.value, Vector)
+                append!(values, metric.value)
+            else
+                push!(values, metric.value)
+            end
+        end
+    end
+    return values
+end
+
+"""
+    initialize_detective_metrics()
+
+Initialize the detective metrics system.
+"""
+function initialize_detective_metrics()
+    @info "🔧 Initializing detective metrics system..."
+    # Initialize any necessary detective-specific metrics
+    return true
+end
+
+"""
+    get_detective_performance_metrics() -> Dict{String, Any}
+
+Get performance metrics for detective agents.
+"""
+function get_detective_performance_metrics()
+    metrics = Dict{String, Any}()
+
+    try
+        # Get metrics for all agents
+        system_metrics = get_system_summary_metrics()
+        metrics["system"] = system_metrics
+
+        # Add detective-specific metrics
+        metrics["detectives"] = Dict{String, Any}()
+        lock(AGENTS_LOCK) do
+            for (agent_id, agent) in AGENTS
+                if hasfield(typeof(agent), :detective_type)
+                    agent_metrics = get_agent_metrics(agent_id)
+                    metrics["detectives"][agent_id] = agent_metrics
+                end
+            end
+        end
+
+        metrics["status"] = "success"
+        @info "📊 Retrieved detective performance metrics"
+
+    catch e
+        @error "Failed to get detective performance metrics" exception=e
+        metrics["status"] = "error"
+        metrics["error"] = string(e)
+    end
+
+    return metrics
+end
+
+# Export the new functions
+export initialize_detective_metrics, get_detective_performance_metrics
 
 end # module AgentMetrics

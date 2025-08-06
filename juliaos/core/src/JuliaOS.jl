@@ -1,8 +1,25 @@
 module JuliaOS
 
+# ⚠️ LEGACY MODULE - Consider using JuliaOSFramework.jl instead
+# This module is maintained for backwards compatibility
+# New projects should use src/framework/JuliaOSFramework.jl
+
 # Export public modules and functions for Ghost Wallet Hunter
 export initialize, create_agent, create_swarm, swarm_investigate, agent_investigate
 export Detective, investigate_wallet
+
+# Export detective-specific functions
+export create_detective_agent, create_all_detective_agents, get_detective_agent_by_type
+export list_detective_agents, start_detective_investigation, initialize_detective_system
+export get_detective_system_status, cleanup_detective_system, restart_detective_system
+
+# Export detective configuration functions
+export get_detective_config, get_blockchain_config, get_investigation_config
+export validate_detective_config, create_detective_runtime_config
+
+# Export LLM integration functions
+export analyze_wallet_with_llm, generate_investigation_report, get_llm_detective_insights
+export DetectiveLLMConfig, create_detective_prompt
 
 # Constants for feature detection
 const PYTHON_WRAPPER_EXISTS = isfile(joinpath(@__DIR__, "python/python_bridge.jl"))
@@ -11,7 +28,7 @@ const FRAMEWORK_EXISTS = isdir(joinpath(dirname(dirname(@__DIR__)), "packages/fr
 # Include base modules first
 include("utils/env_utils.jl")
 include("agents/CommonTypes.jl")
-include("agents/Config.jl")
+include("../config/config.jl")
 include("agents/AgentCore.jl")
 include("agents/AgentMetrics.jl")
 include("agents/Persistence.jl")
@@ -24,14 +41,14 @@ using .Resources
 
 # Now include agent_management (that depends on Resources)
 include("agents/agent_management.jl")
-include("agents/Agents.jl")
+include("agents/DetectiveAgents.jl")  # CORRIGIDO: usar DetectiveAgents.jl ao invés de Agents.jl
 
 using .Config
 using .AgentCore
 using .AgentMetrics
 using .Persistence
 using .LLMIntegration
-using .Agents
+using .DetectiveAgents  # CORRIGIDO: usar DetectiveAgents ao invés de Agents
 
 # Include database after agents are loaded
 include("db/JuliaDB.jl")

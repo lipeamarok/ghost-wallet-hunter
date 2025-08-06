@@ -13,9 +13,13 @@ using JSON3 # Needed for parsing/serializing provider-specific configs and reque
 using HTTP  # For making direct HTTP calls
 
 # Import the abstract type from the Agents module
-import ..AgentCore: AbstractLLMIntegration # Relative import for sibling module in parent dir
+import ..AgentCore: AbstractLLMIntegration, DetectiveMemory, InvestigationTask # Relative import for sibling module in parent dir
+# Config is now loaded by framework
+import ..Config: get_config
 
-export chat, chat_stream, get_provider_status # Export the new status function
+export chat, chat_stream, get_provider_status, # Export the new status function
+       analyze_wallet_with_llm, generate_investigation_report, get_detective_insights,
+       create_detective_prompt, format_investigation_for_llm
 
 # --- Concrete Implementations of AbstractLLMIntegration ---
 struct OpenAILLMIntegration <: AbstractLLMIntegration end
@@ -723,5 +727,362 @@ end
 
 # --- Placeholder for Advanced LLM Features ---
 # ... (select_model, apply_prompt_template, etc. remain as conceptual placeholders) ...
+
+# ----------------------------------------------------------------------
+# DETECTIVE-SPECIFIC LLM FUNCTIONS
+# ----------------------------------------------------------------------
+
+const DETECTIVE_PERSONALITIES = Dict(
+    "poirot" => "You are Hercule Poirot, the meticulous Belgian detective. Approach this blockchain analysis with your characteristic attention to detail, logical methodology, and systematic reasoning. Focus on methodical patterns and financial inconsistencies.",
+
+    "marple" => "You are Miss Jane Marple, with your keen insight into human nature. Analyze this blockchain data as you would observe a village community, looking for social patterns, behavioral anomalies, and community connections.",
+
+    "spade" => "You are Sam Spade, the hard-boiled detective. Take a no-nonsense, aggressive approach to this blockchain investigation. Focus on criminal patterns, money laundering indicators, and illicit activities.",
+
+    "marlowee" => "You are Philip Marlowe, the cynical detective. Approach this analysis with your characteristic skepticism about power and corruption. Look for institutional fraud, power abuse, and corruption indicators.",
+
+    "dupin" => "You are C. Auguste Dupin, the analytical reasoner. Apply mathematical and statistical approaches to this blockchain data. Focus on algorithmic patterns, statistical outliers, and mathematical anomalies.",
+
+    "shadow" => "You are The Shadow, who knows what evil lurks. Focus on hidden networks, covert operations, and stealth activities in this blockchain analysis. Uncover what others try to conceal.",
+
+    "raven" => "You are The Raven, analyzing the dark psychology behind blockchain activities. Focus on behavioral patterns, psychological motivations, and dark intentions behind transactions."
+)
+
+"""
+    create_detective_prompt(detective_type::String, wallet_data::Dict{String, Any}, investigation_type::String="standard") -> String
+
+Creates a detective-specific prompt for LLM analysis of blockchain data.
+"""
+function create_detective_prompt(detective_type::String, wallet_data::Dict{String, Any}, investigation_type::String="standard")
+    personality = get(DETECTIVE_PERSONALITIES, detective_type, DETECTIVE_PERSONALITIES["poirot"])
+
+    analysis_depth = if investigation_type == "quick"
+        "Provide a rapid analysis focusing on immediate red flags. Keep response concise."
+    elseif investigation_type == "deep"
+        "Conduct a thorough, detailed analysis. Examine all patterns and provide comprehensive insights."
+    else
+        "Provide a balanced analysis with key findings and actionable insights."
+    end
+
+    formatted_data = format_investigation_for_llm(wallet_data)
+
+    prompt = """
+$personality
+
+$analysis_depth
+
+BLOCKCHAIN INVESTIGATION DATA:
+$formatted_data
+
+ANALYSIS REQUIREMENTS:
+Please analyze this blockchain data and provide:
+
+1. **Risk Assessment**: Assign a risk score from 0.0 (safe) to 1.0 (highly suspicious)
+2. **Key Findings**: List the most important discoveries
+3. **Suspicious Patterns**: Identify specific patterns that raise concerns
+4. **Behavioral Analysis**: Analyze transaction behaviors and timing
+5. **Recommendations**: Suggest next investigative steps
+6. **Confidence Level**: Rate your confidence in this analysis (0.0-1.0)
+
+**Detective Focus**: Apply your unique investigative methodology and provide insights that reflect your specialized approach to pattern recognition.
+
+Please structure your response as JSON:
+{
+    "risk_score": 0.0-1.0,
+    "confidence": 0.0-1.0,
+    "risk_level": "LOW|MEDIUM|HIGH|CRITICAL",
+    "key_findings": ["finding1", "finding2"],
+    "suspicious_patterns": ["pattern1", "pattern2"],
+    "behavioral_analysis": "description of transaction behavior",
+    "detective_insights": "your specialized observations",
+    "recommendations": ["action1", "action2"],
+    "summary": "brief overall assessment"
+}
+"""
+
+    return prompt
+end
+
+"""
+    format_investigation_for_llm(wallet_data::Dict{String, Any}) -> String
+
+Formats wallet investigation data for LLM analysis.
+"""
+function format_investigation_for_llm(wallet_data::Dict{String, Any})
+    formatted = "WALLET INVESTIGATION SUMMARY:\n"
+
+    # Basic wallet info
+    if haskey(wallet_data, "address")
+        formatted *= "Wallet Address: $(wallet_data["address"])\n"
+    end
+
+    if haskey(wallet_data, "balance")
+        formatted *= "Current Balance: $(wallet_data["balance"])\n"
+    end
+
+    # Transaction analysis
+    if haskey(wallet_data, "transactions") && !isempty(wallet_data["transactions"])
+        transactions = wallet_data["transactions"]
+        formatted *= "\nTRANSACTION ANALYSIS:\n"
+        formatted *= "Total Transactions: $(length(transactions))\n"
+
+        # Recent activity
+        formatted *= "\nRECENT TRANSACTIONS (last 5):\n"
+        recent = transactions[1:min(5, length(transactions))]
+        for (i, tx) in enumerate(recent)
+            amount = get(tx, "amount", "unknown")
+            type_str = get(tx, "type", "transfer")
+            timestamp = get(tx, "timestamp", "unknown")
+            formatted *= "  $i. [$timestamp] $type_str: $amount\n"
+        end
+
+        # Pattern indicators
+        if haskey(wallet_data, "patterns")
+            formatted *= "\nDETECTED PATTERNS:\n"
+            for pattern in wallet_data["patterns"]
+                formatted *= "- $pattern\n"
+            end
+        end
+    end
+
+    # Risk indicators
+    if haskey(wallet_data, "risk_indicators")
+        formatted *= "\nRISK INDICATORS:\n"
+        for indicator in wallet_data["risk_indicators"]
+            formatted *= "- $indicator\n"
+        end
+    end
+
+    # Connected addresses
+    if haskey(wallet_data, "connected_addresses") && !isempty(wallet_data["connected_addresses"])
+        formatted *= "\nCONNECTED ADDRESSES:\n"
+        for addr in wallet_data["connected_addresses"][1:min(5, length(wallet_data["connected_addresses"]))]
+            formatted *= "- $addr\n"
+        end
+    end
+
+    return formatted
+end
+
+"""
+    analyze_wallet_with_llm(llm::AbstractLLMIntegration, wallet_data::Dict{String, Any}, detective_type::String="poirot", investigation_type::String="standard") -> Dict{String, Any}
+
+Analyzes wallet data using LLM with detective-specific approach.
+"""
+function analyze_wallet_with_llm(llm::AbstractLLMIntegration, wallet_data::Dict{String, Any}, detective_type::String="poirot", investigation_type::String="standard")
+    # Create detective-specific prompt
+    prompt = create_detective_prompt(detective_type, wallet_data, investigation_type)
+
+    # Configure LLM for analysis
+    llm_config = Dict{String, Any}(
+        "model" => get_config("detective.ai_analysis.model", "gpt-4"),
+        "temperature" => get_config("detective.ai_analysis.temperature", 0.1),
+        "max_tokens" => get_config("detective.ai_analysis.max_tokens", 4000)
+    )
+
+    try
+        # Get LLM response
+        response = chat(llm, prompt, cfg=llm_config)
+
+        # Try to parse JSON response
+        analysis_result = try
+            JSON3.read(response)
+        catch json_error
+            @warn "Failed to parse LLM response as JSON: $json_error"
+            # Fallback to text analysis
+            Dict{String, Any}(
+                "risk_score" => 0.5,
+                "confidence" => 0.3,
+                "risk_level" => "MEDIUM",
+                "key_findings" => ["LLM analysis completed but JSON parsing failed"],
+                "suspicious_patterns" => [],
+                "behavioral_analysis" => response,
+                "detective_insights" => "Analysis available in behavioral_analysis field",
+                "recommendations" => ["Review analysis manually"],
+                "summary" => "LLM analysis completed"
+            )
+        end
+
+        # Add metadata
+        result = Dict{String, Any}(
+            "analysis" => analysis_result,
+            "detective_type" => detective_type,
+            "investigation_type" => investigation_type,
+            "llm_model" => llm_config["model"],
+            "timestamp" => string(now()),
+            "success" => true
+        )
+
+        @debug "LLM analysis completed for wallet $(get(wallet_data, "address", "unknown"))"
+        return result
+
+    catch e
+        @error "LLM analysis failed: $e"
+
+        # Return fallback analysis
+        return Dict{String, Any}(
+            "success" => false,
+            "error" => string(e),
+            "detective_type" => detective_type,
+            "timestamp" => string(now()),
+            "fallback_analysis" => create_fallback_analysis(wallet_data)
+        )
+    end
+end
+
+"""
+    generate_investigation_report(llm::AbstractLLMIntegration, investigation::InvestigationTask, memory::DetectiveMemory) -> Dict{String, Any}
+
+Generates a comprehensive investigation report using LLM.
+"""
+function generate_investigation_report(llm::AbstractLLMIntegration, investigation::InvestigationTask, memory::DetectiveMemory)
+    # Create comprehensive report prompt
+    prompt = create_report_prompt(investigation, memory)
+
+    llm_config = Dict{String, Any}(
+        "model" => get_config("detective.ai_analysis.model", "gpt-4"),
+        "temperature" => 0.2,  # Slightly higher for report generation
+        "max_tokens" => 6000   # More tokens for comprehensive reports
+    )
+
+    try
+        response = chat(llm, prompt, cfg=llm_config)
+
+        return Dict{String, Any}(
+            "report" => response,
+            "investigation_id" => investigation.id,
+            "wallet_address" => investigation.wallet_address,
+            "generated_at" => string(now()),
+            "success" => true
+        )
+
+    catch e
+        @error "Report generation failed: $e"
+        return Dict{String, Any}(
+            "success" => false,
+            "error" => string(e),
+            "investigation_id" => investigation.id
+        )
+    end
+end
+
+"""
+    get_detective_insights(llm::AbstractLLMIntegration, patterns::Vector{String}, detective_type::String="poirot") -> Dict{String, Any}
+
+Gets detective insights on specific patterns using LLM.
+"""
+function get_detective_insights(llm::AbstractLLMIntegration, patterns::Vector{String}, detective_type::String="poirot")
+    personality = get(DETECTIVE_PERSONALITIES, detective_type, DETECTIVE_PERSONALITIES["poirot"])
+
+    prompt = """
+$personality
+
+I've identified the following blockchain patterns during an investigation:
+
+DETECTED PATTERNS:
+$(join(patterns, "\n- "))
+
+Based on your detective expertise, please provide insights on:
+1. What do these patterns suggest about the wallet's purpose?
+2. Which patterns are most concerning and why?
+3. What additional investigation angles would you pursue?
+4. How do these patterns fit together in your analysis?
+
+Provide your response in your characteristic investigative style, focusing on actionable insights.
+"""
+
+    llm_config = Dict{String, Any}(
+        "model" => get_config("detective.ai_analysis.model", "gpt-4"),
+        "temperature" => 0.3,
+        "max_tokens" => 2000
+    )
+
+    try
+        response = chat(llm, prompt, cfg=llm_config)
+        return Dict{String, Any}(
+            "insights" => response,
+            "detective_type" => detective_type,
+            "patterns_analyzed" => patterns,
+            "success" => true,
+            "timestamp" => string(now())
+        )
+    catch e
+        return Dict{String, Any}(
+            "success" => false,
+            "error" => string(e),
+            "detective_type" => detective_type
+        )
+    end
+end
+
+# Helper functions
+function create_report_prompt(investigation::InvestigationTask, memory::DetectiveMemory)
+    detective_type = get(investigation.parameters, "detective_type", "unknown")
+    personality = get(DETECTIVE_PERSONALITIES, detective_type, "You are an experienced blockchain detective.")
+
+    return """
+$personality
+
+Generate a comprehensive investigation report for the following case:
+
+INVESTIGATION DETAILS:
+- Investigation ID: $(investigation.id)
+- Wallet Address: $(investigation.wallet_address)
+- Investigation Type: $(investigation.task_type)
+- Status: $(investigation.status)
+- Duration: $(investigation.completed_at !== nothing ? investigation.completed_at - investigation.created_at : "Ongoing")
+
+INVESTIGATION RESULTS:
+$(JSON3.write(investigation.result, allow_inf=true))
+
+DETECTIVE MEMORY CONTEXT:
+- Total Previous Investigations: $(length(memory.investigation_history))
+- Patterns in Cache: $(length(memory.pattern_cache))
+
+Please create a professional investigation report that includes:
+
+1. **EXECUTIVE SUMMARY**
+2. **INVESTIGATION OVERVIEW**
+3. **KEY FINDINGS**
+4. **DETAILED ANALYSIS**
+5. **RISK ASSESSMENT**
+6. **PATTERNS IDENTIFIED**
+7. **RECOMMENDATIONS**
+8. **CONCLUSION**
+
+Write this report in your characteristic detective style, suitable for stakeholders and potential legal proceedings.
+"""
+end
+
+function create_fallback_analysis(wallet_data::Dict{String, Any})
+    # Basic heuristic analysis when LLM fails
+    transactions = get(wallet_data, "transactions", [])
+
+    risk_score = 0.0
+    risk_indicators = []
+
+    # Simple heuristics
+    if length(transactions) > 100
+        risk_score += 0.2
+        push!(risk_indicators, "High transaction volume")
+    end
+
+    if haskey(wallet_data, "risk_indicators")
+        risk_score += length(wallet_data["risk_indicators"]) * 0.1
+        append!(risk_indicators, wallet_data["risk_indicators"])
+    end
+
+    return Dict{String, Any}(
+        "risk_score" => min(risk_score, 1.0),
+        "confidence" => 0.3,  # Low confidence for fallback
+        "risk_level" => risk_score > 0.7 ? "HIGH" : risk_score > 0.4 ? "MEDIUM" : "LOW",
+        "key_findings" => ["Fallback analysis - LLM unavailable"],
+        "suspicious_patterns" => risk_indicators,
+        "behavioral_analysis" => "Basic heuristic analysis applied",
+        "detective_insights" => "Limited analysis due to LLM failure",
+        "recommendations" => ["Retry with LLM when available"],
+        "summary" => "Fallback heuristic analysis completed"
+    )
+end
 
 end # module LLMIntegration

@@ -211,21 +211,7 @@ function execute_wallet_investigation_with_retry(wallet_address::String, agent_i
     try
         println("🔍 Starting ENHANCED investigation for wallet: $wallet_address by agent: $agent_id")
 
-        # 🚨 BLACKLIST CHECK - MAS AINDA FAZ INVESTIGAÇÃO REAL!
-        known_malicious = Dict(
-            "6sEk1enayZBGFyNvvJMTP7qs5S3uC7KLrQWaEk38hSHH" => "FTX Hacker - \$650M stolen funds",
-            "3NCLmEhcGE6sqpV7T4XfJ1sQl7G8CjhE6k5zJf3s4Lge" => "Known scammer wallet",
-            "5zMyQtvhSQ8r7P5ki7c19V7XsPmg5wWwLM1m8F2w5nDa" => "Suspicious activity pattern detected",
-            "4YeH8T9rFZGFEEL8LnKiYtm2u8v9dE5vH3Ja7c2KmR1b" => "High-risk automated trading bot"
-        )
-
-        # Flag se está na blacklist, mas AINDA FAZ INVESTIGAÇÃO
-        is_blacklisted = haskey(known_malicious, wallet_address)
-        blacklist_reason = is_blacklisted ? known_malicious[wallet_address] : ""
-
-        if is_blacklisted
-            println("🚨 BLACKLIST ALERT: $blacklist_reason - But still analyzing...")
-        end
+        # ✅ REAL BLOCKCHAIN INVESTIGATION - NO HARDCODED BLACKLISTS
 
         # RPC calls with intelligent retry and load balancing - SEMPRE EXECUTA!
         println("📡 Starting distributed RPC analysis...")
@@ -243,12 +229,12 @@ function execute_wallet_investigation_with_retry(wallet_address::String, agent_i
         # Delay between RPC calls to respect rate limits
         sleep(1.2)
 
-        # Signatures with retry and load balancing
+        # Signatures with retry and load balancing - BUSCAR MUITO MAIS TRANSAÇÕES
         signatures_payload = Dict(
             "jsonrpc" => "2.0",
             "id" => 2,
             "method" => "getSignaturesForAddress",
-            "params" => [wallet_address, Dict("limit" => 20)]
+            "params" => [wallet_address, Dict("limit" => 1000)]  # BUSCAR ATÉ 1000 TRANSAÇÕES!
         )
 
         signatures_data = distributed_rpc_call(signatures_payload)
@@ -321,15 +307,6 @@ function execute_wallet_investigation_with_retry(wallet_address::String, agent_i
             end
         end
 
-        # BOOST do risk score se estiver na blacklist (mas baseado na análise real!)
-        if is_blacklisted
-            original_risk = risk_score
-            risk_score = min(100, risk_score + 30)  # Boost de 30 pontos, max 100
-            push!(risk_factors, "Wallet flagged in security blacklist: $blacklist_reason")
-            push!(patterns_detected, "BLACKLIST CONFIRMED: $blacklist_reason")
-            println("🚨 Blacklist boost: $original_risk -> $risk_score")
-        end
-
         # Determine enhanced risk level BASEADO NA ANÁLISE REAL
         risk_level = if risk_score >= 80
             "CRITICAL"
@@ -343,37 +320,32 @@ function execute_wallet_investigation_with_retry(wallet_address::String, agent_i
 
         # Agent-specific enhanced analysis COM DADOS REAIS
         agent_analysis = if agent_id == "poirot"
-            base_analysis = "Mon ami, after examining $tx_count transactions with my enhanced methodology, I detect $(length(patterns_detected)) suspicious patterns. The little grey cells conclude: $risk_level risk with $(risk_score)% confidence."
-            is_blacklisted ? "$base_analysis CRITICAL UPDATE: This wallet is confirmed in our blacklist database - $blacklist_reason" : base_analysis
+            "Mon ami, after examining $tx_count transactions with my enhanced methodology, I detect $(length(patterns_detected)) suspicious patterns. The little grey cells conclude: $risk_level risk with $(risk_score)% confidence."
         elseif agent_id == "marple"
-            base_analysis = "Oh my dear, this wallet shows $tx_count transactions with quite interesting patterns. After careful consideration of $(length(risk_factors)) risk factors, I'd say this is $risk_level risk. Most enlightening!"
-            is_blacklisted ? "$base_analysis Oh dear me! This wallet is actually on our danger list - $blacklist_reason" : base_analysis
+            "Oh my dear, this wallet shows $tx_count transactions with quite interesting patterns. After careful consideration of $(length(risk_factors)) risk factors, I'd say this is $risk_level risk. Most enlightening!"
         elseif agent_id == "spade"
-            base_analysis = "Listen here, partner. This wallet's got $tx_count transactions and I've spotted $(length(patterns_detected)) patterns that don't sit right. Risk score: $risk_score. That's $risk_level risk - and that's the straight dope."
-            is_blacklisted ? "$base_analysis UPDATE: This bird's in our rogues gallery - $blacklist_reason" : base_analysis
+            "Listen here, partner. This wallet's got $tx_count transactions and I've spotted $(length(patterns_detected)) patterns that don't sit right. Risk score: $risk_score. That's $risk_level risk - and that's the straight dope."
         elseif agent_id == "raven"
-            base_analysis = "Nevermore shall this wallet escape my watchful eye. $tx_count transactions analyzed, $(length(risk_factors)) factors of concern detected. The darkness reveals: $risk_level risk level."
-            is_blacklisted ? "$base_analysis The shadow of the past haunts this wallet - $blacklist_reason" : base_analysis
+            "Nevermore shall this wallet escape my watchful eye. $tx_count transactions analyzed, $(length(risk_factors)) factors of concern detected. The darkness reveals: $risk_level risk level."
         else
-            base_analysis = "Enhanced analysis complete. $tx_count transactions analyzed with $(length(patterns_detected)) suspicious patterns detected. Final assessment: $risk_level risk."
-            is_blacklisted ? "$base_analysis SECURITY ALERT: Wallet confirmed in blacklist - $blacklist_reason" : base_analysis
+            "Enhanced analysis complete. $tx_count transactions analyzed with $(length(patterns_detected)) suspicious patterns detected. Final assessment: $risk_level risk."
         end
 
-        # Status baseado na análise real + blacklist
-        status = if is_blacklisted && risk_score >= 80
-            "CRITICAL_THREAT"
-        elseif is_blacklisted
-            "BLACKLIST_CONFIRMED"
+        # Status baseado apenas na análise real
+        status = if risk_score >= 80
+            "HIGH_RISK_DETECTED"
+        elseif risk_score >= 50
+            "MEDIUM_RISK_DETECTED"
         else
             "success"
         end
 
         investigation_result = Dict(
             "status" => status,
-            "message" => is_blacklisted ? "BLACKLISTED wallet with REAL analysis completed" : "ENHANCED AI investigation completed with rate limiting protection",
+            "message" => "ENHANCED AI investigation completed with rate limiting protection",
             "wallet_address" => wallet_address,
             "investigating_agent" => agent_id,
-            "execution_type" => is_blacklisted ? "BLACKLIST_WITH_REAL_ANALYSIS" : "ENHANCED_SOLANA_ANALYSIS_WITH_RETRY",
+            "execution_type" => "ENHANCED_SOLANA_ANALYSIS_WITH_RETRY",
             "analysis_results" => Dict(
                 "account_exists" => account_exists,
                 "transaction_count" => tx_count,
@@ -386,11 +358,7 @@ function execute_wallet_investigation_with_retry(wallet_address::String, agent_i
                 "blockchain_confirmed" => true,
                 "rate_limiting_protected" => true,
                 "rpc_endpoints_used" => length(RPC_ENDPOINTS),
-                "analysis_enhanced" => true,
-                # Campos específicos de blacklist
-                "is_blacklisted" => is_blacklisted,
-                "blacklist_reason" => blacklist_reason,
-                "blacklist_boost_applied" => is_blacklisted ? 30 : 0
+                "analysis_enhanced" => true
             ),
             "timestamp" => string(now()),
             "source" => "enhanced_blockchain_analysis",

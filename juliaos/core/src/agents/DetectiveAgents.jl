@@ -1,16 +1,34 @@
 # DetectiveAgents.jl
-# DEFINIÇÃO ÚNICA DOS AGENTES DETETIVES - FASE 2 A2A INTEGRATION
-# Módulo consolidado para agentes detetives do Ghost Wallet Hunter
+# Detective Agents Orchestrator - Real Blockchain Investigation
+# Ghost Wallet Hunter - English Language Version
 
 module DetectiveAgents
 
 using Dates
 using UUIDs
 using Logging
+using Statistics
+
+# Import all individual detective agents
+include("PoirotAgent.jl")
+include("MarpleAgent.jl")
+include("SpadeAgent.jl")
+include("MarloweeAgent.jl")
+include("DupinAgent.jl")
+include("ShadowAgent.jl")
+include("RavenAgent.jl")
+
+using .PoirotAgent
+using .MarpleAgent
+using .SpadeAgent
+using .MarloweeAgent
+using .DupinAgent
+using .ShadowAgent
+using .RavenAgent
 
 export Detective, GhostDetectives
-export PoirotAgent, MarpleAgent, SpadeAgent, MarloweeAgent, DupinAgent, ShadowAgent, RavenAgent, ComplianceAgent
 export create_detective, investigate_wallet, get_all_detectives, create_detective_by_type
+export investigate_wallet_multi_detective
 
 # ==========================================
 # DETECTIVE BASE STRUCTURE
@@ -31,210 +49,7 @@ struct Detective
 end
 
 # ==========================================
-# GHOST DETECTIVES - DEFINIÇÕES ÚNICAS
-# ==========================================
-
-module GhostDetectives
-    using ..DetectiveAgents: Detective
-    using Dates
-    using UUIDs
-
-    # 🕵️ HERCULE POIROT - Transaction Analysis Detective
-    struct PoirotAgent
-        detective::Detective
-        analysis_depth::String
-        precision_level::Float64
-
-        function PoirotAgent()
-            detective = Detective(
-                string(uuid4()),
-                "poirot",
-                "Detective Hercule Poirot",
-                "transaction_analysis",
-                ["methodical_analysis", "pattern_recognition", "fund_flow_tracing", "token_identification"],
-                "solana",
-                "active",
-                now(),
-                0,
-                "The Belgian master of deduction applied to blockchain analysis. Uses 'little grey cells' to detect suspicious transaction patterns.",
-                "Ah, mon ami, the little grey cells, they work!"
-            )
-            new(detective, "deep", 0.95)
-        end
-    end
-
-    # 👵 MISS JANE MARPLE - Pattern & Anomaly Detective
-    struct MarpleAgent
-        detective::Detective
-        pattern_sensitivity::Float64
-        anomaly_threshold::Float64
-
-        function MarpleAgent()
-            detective = Detective(
-                string(uuid4()),
-                "marple",
-                "Detective Miss Jane Marple",
-                "pattern_anomaly_detection",
-                ["pattern_recognition", "anomaly_detection", "statistical_analysis", "behavioral_analysis"],
-                "solana",
-                "active",
-                now(),
-                0,
-                "The perceptive observer from St. Mary Mead. Notices small details that others miss and identifies suspicious patterns.",
-                "Oh my dear, that's rather peculiar, isn't it?"
-            )
-            new(detective, 0.85, 0.7)
-        end
-    end
-
-    # 🔫 SAM SPADE - Hard-boiled Investigation
-    struct SpadeAgent
-        detective::Detective
-        investigation_style::String
-        risk_tolerance::Float64
-
-        function SpadeAgent()
-            detective = Detective(
-                string(uuid4()),
-                "spade",
-                "Detective Sam Spade",
-                "hard_boiled_investigation",
-                ["aggressive_investigation", "risk_analysis", "criminal_pattern_detection", "direct_approach"],
-                "solana",
-                "active",
-                now(),
-                0,
-                "Hard-boiled private detective with no-nonsense approach to blockchain crime investigation.",
-                "When you're slapped, you'll take it and like it."
-            )
-            new(detective, "aggressive", 0.8)
-        end
-    end
-
-    # 🏴‍☠️ PHILIP MARLOWE - Deep Analysis Detective
-    struct MarloweeAgent
-        detective::Detective
-        analysis_style::String
-        depth_level::Int
-
-        function MarloweeAgent()
-            detective = Detective(
-                string(uuid4()),
-                "marlowee",
-                "Detective Philip Marlowe",
-                "deep_analysis_investigation",
-                ["deep_analysis", "corruption_detection", "complex_case_solving", "narrative_analysis"],
-                "solana",
-                "active",
-                now(),
-                0,
-                "Knight of the mean streets, now patrolling blockchain networks. Specializes in complex, multi-layered investigations.",
-                "Down these mean streets a man must go who is not himself mean."
-            )
-            new(detective, "narrative", 5)
-        end
-    end
-
-    # 🧠 C. AUGUSTE DUPIN - Analytical Investigation
-    struct DupinAgent
-        detective::Detective
-        analytical_power::Float64
-        logical_depth::Int
-
-        function DupinAgent()
-            detective = Detective(
-                string(uuid4()),
-                "dupin",
-                "Detective C. Auguste Dupin",
-                "analytical_investigation",
-                ["logical_analysis", "ratiocination", "mathematical_modeling", "evidence_synthesis"],
-                "solana",
-                "active",
-                now(),
-                0,
-                "The original analytical detective. Uses pure logic and mathematical reasoning to solve blockchain mysteries.",
-                "The mental features discoursed of as the analytical are, in themselves, but little susceptible of analysis."
-            )
-            new(detective, 0.98, 7)
-        end
-    end
-
-    # 🌫️ THE SHADOW - Stealth Investigation
-    struct ShadowAgent
-        detective::Detective
-        stealth_level::Float64
-        tracking_ability::String
-
-        function ShadowAgent()
-            detective = Detective(
-                string(uuid4()),
-                "shadow",
-                "Detective The Shadow",
-                "stealth_investigation",
-                ["stealth_tracking", "hidden_pattern_detection", "anonymity_analysis", "dark_web_investigation"],
-                "solana",
-                "active",
-                now(),
-                0,
-                "Master of stealth and hidden investigations. Can track anonymous transactions and reveal hidden connections.",
-                "Who knows what evil lurks in the hearts of men? The Shadow knows!"
-            )
-            new(detective, 0.9, "advanced")
-        end
-    end
-
-    # 🐦‍⬛ EDGAR RAVEN - Dark Pattern Detective
-    struct RavenAgent
-        detective::Detective
-        darkness_detection::Float64
-        psychological_profile::String
-
-        function RavenAgent()
-            detective = Detective(
-                string(uuid4()),
-                "raven",
-                "Detective Edgar Raven",
-                "dark_pattern_investigation",
-                ["psychological_analysis", "dark_pattern_detection", "criminal_psychology", "threat_assessment"],
-                "solana",
-                "active",
-                now(),
-                0,
-                "Investigator of the darkest blockchain crimes. Specializes in psychological profiling and criminal behavior analysis.",
-                "Nevermore shall crime go undetected in the blockchain."
-            )
-            new(detective, 0.92, "criminal_psychology")
-        end
-    end
-
-    # ⚖️ COMPLIANCE AGENT - Regulatory Detective
-    struct ComplianceAgent
-        detective::Detective
-        regulatory_knowledge::Vector{String}
-        compliance_level::Float64
-
-        function ComplianceAgent()
-            detective = Detective(
-                string(uuid4()),
-                "compliance",
-                "Detective Compliance Officer",
-                "regulatory_compliance",
-                ["regulatory_analysis", "compliance_checking", "legal_assessment", "policy_enforcement"],
-                "solana",
-                "active",
-                now(),
-                0,
-                "Specialized in regulatory compliance and legal aspects of blockchain investigations.",
-                "Justice and compliance guide every investigation."
-            )
-            new(detective, ["AML", "KYC", "FATF", "BSA", "SOX"], 0.95)
-        end
-    end
-
-end
-
-# ==========================================
-# DETECTIVE FACTORY & MANAGEMENT FUNCTIONS
+# DETECTIVE ORCHESTRATION FUNCTIONS
 # ==========================================
 
 # Get all available detectives
@@ -244,9 +59,9 @@ function get_all_detectives()
         Dict(
             "id" => "poirot",
             "name" => "Detective Hercule Poirot",
-            "specialty" => "transaction_analysis",
+            "specialty" => "methodical_transaction_analysis",
             "status" => "active",
-            "persona" => "Belgian master of deduction",
+            "persona" => "Belgian master of deduction applied to blockchain analysis",
             "catchphrase" => "Ah, mon ami, the little grey cells, they work!"
         ),
         Dict(
@@ -254,15 +69,15 @@ function get_all_detectives()
             "name" => "Detective Miss Jane Marple",
             "specialty" => "pattern_anomaly_detection",
             "status" => "active",
-            "persona" => "Perceptive observer from St. Mary Mead",
+            "persona" => "Perceptive observer who notices details others miss",
             "catchphrase" => "Oh my dear, that's rather peculiar, isn't it?"
         ),
         Dict(
             "id" => "spade",
             "name" => "Detective Sam Spade",
-            "specialty" => "hard_boiled_investigation",
+            "specialty" => "hard_boiled_investigation_compliance",
             "status" => "active",
-            "persona" => "Hard-boiled private detective",
+            "persona" => "Hard-boiled private detective with compliance expertise",
             "catchphrase" => "When you're slapped, you'll take it and like it."
         ),
         Dict(
@@ -270,40 +85,32 @@ function get_all_detectives()
             "name" => "Detective Philip Marlowe",
             "specialty" => "deep_analysis_investigation",
             "status" => "active",
-            "persona" => "Knight of the mean streets",
+            "persona" => "Knight of the mean streets with narrative depth",
             "catchphrase" => "Down these mean streets a man must go who is not himself mean."
         ),
         Dict(
             "id" => "dupin",
-            "name" => "Detective C. Auguste Dupin",
-            "specialty" => "analytical_investigation",
+            "name" => "Detective Auguste Dupin",
+            "specialty" => "analytical_reasoning_investigation",
             "status" => "active",
-            "persona" => "Original analytical detective",
-            "catchphrase" => "The mental features discoursed of as the analytical are, in themselves, but little susceptible of analysis."
+            "persona" => "Master of ratiocination and pure logic",
+            "catchphrase" => "The mental features discoursed of as the analytical, are, in themselves, but little susceptible of analysis."
         ),
         Dict(
             "id" => "shadow",
-            "name" => "Detective The Shadow",
+            "name" => "The Shadow",
             "specialty" => "stealth_investigation",
             "status" => "active",
-            "persona" => "Master of stealth investigations",
-            "catchphrase" => "Who knows what evil lurks in the hearts of men? The Shadow knows!"
+            "persona" => "Master of stealth and hidden network investigations",
+            "catchphrase" => "Who knows what evil lurks in the hearts of wallets? The Shadow knows!"
         ),
         Dict(
             "id" => "raven",
-            "name" => "Detective Edgar Raven",
-            "specialty" => "dark_pattern_investigation",
+            "name" => "Detective Raven",
+            "specialty" => "dark_investigation",
             "status" => "active",
-            "persona" => "Investigator of darkest crimes",
-            "catchphrase" => "Nevermore shall crime go undetected in the blockchain."
-        ),
-        Dict(
-            "id" => "compliance",
-            "name" => "Detective Compliance Officer",
-            "specialty" => "regulatory_compliance",
-            "status" => "active",
-            "persona" => "Regulatory compliance specialist",
-            "catchphrase" => "Justice and compliance guide every investigation."
+            "persona" => "Investigator of the darkest blockchain mysteries",
+            "catchphrase" => "Nevermore shall evil transactions escape my vigilant gaze."
         )
     ]
 end
@@ -312,23 +119,21 @@ end
 function create_detective_by_type(detective_type::String)
     """Factory function to create specific detective types"""
     if detective_type == "poirot"
-        return GhostDetectives.PoirotAgent()
+        return create_poirot_agent()
     elseif detective_type == "marple"
-        return GhostDetectives.MarpleAgent()
+        return create_marple_agent()
     elseif detective_type == "spade"
-        return GhostDetectives.SpadeAgent()
+        return create_spade_agent()
     elseif detective_type == "marlowee"
-        return GhostDetectives.MarloweeAgent()
+        return create_marlowee_agent()
     elseif detective_type == "dupin"
-        return GhostDetectives.DupinAgent()
+        return create_dupin_agent()
     elseif detective_type == "shadow"
-        return GhostDetectives.ShadowAgent()
+        return create_shadow_agent()
     elseif detective_type == "raven"
-        return GhostDetectives.RavenAgent()
-    elseif detective_type == "compliance"
-        return GhostDetectives.ComplianceAgent()
+        return create_raven_agent()
     else
-        throw(ArgumentError("Unknown detective type: $detective_type"))
+        throw(ArgumentError("Unknown detective type: $detective_type. Available: poirot, marple, spade, marlowee, dupin, shadow, raven"))
     end
 end
 
@@ -345,200 +150,252 @@ function create_detective(config::Dict)
         get(config, "blockchain", "solana"),
         get(config, "status", "active"),
         get(config, "created_at", now()),
-        get(config, "investigation_count", 0)
+        get(config, "investigation_count", 0),
+        get(config, "persona", "Generic detective"),
+        get(config, "catchphrase", "Justice will prevail!")
     )
 
     return detective
 end
 
-# Investigate wallet using specific detective methodology
-function investigate_wallet(detective::Detective, wallet_address::String, investigation_id::String)
-    @info "🔍 $(detective.name) investigating wallet: $wallet_address"
+# Investigate wallet using specific detective methodology - REAL BLOCKCHAIN ANALYSIS
+function investigate_wallet(detective_type::String, wallet_address::String, investigation_id::String)
+    @info "🔍 Orchestrating investigation with $detective_type for wallet: $wallet_address"
 
-    # Simulate investigation based on detective's specialty
-    investigation_result = if detective.type == "poirot"
-        investigate_poirot_style(wallet_address, investigation_id)
-    elseif detective.type == "marple"
-        investigate_marple_style(wallet_address, investigation_id)
-    elseif detective.type == "spade"
-        investigate_spade_style(wallet_address, investigation_id)
-    elseif detective.type == "shadow"
-        investigate_shadow_style(wallet_address, investigation_id)
-    elseif detective.type == "raven"
-        investigate_raven_style(wallet_address, investigation_id)
-    else
-        investigate_generic_style(wallet_address, investigation_id)
+    try
+        # Route to appropriate detective agent for real investigation
+        investigation_result = if detective_type == "poirot"
+            investigate_poirot_style(wallet_address, investigation_id)
+        elseif detective_type == "marple"
+            investigate_marple_style(wallet_address, investigation_id)
+        elseif detective_type == "spade"
+            investigate_spade_style(wallet_address, investigation_id)
+        elseif detective_type == "marlowee"
+            investigate_marlowee_style(wallet_address, investigation_id)
+        elseif detective_type == "dupin"
+            investigate_dupin_style(wallet_address, investigation_id)
+        elseif detective_type == "shadow"
+            investigate_shadow_style(wallet_address, investigation_id)
+        elseif detective_type == "raven"
+            investigate_raven_style(wallet_address, investigation_id)
+        else
+            Dict(
+                "detective" => "Unknown",
+                "error" => "Unknown detective type: $detective_type",
+                "methodology" => "none",
+                "risk_score" => 0,
+                "confidence" => 0,
+                "status" => "failed"
+            )
+        end
+
+        # Add orchestration metadata
+        investigation_result["orchestrated_by"] = "DetectiveAgents"
+        investigation_result["orchestration_timestamp"] = string(now())
+        investigation_result["investigation_id"] = investigation_id
+
+        return investigation_result
+
+    catch e
+        @error "Error in detective orchestration: $e"
+        return Dict(
+            "detective" => detective_type,
+            "error" => "Investigation failed: $e",
+            "methodology" => "orchestration_error",
+            "risk_score" => 0,
+            "confidence" => 0,
+            "status" => "error",
+            "orchestrated_by" => "DetectiveAgents",
+            "investigation_id" => investigation_id
+        )
+    end
+end
+
+# Orchestrate multi-detective investigation
+function investigate_wallet_multi_detective(wallet_address::String, investigation_id::String, detective_types::Vector{String} = ["poirot", "marple", "spade"])
+    @info "🔍 Multi-detective investigation for wallet: $wallet_address"
+
+    results = Dict()
+
+    for detective_type in detective_types
+        try
+            result = investigate_wallet(detective_type, wallet_address, investigation_id)
+            results[detective_type] = result
+        catch e
+            @error "Failed investigation with $detective_type: $e"
+            results[detective_type] = Dict(
+                "detective" => detective_type,
+                "error" => "Investigation failed: $e",
+                "status" => "failed"
+            )
+        end
     end
 
-    return investigation_result
+    # Calculate consensus
+    valid_results = filter(r -> get(r.second, "status", "") != "failed", results)
+
+    if length(valid_results) > 0
+        avg_risk = mean([get(r.second, "risk_score", 0.0) for r in valid_results])
+        avg_confidence = mean([get(r.second, "confidence", 0.0) for r in valid_results])
+
+        consensus = Dict(
+            "multi_detective_analysis" => true,
+            "participating_detectives" => detective_types,
+            "successful_investigations" => length(valid_results),
+            "failed_investigations" => length(detective_types) - length(valid_results),
+            "consensus_risk_score" => avg_risk,
+            "consensus_confidence" => avg_confidence,
+            "individual_results" => results,
+            "investigation_id" => investigation_id,
+            "wallet_address" => wallet_address,
+            "timestamp" => string(now())
+        )
+
+        return consensus
+    else
+        return Dict(
+            "multi_detective_analysis" => true,
+            "error" => "All detective investigations failed",
+            "participating_detectives" => detective_types,
+            "successful_investigations" => 0,
+            "failed_investigations" => length(detective_types),
+            "individual_results" => results,
+            "investigation_id" => investigation_id,
+            "status" => "all_failed"
+        )
+    end
 end
 
-# Hercule Poirot - Methodical Analysis
-function investigate_poirot_style(wallet_address::String, investigation_id::String)
-    @info "🧐 Poirot: Applying methodical analysis..."
+# ==========================================
+# FRAMEWORK COMPATIBILITY INTERFACE
+# ==========================================
 
+"""
+    create_detective_by_type(detective_type::String) -> Detective
+
+Framework-compatible function to create detective agents by type.
+"""
+function create_detective_by_type(detective_type::String)
+    try
+        config = Dict(
+            "id" => string(uuid4()),
+            "type" => detective_type,
+            "name" => get_detective_name(detective_type),
+            "specialty" => get_detective_specialty(detective_type),
+            "skills" => get_detective_skills(detective_type),
+            "blockchain" => "solana",
+            "status" => "active",
+            "created_at" => now(),
+            "investigation_count" => 0,
+            "persona" => get_detective_persona(detective_type),
+            "catchphrase" => get_detective_catchphrase(detective_type)
+        )
+
+        return create_detective(config)
+    catch e
+        @error "Failed to create detective by type '$detective_type': $e"
+        return nothing
+    end
+end
+
+"""
+    get_detective_registry() -> Dict{String, Any}
+
+Get the registry of all available detective agents.
+"""
+function get_detective_registry()
     return Dict(
-        "detective" => "Hercule Poirot",
-        "methodology" => "methodical_analysis",
-        "analysis" => Dict(
-            "transaction_patterns" => Dict(
-                "frequency" => "regular",
-                "timing_patterns" => "business_hours",
-                "amount_patterns" => "consistent_small_amounts"
-            ),
-            "systematic_investigation" => Dict(
-                "account_age" => "established",
-                "transaction_history" => "clean",
-                "associated_accounts" => "limited_connections"
-            ),
-            "detail_analysis" => Dict(
-                "precision_score" => 0.92,
-                "methodology_confidence" => 0.95,
-                "systematic_approach" => "complete"
-            )
-        ),
-        "conclusion" => "Based on methodical analysis, wallet shows legitimate patterns",
-        "risk_score" => 0.15,
-        "confidence" => 0.95
+        "available_detectives" => ["poirot", "marple", "spade", "marlowee", "dupin", "shadow", "raven"],
+        "total_count" => 7,
+        "status" => "active",
+        "version" => "2.0_refactored"
     )
 end
 
-# Miss Jane Marple - Behavioral Observation
-function investigate_marple_style(wallet_address::String, investigation_id::String)
-    @info "👵 Marple: Observing behavioral patterns..."
+"""
+    investigate_with_agent(detective_type::String, wallet_address::String, params::Dict = Dict())
 
-    return Dict(
-        "detective" => "Miss Jane Marple",
-        "methodology" => "behavioral_observation",
-        "analysis" => Dict(
-            "social_patterns" => Dict(
-                "interaction_style" => "conservative",
-                "network_behavior" => "small_trusted_circle",
-                "spending_habits" => "prudent"
-            ),
-            "intuitive_deduction" => Dict(
-                "behavioral_consistency" => "high",
-                "pattern_deviation" => "minimal",
-                "trust_indicators" => "positive"
-            ),
-            "network_behavior" => Dict(
-                "community_standing" => "good",
-                "relationship_quality" => "stable",
-                "reputation_score" => 0.88
-            )
-        ),
-        "conclusion" => "Behavioral patterns suggest trustworthy wallet owner",
-        "risk_score" => 0.12,
-        "confidence" => 0.87
-    )
+Framework-compatible investigation function.
+"""
+function investigate_with_agent(detective_type::String, wallet_address::String, params::Dict = Dict())
+    investigation_id = get(params, "investigation_id", string(uuid4()))
+    return investigate_wallet(detective_type, wallet_address, investigation_id)
 end
 
-# Sam Spade - Risk Assessment
-function investigate_spade_style(wallet_address::String, investigation_id::String)
-    @info "🕵️ Spade: Assessing security risks..."
-
-    return Dict(
-        "detective" => "Sam Spade",
-        "methodology" => "risk_assessment",
-        "analysis" => Dict(
-            "threat_evaluation" => Dict(
-                "security_level" => "high",
-                "vulnerability_assessment" => "low_risk",
-                "exposure_rating" => "minimal"
-            ),
-            "danger_detection" => Dict(
-                "suspicious_activity" => "none_detected",
-                "risk_indicators" => "green",
-                "threat_level" => "low"
-            ),
-            "security_analysis" => Dict(
-                "wallet_security" => "well_protected",
-                "transaction_security" => "standard_protocols",
-                "overall_safety" => "secure"
-            )
-        ),
-        "conclusion" => "Low risk profile with good security practices",
-        "risk_score" => 0.08,
-        "confidence" => 0.91
-    )
+# Legacy compatibility function for JuliaOS.jl
+function investigate_wallet(agent::Dict, wallet_address::String, investigation_id::String)
+    detective_type = lowercase(get(agent, "detective_type", "unknown"))
+    return investigate_wallet(detective_type, wallet_address, investigation_id)
 end
 
-# The Shadow - Network Mapping
-function investigate_shadow_style(wallet_address::String, investigation_id::String)
-    @info "🌙 Shadow: Mapping hidden connections..."
-
-    return Dict(
-        "detective" => "The Shadow",
-        "methodology" => "network_mapping",
-        "analysis" => Dict(
-            "connection_analysis" => Dict(
-                "direct_connections" => 12,
-                "indirect_connections" => 45,
-                "connection_strength" => "moderate"
-            ),
-            "hidden_relationships" => Dict(
-                "concealed_links" => "minimal",
-                "shadow_transactions" => "none_found",
-                "hidden_patterns" => "transparent"
-            ),
-            "dark_patterns" => Dict(
-                "mixing_services" => "not_used",
-                "privacy_coins" => "not_involved",
-                "anonymization" => "standard_privacy"
-            )
-        ),
-        "conclusion" => "Clean network with transparent connections",
-        "risk_score" => 0.10,
-        "confidence" => 0.89
+# Helper functions for detective metadata
+function get_detective_name(detective_type::String)
+    detective_names = Dict(
+        "poirot" => "Hercule Poirot",
+        "marple" => "Miss Jane Marple",
+        "spade" => "Sam Spade",
+        "marlowee" => "Philip Marlowe",
+        "dupin" => "Auguste Dupin",
+        "shadow" => "The Shadow",
+        "raven" => "Edgar Allan Raven"
     )
+    return get(detective_names, detective_type, "Unknown Detective")
 end
 
-# Edgar Allan Raven - Synthesis
-function investigate_raven_style(wallet_address::String, investigation_id::String)
-    @info "🐦‍⬛ Raven: Synthesizing all findings..."
-
-    return Dict(
-        "detective" => "Edgar Allan Raven",
-        "methodology" => "synthesis",
-        "analysis" => Dict(
-            "report_generation" => Dict(
-                "comprehensive_analysis" => "complete",
-                "cross_reference" => "validated",
-                "data_correlation" => "consistent"
-            ),
-            "conclusion_synthesis" => Dict(
-                "multiple_perspectives" => "aligned",
-                "consensus_building" => "achieved",
-                "final_assessment" => "low_risk"
-            ),
-            "narrative_creation" => Dict(
-                "story_coherence" => "high",
-                "evidence_alignment" => "strong",
-                "logical_flow" => "clear"
-            )
-        ),
-        "conclusion" => "Comprehensive analysis indicates legitimate, low-risk wallet",
-        "risk_score" => 0.11,
-        "confidence" => 0.93
+function get_detective_specialty(detective_type::String)
+    specialties = Dict(
+        "poirot" => "methodical_transaction_analysis",
+        "marple" => "behavioral_pattern_detection",
+        "spade" => "risk_assessment_compliance",
+        "marlowee" => "deep_analysis_investigation",
+        "dupin" => "analytical_reasoning",
+        "shadow" => "stealth_investigation",
+        "raven" => "dark_investigation_synthesis"
     )
+    return get(specialties, detective_type, "general_investigation")
 end
 
-# Generic investigation for unknown detective types
-function investigate_generic_style(wallet_address::String, investigation_id::String)
-    @info "🔍 Generic: Standard investigation approach..."
-
-    return Dict(
-        "detective" => "Generic Detective",
-        "methodology" => "standard_investigation",
-        "analysis" => Dict(
-            "basic_check" => "completed",
-            "standard_patterns" => "normal",
-            "risk_assessment" => "standard"
-        ),
-        "conclusion" => "Standard investigation completed",
-        "risk_score" => 0.20,
-        "confidence" => 0.75
+function get_detective_skills(detective_type::String)
+    skills_map = Dict(
+        "poirot" => ["transaction_analysis", "methodical_investigation", "pattern_recognition"],
+        "marple" => ["behavioral_analysis", "social_patterns", "intuitive_detection"],
+        "spade" => ["risk_assessment", "compliance_checking", "threat_evaluation"],
+        "marlowee" => ["corruption_detection", "deep_analysis", "cynical_investigation"],
+        "dupin" => ["analytical_reasoning", "mathematical_analysis", "logical_deduction"],
+        "shadow" => ["stealth_analysis", "hidden_patterns", "covert_investigation"],
+        "raven" => ["dark_psychology", "synthesis", "narrative_creation"]
     )
+    return get(skills_map, detective_type, ["general_investigation"])
 end
+
+function get_detective_persona(detective_type::String)
+    personas = Dict(
+        "poirot" => "Meticulous Belgian detective with methodical approach to blockchain analysis",
+        "marple" => "Observant elderly sleuth with intuitive understanding of human behavior",
+        "spade" => "Hard-boiled private investigator focused on risk and compliance",
+        "marlowee" => "Cynical detective specializing in corruption and power structure analysis",
+        "dupin" => "Analytical reasoner using pure logic and mathematical deduction",
+        "shadow" => "Mysterious investigator operating in the shadows of blockchain networks",
+        "raven" => "Dark analyst providing comprehensive investigation synthesis"
+    )
+    return get(personas, detective_type, "General purpose detective agent")
+end
+
+function get_detective_catchphrase(detective_type::String)
+    catchphrases = Dict(
+        "poirot" => "These little grey cells, they show me the truth in the blockchain!",
+        "marple" => "Human nature is the same everywhere, even in crypto transactions.",
+        "spade" => "The facts, ma'am. Just the blockchain facts.",
+        "marlowee" => "In this crypto city, every wallet tells a story of corruption or virtue.",
+        "dupin" => "Through pure analytical reasoning, all blockchain mysteries unfold.",
+        "shadow" => "Who knows what evil lurks in the hearts of crypto wallets? The Shadow knows!",
+        "raven" => "Nevermore shall suspicious transactions escape our dark investigation."
+    )
+    return get(catchphrases, detective_type, "Justice will prevail in the blockchain!")
+end
+
+# Update exports for framework compatibility
+export create_detective_by_type, get_detective_registry, investigate_with_agent
+export get_detective_name, get_detective_specialty, get_detective_skills
 
 end # module DetectiveAgents

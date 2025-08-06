@@ -27,7 +27,7 @@ COPY core/ ./
 RUN julia --project=. -e '\
     ENV["JULIA_PKG_PRECOMPILE_AUTO"] = "0"; \
     using Pkg; \
-    Pkg.instantiate(; precompile=false); \
+    Pkg.instantiate(); \
     println("✅ Dependencies installed WITHOUT precompilation!"); \
     println("All compilation will happen during runtime - saves 1.5GB+ memory");'
 

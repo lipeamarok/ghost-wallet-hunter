@@ -17,7 +17,8 @@ println("📦 Ativando projeto...")
 Pkg.activate(".")
 
 println("📦 Instalando dependências do projeto (SEM precompilação)...")
-Pkg.instantiate(precompile=false)
+ENV["JULIA_PKG_PRECOMPILE_AUTO"] = "0"
+Pkg.instantiate()
 
 # Lista de pacotes necessários
 required_packages = [

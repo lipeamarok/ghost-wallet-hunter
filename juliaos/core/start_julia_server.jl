@@ -9,12 +9,15 @@ using Pkg
 
 println("🔧 Configurando ambiente Julia para Ghost Wallet Hunter...")
 
+# DESABILITAR precompilação automática para economizar memória
+ENV["JULIA_PKG_PRECOMPILE_AUTO"] = "0"
+
 # Primeiro, ativar o projeto e instalar dependências
 println("📦 Ativando projeto...")
 Pkg.activate(".")
 
-println("📦 Instalando dependências do projeto...")
-Pkg.instantiate()
+println("📦 Instalando dependências do projeto (SEM precompilação)...")
+Pkg.instantiate(precompile=false)
 
 # Lista de pacotes necessários
 required_packages = [

@@ -23,27 +23,30 @@ COPY core/ ./
 # 💪 Use FULL Project.toml with ALL dependencies (no more minimal!)
 # Project.toml already has everything: Flux, PyCall, LibPQ, etc.
 
-# ⚡ Install Julia dependencies with MEMORY OPTIMIZATION (2GB limit!)
+# ⚡ Install Julia dependencies with AGGRESSIVE MEMORY OPTIMIZATION!
 RUN julia --project=. -e '\
+    ENV["JULIA_PKG_PRECOMPILE_AUTO"] = "0"; \
     using Pkg; \
-    Pkg.instantiate(); \
-    println("✅ Dependencies installed - SKIPPING precompile to save memory"); \
-    println("Precompilation will happen during startup");'
+    Pkg.instantiate(; precompile=false); \
+    println("✅ Dependencies installed WITHOUT precompilation!"); \
+    println("All compilation will happen during runtime - saves 1.5GB+ memory");'
 
-# Set environment variables for FULL performance
+# Set environment variables for MEMORY-OPTIMIZED performance
 ENV HOST=0.0.0.0
 ENV PORT=8052
 ENV JULIA_DEPOT_PATH=/app/.julia
 ENV JULIA_PROJECT=/app
-ENV JULIA_NUM_THREADS=4
-ENV JULIA_NUM_GC_THREADS=2
+ENV JULIA_NUM_THREADS=2
+ENV JULIA_NUM_GC_THREADS=1
+ENV JULIA_PKG_PRECOMPILE_AUTO=0
+ENV JULIA_COPY_STACKS=1
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+# Health check com timeout maior para permitir compilação
+HEALTHCHECK --interval=45s --timeout=15s --start-period=60s --retries=5 \
     CMD curl -f http://localhost:${PORT}/health || exit 1
 
 # Expose port
 EXPOSE 8052
 
-# Start FULL JuliaOS server (no more minimal restrictions!)
-CMD ["julia", "--project=.", "start_julia_server.jl"]
+# 🚀 QUICK START: Bind porta imediatamente, depois carrega sistema completo
+CMD ["julia", "--project=.", "quick_start.jl"]

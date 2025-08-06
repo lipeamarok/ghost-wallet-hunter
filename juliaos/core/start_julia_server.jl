@@ -9,10 +9,17 @@ using Pkg
 
 println("🔧 Configurando ambiente Julia para Ghost Wallet Hunter...")
 
+# Primeiro, ativar o projeto e instalar dependências
+println("📦 Ativando projeto...")
+Pkg.activate(".")
+
+println("📦 Instalando dependências do projeto...")
+Pkg.instantiate()
+
 # Lista de pacotes necessários
 required_packages = [
     "HTTP",
-    "JSON3",
+    "JSON3", 
     "Dates",
     "UUIDs"
 ]

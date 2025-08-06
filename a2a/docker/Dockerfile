@@ -1,39 +1,42 @@
-# A2A Protocol Server - Lightweight Service
-# Located at: a2a/docker/Dockerfile
+# A2A Protocol Server - Ultra Lightweight for Render Starter Plan
+# Optimized for 512MB RAM limit
 
 FROM python:3.11-slim
 
-# Set working directory at the src level for proper module imports
-WORKDIR /app/a2a/src
+# Set working directory
+WORKDIR /app
 
-# Install system dependencies
+# Install only essential system dependencies
 RUN apt-get update && apt-get install -y \
     curl \
-    ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+    --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
 
-# Copy A2A requirements first (for better caching)
-COPY requirements-a2a.txt ../
+# Copy requirements first for better caching
+COPY requirements-minimal.txt ./
 
-# Install Python dependencies
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r ../requirements-a2a.txt
+# Install Python dependencies with minimal memory usage
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r requirements-minimal.txt \
+    && pip cache purge
 
-# Copy A2A source code with correct structure
-COPY src/ ./
+# Copy minimal server only
+COPY minimal_server.py ./
 
-# Set environment variables
+# Set environment variables for memory optimization
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
 ENV HOST=0.0.0.0
 ENV A2A_PORT=10000
 ENV JULIA_HOST=https://ghost-wallet-hunter-juliaos.onrender.com
-ENV PYTHONPATH=/app/a2a/src
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+HEALTHCHECK --interval=60s --timeout=30s --start-period=10s --retries=2 \
     CMD curl -f http://localhost:${A2A_PORT}/health || exit 1
 
 # Expose port
 EXPOSE 10000
 
-# Start A2A server as module to properly handle relative imports
-CMD ["python", "-m", "a2a.server"]
+# Start minimal server directly
+CMD ["python", "minimal_server.py"]

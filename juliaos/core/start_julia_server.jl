@@ -64,7 +64,7 @@ println("🎯 Iniciando servidor Ghost Wallet Hunter...")
 println("=" ^ 50)
 
 # Configurações
-const PORT = parse(Int, get(ENV, "PORT", "8052"))  # Use Render PORT if available
+const PORT = parse(Int, get(ENV, "PORT", "10000"))  # Use Render PORT (default 10000)
 const HOST = "0.0.0.0"
 
 println("🚀 Iniciando Ghost Wallet Hunter - Servidor Julia")

@@ -17,7 +17,7 @@ export default function WalletInput() {
     return solanaRegex.test(address);
   };
 
-  const handleAnalyze = () => {
+  const handleAnalyze = async () => {
     if (!inputValue.trim()) {
       toast.error('Please enter a Solana wallet address');
       return;
@@ -28,14 +28,56 @@ export default function WalletInput() {
       return;
     }
 
-    // Navigate immediately to analysis page to show real-time progress
-    toast.success('Starting investigation...', { duration: 2000 });
+    setIsAnalyzing(true);
 
-    navigate('/analysis-simple', {
-      state: {
-        walletAddress: inputValue.trim()
+    try {
+      // 🎯 USAR A2A DIRETO - SABEMOS QUE FUNCIONA!
+      toast.loading('🕵️ Starting REAL investigation via A2A...', { duration: 3000 });
+
+      // Usar A2A direto que está funcionando perfeitamente
+      const investigationPayload = {
+        wallet_address: inputValue.trim()
+      };
+
+      // Chamar A2A que está 100% funcional (Port 9100)
+      const response = await fetch('http://localhost:9100/swarm/investigate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(investigationPayload)
+      });
+
+      if (response.ok) {
+        const investigationData = await response.json();
+
+        toast.success('✅ Investigation started! Redirecting...', { duration: 2000 });
+
+        // Navigate to analysis page with investigation data
+        navigate('/analysis-simple', {
+          state: {
+            walletAddress: inputValue.trim(),
+            investigationData: investigationData,
+            realTimeMode: true
+          }
+        });
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to start investigation');
       }
-    });
+
+    } catch (error) {
+      console.error('Investigation failed:', error);
+      toast.error('Failed to start investigation. Please try again.');
+
+      // Fallback: Navigate anyway but without real-time data
+      navigate('/analysis-simple', {
+        state: {
+          walletAddress: inputValue.trim(),
+          fallbackMode: true
+        }
+      });
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   const handleExampleSelect = (address) => {

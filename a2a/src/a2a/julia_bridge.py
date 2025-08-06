@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 class JuliaOSConnection:
     """Conexão com servidor Julia Ghost Wallet Hunter"""
 
-    def __init__(self, julia_url: str = "http://127.0.0.1:8052"):
+    def __init__(self, julia_url: str = "http://127.0.0.1:10000"):
         self.julia_url = julia_url.rstrip('/')
         self.session = None
         self._agents_cache = None
@@ -110,7 +110,7 @@ class JuliaOSConnection:
 class GhostDetectiveFactory:
     """Factory para criar agentes Ghost Detectives conectados com Julia"""
 
-    def __init__(self, julia_url: str = "http://127.0.0.1:8052"):
+    def __init__(self, julia_url: str = "http://127.0.0.1:10000"):
         self.julia_url = julia_url
         self._connection = None
 

@@ -33,7 +33,7 @@ async def investigate_wallet(request):
         wallet_address = body.get("wallet_address", "unknown")
 
         # Try to call Julia service
-        julia_host = os.getenv("JULIA_HOST", "http://localhost:8052")
+        julia_host = os.getenv("JULIA_HOST", "http://localhost:10000")
 
         try:
             async with httpx.AsyncClient(timeout=5.0) as client:

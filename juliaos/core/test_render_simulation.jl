@@ -40,7 +40,7 @@ println("Command: julia start_julia_server.jl (primeira parte)")
 try
     # Lista de pacotes que o servidor precisa
     required_packages = ["HTTP", "JSON3", "Dates", "UUIDs"]
-    
+
     println("📦 Verificando dependências críticas...")
     for package in required_packages
         try
@@ -51,16 +51,16 @@ try
             throw(e)
         end
     end
-    
+
     # Testar carregamento do módulo principal
     println("📦 Testando carregamento do módulo JuliaOS...")
     include("src/JuliaOS.jl")
     using .JuliaOS
     println("  ✅ JuliaOS: Carregado com sucesso!")
-    
+
     println("\n✅ SIMULAÇÃO RENDER COMPLETA - SUCESSO! 🎉")
     println("🚀 O deploy no Render deve funcionar perfeitamente!")
-    
+
 catch e
     println("\n❌ SIMULAÇÃO FALHOU!")
     println("🔧 Erro encontrado: $e")

@@ -137,3 +137,7 @@ class GhostA2AClient:
         except Exception as e:
             logger.error(f"A2A list agents failed: {str(e)}")
             return {"agents": [], "total": 0, "error": str(e)}
+
+
+# Global instance for easy import
+a2a_client = GhostA2AClient()

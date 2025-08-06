@@ -33,7 +33,7 @@ RUN julia --project=. -e '\
 
 # Set environment variables for MEMORY-OPTIMIZED performance
 ENV HOST=0.0.0.0
-ENV PORT=8052
+ENV PORT=10000
 ENV JULIA_DEPOT_PATH=/app/.julia
 ENV JULIA_PROJECT=/app
 ENV JULIA_NUM_THREADS=2
@@ -45,8 +45,8 @@ ENV JULIA_COPY_STACKS=1
 HEALTHCHECK --interval=45s --timeout=15s --start-period=60s --retries=5 \
     CMD curl -f http://localhost:${PORT}/health || exit 1
 
-# Expose port
-EXPOSE 8052
+# Expose port (Render default)
+EXPOSE 10000
 
 # 🚀 QUICK START: Bind porta imediatamente, depois carrega sistema completo
 CMD ["julia", "--project=.", "quick_start.jl"]

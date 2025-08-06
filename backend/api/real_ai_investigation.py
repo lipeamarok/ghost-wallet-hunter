@@ -1,7 +1,14 @@
 # backend/api/real_ai_investigation.py
 """
-API de Investigação Real com IA
-Endpoint que conecta dados reais da blockchain com agentes IA reais
+Real AI Investigation API
+
+Professional endpoint that connects real blockchain data with AI agents
+for comprehensive wallet investigation and risk assessment.
+
+This module provides advanced investigation capabilities by combining:
+- Real-time Solana blockchain data collection
+- AI-powered analysis using Julia agents
+- Professional reporting and risk scoring
 """
 
 from fastapi import APIRouter, HTTPException, Depends
@@ -10,20 +17,22 @@ from typing import Dict, List, Any, Optional
 import logging
 from datetime import datetime
 
-from ..services.juliaos_integration_service import JuliaOSIntegrationService
-from ..services.real_blockchain_service import RealBlockchainService
+from ..services.juliaos_detective_integration import JuliaOSDetectiveIntegration
+from ..services.solana_service import SolanaService
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/real-ai", tags=["Real AI Investigation"])
 
 class WalletInvestigationRequest(BaseModel):
+    """Request model for comprehensive wallet investigation."""
     wallet_address: str
     investigation_type: str = "comprehensive"
     max_transactions: int = 50
     include_network_analysis: bool = True
 
 class InvestigationResponse(BaseModel):
+    """Response model for completed wallet investigation."""
     case_id: str
     status: str
     wallet_address: str
@@ -40,75 +49,96 @@ async def investigate_wallet_with_real_ai(
     request: WalletInvestigationRequest
 ) -> Dict[str, Any]:
     """
-    Investigação COMPLETA de carteira com IA REAL
+    COMPREHENSIVE wallet investigation with REAL AI
 
-    1. Coleta dados REAIS da blockchain Solana
-    2. Analisa com agentes IA REAIS (Julia + OpenAI GPT-4)
-    3. Retorna investigação profissional completa
+    This endpoint provides professional-grade wallet investigation by:
+    1. Collecting REAL data from Solana blockchain
+    2. Analyzing with REAL AI agents (Julia + OpenAI GPT-4)
+    3. Returning complete professional investigation report
     """
     case_id = f"REAL_AI_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-    logger.info(f"🚀 INVESTIGAÇÃO REAL INICIADA: {case_id} - Carteira: {request.wallet_address}")
+    logger.info(f"🚀 REAL INVESTIGATION STARTED: {case_id} - Wallet: {request.wallet_address}")
 
     try:
-        # Fase 1: Coletar dados REAIS da blockchain
-        logger.info("📊 Fase 1: Coletando dados REAIS da blockchain Solana...")
+        # Phase 1: Collect REAL blockchain data
+        logger.info("📊 Phase 1: Collecting REAL Solana blockchain data...")
 
-        async with RealBlockchainService() as blockchain_service:
-            # Coletar dados completos
-            wallet_analysis = await blockchain_service.analyze_wallet_patterns(request.wallet_address)
+        solana_service = SolanaService()
+        
+        # Collect comprehensive data
+        transactions = await solana_service.get_wallet_transactions(
+            request.wallet_address, 
+            limit=request.max_transactions
+        )
+        
+        token_accounts = await solana_service.get_token_accounts(request.wallet_address)
+        
+        wallet_analysis = {
+            "transactions": transactions,
+            "token_accounts": token_accounts,
+            "transaction_count": len(transactions),
+            "token_accounts_count": len(token_accounts)
+        }
 
-            if wallet_analysis.get("error"):
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"Erro ao coletar dados da carteira: {wallet_analysis['error']}"
-                )
-
-            # Coletar carteiras conectadas se solicitado
-            connected_wallets = []
-            if request.include_network_analysis:
-                connected_wallets = await blockchain_service.get_connected_wallets(
-                    request.wallet_address, 15
-                )
-
-            logger.info(f"✅ Dados coletados: {wallet_analysis['transaction_count']} transações, {len(connected_wallets)} carteiras conectadas")
-
-        # Fase 2: Análise com IA REAL (Agentes Julia + OpenAI GPT-4)
-        logger.info("🤖 Fase 2: Análise com IA REAL (Agentes Julia + OpenAI GPT-4)...")
-
-        async with JuliaOSIntegrationService() as julia_service:
-            # Verificar saúde do sistema IA
-            health = await julia_service.health_check()
-            if health["status"] != "healthy":
-                raise HTTPException(
-                    status_code=503,
-                    detail=f"Sistema IA não disponível: {health.get('error', 'Unknown error')}"
-                )
-
-            # Executar investigação colaborativa com IA REAL
-            ai_investigation = await julia_service.conduct_full_investigation(
-                wallet_address=request.wallet_address,
-                transaction_data=wallet_analysis.get("transactions", []),
-                connected_wallets=connected_wallets
+        if not transactions and not token_accounts:
+            raise HTTPException(
+                status_code=400,
+                detail="Unable to retrieve wallet data - wallet may not exist or be invalid"
             )
 
-            if ai_investigation.get("error"):
-                raise HTTPException(
-                    status_code=500,
-                    detail=f"Erro na análise IA: {ai_investigation['error']}"
-                )
+        # Collect connected wallets if requested (simplified for now)
+        connected_wallets = []
+        if request.include_network_analysis and transactions:
+            # Extract unique addresses from transactions for network analysis
+            unique_addresses = set()
+            for tx in transactions[:10]:  # Limit to first 10 transactions
+                if isinstance(tx, dict) and 'account' in tx:
+                    unique_addresses.add(tx['account'])
+            connected_wallets = list(unique_addresses)[:15]
 
-            logger.info("✅ Análise IA concluída com sucesso")
+        logger.info(f"✅ Data collected: {len(transactions)} transactions, {len(connected_wallets)} connected wallets")
 
-        # Fase 3: Compilar resultado final
-        logger.info("📋 Fase 3: Compilando resultado final...")
+        # Phase 2: Analysis with REAL AI (Julia agents + OpenAI GPT-4)
+        logger.info("🤖 Phase 2: Analysis with REAL AI (Julia agents + OpenAI GPT-4)...")
 
-        # Extrair recomendações da análise IA
+        julia_service = JuliaOSDetectiveIntegration()
+        
+        # Initialize Julia service
+        await julia_service.initialize()
+        
+        # Check AI system health
+        health = await julia_service.health_check()
+        if not health.get("available", False):
+            raise HTTPException(
+                status_code=503,
+                detail=f"AI system unavailable: {health.get('error', 'Unknown error')}"
+            )
+
+        # Execute collaborative investigation with REAL AI
+        from ..services.juliaos_detective_integration import execute_enhanced_investigation
+        ai_investigation = await execute_enhanced_investigation(
+            wallet_address=request.wallet_address,
+            use_swarm=True
+        )
+
+        if ai_investigation.get("error"):
+            raise HTTPException(
+                status_code=500,
+                detail=f"AI analysis error: {ai_investigation['error']}"
+            )
+
+        logger.info("✅ AI analysis completed successfully")
+
+        # Phase 3: Compile final result
+        logger.info("📋 Phase 3: Compiling final result...")
+
+        # Extract recommendations from AI analysis
         recommendations = extract_recommendations(ai_investigation)
 
-        # Calcular score de risco final
+        # Calculate final risk score
         risk_score = calculate_risk_score(wallet_analysis, ai_investigation)
 
-        # Resultado final da investigação
+        # Final investigation result
         final_result = {
             "case_id": case_id,
             "status": "completed",
@@ -116,21 +146,15 @@ async def investigate_wallet_with_real_ai(
             "investigation_type": request.investigation_type,
             "timestamp": datetime.now().isoformat(),
 
-            # Dados REAIS da blockchain
+            # REAL blockchain data
             "blockchain_data": {
-                "account_info": wallet_analysis.get("account_info", {}),
-                "transaction_count": wallet_analysis.get("transaction_count", 0),
-                "token_accounts_count": wallet_analysis.get("token_accounts_count", 0),
-                "temporal_patterns": wallet_analysis.get("temporal_patterns", {}),
-                "value_patterns": wallet_analysis.get("value_patterns", {}),
-                "interaction_patterns": wallet_analysis.get("interaction_patterns", {}),
-                "token_patterns": wallet_analysis.get("token_patterns", {}),
-                "risk_indicators": wallet_analysis.get("risk_indicators", []),
+                "transactions": wallet_analysis.get("transactions", [])[:10],  # First 10 for response
                 "connected_wallets": connected_wallets,
-                "transactions": wallet_analysis.get("transactions", [])[:10]  # Primeiras 10 para resposta
+                "total_transactions": len(wallet_analysis.get("transactions", [])),
+                "analysis_timestamp": datetime.now().isoformat()
             },
 
-            # Análise IA REAL
+            # REAL AI analysis
             "ai_analysis": {
                 "agents_used": ai_investigation.get("agents_used", []),
                 "detective_reports": ai_investigation.get("detective_reports", {}),
@@ -138,27 +162,26 @@ async def investigate_wallet_with_real_ai(
                 "confidence_level": ai_investigation.get("confidence_level", 0.0)
             },
 
-            # Avaliação consolidada
+            # Consolidated assessment
             "risk_assessment": {
                 "overall_risk_score": risk_score,
                 "risk_level": get_risk_level(risk_score),
-                "key_concerns": extract_key_concerns(wallet_analysis, ai_investigation),
-                "risk_factors": wallet_analysis.get("risk_indicators", [])
+                "key_concerns": extract_key_concerns(wallet_analysis, ai_investigation)
             },
 
-            # Recomendações acionáveis
+            # Actionable recommendations
             "recommendations": recommendations,
 
-            # Metadados
+            # Metadata
             "metadata": {
-                "investigation_duration_seconds": 0,  # Calcular se necessário
+                "investigation_duration_seconds": 0,  # Calculate if needed
                 "data_sources": ["solana_mainnet", "openai_gpt4", "juliaos_agents"],
                 "analysis_completeness": calculate_completeness(wallet_analysis, ai_investigation),
                 "confidence_level": ai_investigation.get("confidence_level", 0.0)
             }
         }
 
-        logger.info(f"🎉 INVESTIGAÇÃO REAL CONCLUÍDA: {case_id}")
+        logger.info(f"🎉 REAL INVESTIGATION COMPLETED: {case_id}")
         logger.info(f"📊 Risk Score: {risk_score:.2f}, Level: {get_risk_level(risk_score)}")
         logger.info(f"🎯 Confidence: {ai_investigation.get('confidence_level', 0.0):.2f}")
 
@@ -167,23 +190,24 @@ async def investigate_wallet_with_real_ai(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Erro na investigação real {case_id}: {e}")
+        logger.error(f"❌ Error in real investigation {case_id}: {e}")
         raise HTTPException(
             status_code=500,
-            detail=f"Erro interno na investigação: {str(e)}"
+            detail=f"Internal investigation error: {str(e)}"
         )
 
 @router.get("/health")
 async def check_real_ai_health():
-    """Verifica saúde dos sistemas de IA real"""
+    """Check health of real AI systems"""
     try:
-        async with JuliaOSIntegrationService() as julia_service:
-            julia_health = await julia_service.health_check()
+        julia_service = JuliaOSDetectiveIntegration()
+        await julia_service.initialize()
+        julia_health = await julia_service.health_check()
 
-        async with RealBlockchainService() as blockchain_service:
-            # Teste simples de conectividade blockchain
-            test_result = await blockchain_service.get_solana_account_info("11111111111111111111111111111112")
-            blockchain_health = {"status": "healthy" if not test_result.get("error") else "unhealthy"}
+        solana_service = SolanaService()
+        # Simple connectivity test for blockchain
+        test_valid = await solana_service.validate_wallet_address("11111111111111111111111111111112")
+        blockchain_health = {"status": "healthy" if test_valid else "unhealthy"}
 
         return {
             "status": "healthy",
@@ -202,36 +226,37 @@ async def check_real_ai_health():
 
 @router.get("/agent-status")
 async def get_ai_agent_status():
-    """Status dos agentes IA Julia"""
+    """Status of Julia AI agents"""
     try:
-        async with JuliaOSIntegrationService() as julia_service:
-            agents = await julia_service.find_ghost_agents()
-            return {
-                "agents_found": len(agents),
-                "agents": agents,
-                "timestamp": datetime.now().isoformat()
-            }
+        julia_service = JuliaOSDetectiveIntegration()
+        await julia_service.initialize()
+        agents = await julia_service.get_available_detectives()
+        return {
+            "agents_found": len(agents),
+            "agents": agents,
+            "timestamp": datetime.now().isoformat()
+        }
     except Exception as e:
         return {"error": str(e)}
 
 def extract_recommendations(ai_investigation: Dict[str, Any]) -> List[str]:
-    """Extrai recomendações da análise IA"""
+    """Extract recommendations from AI analysis"""
     recommendations = []
 
-    # Extrair de relatórios individuais
+    # Extract from individual reports
     reports = ai_investigation.get("detective_reports", {})
 
-    # Recomendações do Spade (Risk Assessment)
+    # Spade recommendations (Risk Assessment)
     spade_report = reports.get("spade", {})
     if isinstance(spade_report, dict) and "recommendations" in spade_report:
         recommendations.extend(spade_report["recommendations"])
 
-    # Recomendações da síntese final (Raven)
+    # Final synthesis recommendations (Raven)
     synthesis = ai_investigation.get("final_synthesis", {})
     if isinstance(synthesis, dict) and "recommendations" in synthesis:
         recommendations.extend(synthesis["recommendations"])
 
-    # Recomendações padrão baseadas em padrões
+    # Default recommendations based on patterns
     if not recommendations:
         recommendations = [
             "Continue monitoring wallet activity",
@@ -239,42 +264,40 @@ def extract_recommendations(ai_investigation: Dict[str, Any]) -> List[str]:
             "Consider additional compliance checks if needed"
         ]
 
-    return recommendations[:5]  # Limitar a 5 recomendações
+    return recommendations[:5]  # Limit to 5 recommendations
 
 def calculate_risk_score(blockchain_data: Dict[str, Any], ai_analysis: Dict[str, Any]) -> float:
-    """Calcula score de risco final (0.0 a 1.0)"""
+    """Calculate final risk score (0.0 to 1.0)"""
     risk_score = 0.0
 
-    # Fatores baseados em dados blockchain
-    risk_indicators = blockchain_data.get("risk_indicators", [])
-    risk_score += len(risk_indicators) * 0.1
+    # Factors based on blockchain data
+    transaction_count = blockchain_data.get("transaction_count", 0)
+    token_accounts_count = blockchain_data.get("token_accounts_count", 0)
 
-    # Idade da conta
-    temporal_patterns = blockchain_data.get("temporal_patterns", {})
-    timespan_days = temporal_patterns.get("total_timespan_days", 0)
-    if timespan_days < 7:
-        risk_score += 0.3
-    elif timespan_days < 30:
+    # High activity indicators
+    if transaction_count > 100:
+        risk_score += 0.2
+    elif transaction_count > 50:
+        risk_score += 0.1
+
+    # Token diversity
+    if token_accounts_count > 20:
         risk_score += 0.15
 
-    # Volume de atividade vs saldo
-    account_info = blockchain_data.get("account_info", {})
-    balance_sol = account_info.get("balance_sol", 0)
-    transaction_count = blockchain_data.get("transaction_count", 0)
-
-    if balance_sol < 0.01 and transaction_count > 20:
-        risk_score += 0.2
-
-    # Fatores da análise IA
+    # AI analysis factors
     confidence = ai_analysis.get("confidence_level", 0.5)
     if confidence < 0.3:
-        risk_score += 0.2  # Baixa confiança aumenta risco
+        risk_score += 0.2  # Low confidence increases risk
 
-    # Normalizar entre 0.0 e 1.0
+    # Check for error in AI analysis
+    if ai_analysis.get("error"):
+        risk_score += 0.3
+
+    # Normalize between 0.0 and 1.0
     return min(1.0, max(0.0, risk_score))
 
 def get_risk_level(risk_score: float) -> str:
-    """Converte score numérico em nível de risco"""
+    """Convert numeric score to risk level"""
     if risk_score < 0.2:
         return "LOW"
     elif risk_score < 0.5:
@@ -285,22 +308,23 @@ def get_risk_level(risk_score: float) -> str:
         return "CRITICAL"
 
 def extract_key_concerns(blockchain_data: Dict[str, Any], ai_analysis: Dict[str, Any]) -> List[str]:
-    """Extrai principais preocupações identificadas"""
+    """Extract key concerns identified"""
     concerns = []
 
-    # Preocupações baseadas em dados blockchain
-    risk_indicators = blockchain_data.get("risk_indicators", [])
-    for indicator in risk_indicators:
-        if indicator == "VERY_NEW_ACCOUNT":
-            concerns.append("Account created very recently (< 7 days)")
-        elif indicator == "HIGH_ACTIVITY_VOLUME":
-            concerns.append("Unusually high transaction volume")
-        elif indicator == "HIGH_FAILURE_RATE":
-            concerns.append("High rate of failed transactions")
-        elif indicator == "LOW_BALANCE_HIGH_ACTIVITY":
-            concerns.append("High activity with very low balance")
+    # Concerns based on blockchain data
+    transaction_count = blockchain_data.get("transaction_count", 0)
+    token_accounts_count = blockchain_data.get("token_accounts_count", 0)
 
-    # Preocupações da análise IA
+    if transaction_count > 100:
+        concerns.append("Very high transaction volume detected")
+    
+    if token_accounts_count > 20:
+        concerns.append("High number of different tokens")
+
+    if transaction_count == 0:
+        concerns.append("No transaction history found")
+
+    # AI analysis concerns
     reports = ai_analysis.get("detective_reports", {})
 
     # Marple (pattern detection)
@@ -315,21 +339,19 @@ def extract_key_concerns(blockchain_data: Dict[str, Any], ai_analysis: Dict[str,
         if threat_level in ["HIGH", "CRITICAL"]:
             concerns.append(f"Risk assessment indicates {threat_level} threat level")
 
-    return concerns[:5]  # Limitar a 5 preocupações principais
+    return concerns[:5]  # Limit to 5 main concerns
 
 def calculate_completeness(blockchain_data: Dict[str, Any], ai_analysis: Dict[str, Any]) -> float:
-    """Calcula completude da análise (0.0 a 1.0)"""
+    """Calculate analysis completeness (0.0 to 1.0)"""
     completeness_score = 0.0
 
-    # Verificar dados blockchain coletados
-    if blockchain_data.get("account_info", {}).get("exists"):
-        completeness_score += 0.2
-    if blockchain_data.get("transaction_count", 0) > 0:
-        completeness_score += 0.2
+    # Check collected blockchain data
+    if blockchain_data.get("transaction_count", 0) >= 0:
+        completeness_score += 0.3
     if blockchain_data.get("token_accounts_count", 0) >= 0:
-        completeness_score += 0.1
+        completeness_score += 0.2
 
-    # Verificar análises IA realizadas
+    # Check AI analyses performed
     reports = ai_analysis.get("detective_reports", {})
     expected_agents = ["poirot", "marple", "spade", "shadow", "raven"]
 

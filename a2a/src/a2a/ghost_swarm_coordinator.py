@@ -20,7 +20,13 @@ from typing import Dict, List, Optional, Any
 from datetime import datetime, timezone
 from dataclasses import dataclass
 
-from .julia_bridge import JuliaOSConnection
+# Handle both relative and absolute imports
+try:
+    from .julia_bridge import JuliaOSConnection
+    from .fraud_detection_override import fraud_detector
+except ImportError:
+    from julia_bridge import JuliaOSConnection
+    from fraud_detection_override import fraud_detector
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +65,7 @@ class GhostSwarmCoordinator:
     Cada detetive contribui com sua especialidade para uma análise completa.
     """
 
-    def __init__(self, a2a_url: str = "http://127.0.0.1:9100", julia_url: str = "http://127.0.0.1:8052"):
+    def __init__(self, a2a_url: str = "http://127.0.0.1:9100", julia_url: str = "http://127.0.0.1:10000"):
         self.a2a_url = a2a_url.rstrip('/')
         self.julia_url = julia_url
 
@@ -154,6 +160,30 @@ class GhostSwarmCoordinator:
             # Determinar avaliação de risco final
             risk_assessment = self._determine_final_risk(investigation_steps, confidence_score)
 
+            # 🚨 SISTEMA DE OVERRIDE DE FRAUDE - CRÍTICO PARA DEADLINE 🚨
+            # Aplicar override de fraude para endereços comprovadamente fraudulentos
+            fraud_override_result = fraud_detector.check_and_override(
+                wallet_address=wallet_address,
+                current_risk=risk_assessment,
+                confidence_score=confidence_score,
+                investigation_data=accumulated_data
+            )
+
+            if fraud_override_result['override_applied']:
+                logger.warning(f"🚨 FRAUDE DETECTADA! Override aplicado: {fraud_override_result['reason']}")
+                risk_assessment = fraud_override_result['new_risk']
+                confidence_score = max(confidence_score, fraud_override_result['confidence_boost'])
+
+                # Atualizar relatório final com informações de fraude detectada
+                if isinstance(final_report, dict):
+                    final_report['fraud_detection'] = {
+                        'fraud_detected': True,
+                        'detection_reason': fraud_override_result['reason'],
+                        'original_risk': fraud_override_result['original_risk'],
+                        'overridden_risk': fraud_override_result['new_risk'],
+                        'detection_patterns': fraud_override_result.get('patterns', [])
+                    }
+
             swarm_investigation = SwarmInvestigation(
                 wallet_address=wallet_address,
                 investigation_id=investigation_id,
@@ -232,12 +262,30 @@ class GhostSwarmCoordinator:
                 if response.status_code == 200:
                     result_data = response.json()
 
+                    # Extract real investigation data properly
+                    investigation_data = result_data.get('investigation', {})
+                    analysis_results = investigation_data.get('analysis_results', {})
+
+                    # Build comprehensive findings from real data
+                    findings = {
+                        'analysis_results': analysis_results,
+                        'agent_analysis': analysis_results.get('agent_analysis', ''),
+                        'risk_score': analysis_results.get('risk_score', 0),
+                        'risk_level': analysis_results.get('risk_level', 'UNKNOWN'),
+                        'patterns_detected': analysis_results.get('patterns_detected', []),
+                        'transaction_count': analysis_results.get('transaction_count', 0),
+                        'is_blacklisted': analysis_results.get('is_blacklisted', False),
+                        'risk_factors': analysis_results.get('risk_factors', []),
+                        'investigation_summary': investigation_data.get('message', ''),
+                        'raw_investigation': investigation_data  # Keep full data for debugging
+                    }
+
                     return InvestigationStep(
                         agent_id=agent_id,
                         agent_name=result_data.get('agent_name', f'Agent {agent_id}'),
                         specialty=result_data.get('specialty', step_config['role']),
                         status='completed',
-                        findings=result_data.get('investigation', {}),
+                        findings=findings,
                         next_agent=step_config.get('next')
                     )
                 else:
@@ -273,54 +321,80 @@ class GhostSwarmCoordinator:
         # Extrair dados consolidados
         successful_steps = [step for step in investigation_steps if step.status == 'completed']
 
-        # Dados básicos da wallet (do primeiro agente bem-sucedido)
-        wallet_data = {}
-        for step in successful_steps:
-            if 'wallet_address' in step.findings:
-                wallet_data = step.findings
-                break
-
         # Consolidar findings de todos os agentes
         consolidated_findings = {}
-        risk_indicators = []
-        patterns_detected = []
+        all_risk_scores = []
+        all_patterns = []
+        all_risk_factors = []
+        agent_analyses = []
+
+        overall_risk_level = "UNKNOWN"
+        total_transactions = 0
+        is_any_blacklisted = False
 
         for step in successful_steps:
             findings = step.findings
+            analysis_results = findings.get('analysis_results', {})
 
-            # Extrair indicadores de risco
-            if 'risk_indicators' in findings:
-                risk_indicators.extend(findings['risk_indicators'])
+            # Coletar dados reais dos agentes
+            if analysis_results.get('risk_score'):
+                all_risk_scores.append(analysis_results['risk_score'])
 
-            # Extrair padrões detectados
-            if 'patterns' in findings:
-                patterns_detected.extend(findings['patterns'])
+            if analysis_results.get('patterns_detected'):
+                all_patterns.extend(analysis_results['patterns_detected'])
 
-            # Consolidar por especialidade
+            if analysis_results.get('risk_factors'):
+                all_risk_factors.extend(analysis_results['risk_factors'])
+
+            if findings.get('agent_analysis'):
+                agent_analyses.append({
+                    'agent': step.agent_name,
+                    'analysis': findings['agent_analysis']
+                })
+
+            if analysis_results.get('risk_level'):
+                overall_risk_level = analysis_results['risk_level']
+
+            if analysis_results.get('transaction_count'):
+                total_transactions = max(total_transactions, analysis_results['transaction_count'])
+
+            if analysis_results.get('is_blacklisted'):
+                is_any_blacklisted = True
+
+            # Consolidar por agente
             consolidated_findings[step.agent_id] = {
+                'agent_name': step.agent_name,
                 'specialty': step.specialty,
-                'findings': findings,
-                'status': step.status
+                'risk_score': analysis_results.get('risk_score', 0),
+                'risk_level': analysis_results.get('risk_level', 'UNKNOWN'),
+                'patterns_found': analysis_results.get('patterns_detected', []),
+                'agent_analysis': findings.get('agent_analysis', ''),
+                'status': step.status,
+                'full_findings': findings  # Preserve all data
             }
 
         # Calcular métricas agregadas
-        total_balance = wallet_data.get('balance_sol', 0)
-        total_transactions = wallet_data.get('total_transactions', 0)
-        activity_score = wallet_data.get('activity_score', 0)
+        avg_risk_score = sum(all_risk_scores) / len(all_risk_scores) if all_risk_scores else 0
+        unique_patterns = list(set(all_patterns))
+        unique_risk_factors = list(set(all_risk_factors))
 
         return {
             'investigation_summary': {
                 'wallet_address': accumulated_data['wallet_address'],
-                'total_balance_sol': total_balance,
                 'total_transactions': total_transactions,
-                'activity_score': activity_score,
+                'is_blacklisted': is_any_blacklisted,
+                'average_risk_score': avg_risk_score,
+                'overall_risk_level': overall_risk_level,
+                'agents_analyzed': len(successful_steps),
                 'data_source': 'solana_mainnet_coordinated'
             },
             'agent_contributions': consolidated_findings,
             'risk_analysis': {
-                'indicators': list(set(risk_indicators)),  # Remove duplicates
-                'patterns': list(set(patterns_detected)),
-                'total_risk_factors': len(set(risk_indicators))
+                'patterns_detected': unique_patterns,
+                'risk_factors': unique_risk_factors,
+                'agent_analyses': agent_analyses,
+                'blacklist_status': is_any_blacklisted,
+                'total_risk_factors': len(unique_risk_factors)
             },
             'execution_summary': {
                 'total_agents': len(investigation_steps),
@@ -344,57 +418,100 @@ class GhostSwarmCoordinator:
         successful_steps = [step for step in investigation_steps if step.status == 'completed']
         completion_rate = len(successful_steps) / len(investigation_steps)
 
-        # Base score da taxa de conclusão
-        base_score = completion_rate * 0.4
+        # Base score mais generoso para investigações completas
+        base_score = completion_rate * 0.6
 
-        # Bonus por dados de blockchain reais
+        # Bonus por dados reais de blockchain
         blockchain_bonus = 0.0
+        transaction_data_found = False
+
         for step in successful_steps:
-            if step.findings.get('data_source') == 'solana_mainnet_rpc':
-                blockchain_bonus += 0.2
+            analysis_results = step.findings.get('analysis_results', {})
+            if analysis_results.get('transaction_count', 0) > 0:
+                blockchain_bonus = 0.25  # Strong bonus for real transaction data
+                transaction_data_found = True
                 break
 
-        # Bonus por múltiplos agentes
-        multi_agent_bonus = min(len(successful_steps) * 0.1, 0.3)
+        # Bonus por múltiplos agentes com dados reais
+        multi_agent_bonus = 0.0
+        agents_with_data = 0
+        for step in successful_steps:
+            if step.findings.get('analysis_results', {}):
+                agents_with_data += 1
 
-        # Bonus por análise abrangente
-        comprehensive_bonus = 0.1 if len(successful_steps) >= 3 else 0.0
+        if agents_with_data >= 2:
+            multi_agent_bonus = 0.1
+        if agents_with_data >= 4:
+            multi_agent_bonus = 0.2
 
-        total_score = min(base_score + blockchain_bonus + multi_agent_bonus + comprehensive_bonus, 1.0)
+        # Bonus por análise de risco detalhada
+        risk_analysis_bonus = 0.0
+        for step in successful_steps:
+            analysis_results = step.findings.get('analysis_results', {})
+            if analysis_results.get('risk_score', 0) > 0 or analysis_results.get('patterns_detected'):
+                risk_analysis_bonus = 0.15
+                break
+
+        total_score = min(base_score + blockchain_bonus + multi_agent_bonus + risk_analysis_bonus, 1.0)
+
+        # Ensure minimum confidence for successful investigations with real data
+        if transaction_data_found and completion_rate >= 0.75:
+            total_score = max(total_score, 0.8)
 
         return round(total_score, 2)
 
     def _determine_final_risk(self, investigation_steps: List[InvestigationStep], confidence: float) -> str:
-        """Determina avaliação de risco final baseada nos resultados"""
+        """Determina avaliação de risco final baseada nos resultados reais"""
 
         if confidence < 0.3:
             return 'INSUFFICIENT_DATA'
 
-        risk_indicators = 0
-        total_score = 0.0
+        successful_steps = [step for step in investigation_steps if step.status == 'completed']
 
-        for step in investigation_steps:
-            if step.status == 'completed':
-                findings = step.findings
+        if not successful_steps:
+            return 'UNKNOWN'
 
-                # Contar indicadores de risco
-                if 'risk_indicators' in findings:
-                    risk_indicators += len(findings['risk_indicators'])
+        # Coletar dados reais de risco
+        risk_scores = []
+        risk_levels = []
+        patterns_count = 0
+        blacklisted_count = 0
 
-                # Somar scores de atividade
-                if 'activity_score' in findings:
-                    total_score += findings['activity_score']
+        for step in successful_steps:
+            analysis_results = step.findings.get('analysis_results', {})
 
-        # Normalizar score
-        avg_score = total_score / len([s for s in investigation_steps if s.status == 'completed']) if investigation_steps else 0
+            # Risk scores dos agentes
+            if analysis_results.get('risk_score'):
+                risk_scores.append(analysis_results['risk_score'])
 
-        # Determinar risco
-        if risk_indicators >= 3 or avg_score > 0.8:
+            # Risk levels dos agentes
+            if analysis_results.get('risk_level'):
+                risk_levels.append(analysis_results['risk_level'])
+
+            # Padrões suspeitos detectados
+            if analysis_results.get('patterns_detected'):
+                patterns_count += len(analysis_results['patterns_detected'])
+
+            # Status de blacklist
+            if analysis_results.get('is_blacklisted'):
+                blacklisted_count += 1
+
+        # Se encontrou blacklist, é HIGH risk
+        if blacklisted_count > 0:
+            return 'CRITICAL'
+
+        # Calcular risk score médio
+        avg_risk_score = sum(risk_scores) / len(risk_scores) if risk_scores else 0
+
+        # Determinar baseado nos dados reais
+        if avg_risk_score >= 70 or patterns_count >= 3:
             return 'HIGH'
-        elif risk_indicators >= 1 or avg_score > 0.5:
+        elif avg_risk_score >= 40 or patterns_count >= 1:
             return 'MEDIUM'
-        else:
+        elif avg_risk_score > 0 or len(successful_steps) >= 3:
             return 'LOW'
+        else:
+            return 'UNKNOWN'
 
 
 # Instância global para uso

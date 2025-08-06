@@ -7,8 +7,8 @@ para sinalizar ao Render que a porta está ativa, enquanto o Julia compila
 
 using Sockets
 
-# Porta do Render ou 8052 como fallback
-const PORT = parse(Int, get(ENV, "PORT", "8052"))
+# Porta do Render (padrão 10000)
+const PORT = parse(Int, get(ENV, "PORT", "10000"))
 
 println("🚀 [QUICK BIND] Iniciando bind imediato na porta $PORT...")
 

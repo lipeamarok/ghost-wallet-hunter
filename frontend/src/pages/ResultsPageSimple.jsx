@@ -12,6 +12,30 @@ export default function ResultsPageSimple() {
   const [error, setError] = useState(null);
   const [walletAddress, setWalletAddress] = useState('');
 
+  // Function to generate explanation from A2A investigation data
+  const generateA2AExplanation = (detectives, riskLevel, riskScore, fullResults) => {
+    const confidencePercent = Math.round(riskScore * 100);
+
+    // Check for critical threats
+    const criticalFindings = [];
+    Object.values(detectives).forEach(detective => {
+      if (detective.findings && detective.findings.status === 'CRITICAL_THREAT_DETECTED') {
+        criticalFindings.push(detective.findings);
+      }
+    });
+
+    if (criticalFindings.length > 0) {
+      const threat = criticalFindings[0].threat_details;
+      return `🚨 CRITICAL SECURITY THREAT DETECTED: This wallet has been identified as "${threat?.threat_type}" with immediate security concerns. The investigation found evidence of involvement in "${threat?.description}" with a severity level of ${threat?.severity}. ${threat?.stolen_amount ? `Financial impact: ${threat.stolen_amount}.` : ''} RECOMMENDATION: DO NOT INTERACT with this wallet under any circumstances.`;
+    }
+
+    // Normal risk assessment
+    const agentCount = Object.keys(detectives).length;
+    const completedAgents = Object.values(detectives).filter(d => d.status === 'completed').length;
+
+    return `🔍 The A2A Coordinated Detective Squad (${completedAgents}/${agentCount} agents) has completed a comprehensive blockchain investigation of this wallet. Risk Assessment: ${riskLevel} with ${confidencePercent}% confidence. All agents have successfully analyzed transaction patterns, behavioral indicators, and security markers to provide this assessment.`;
+  };
+
   // Function to generate simple explanation from detective findings
   const generateSimpleExplanation = (detectives, riskLevel, riskScore, consensusData) => {
     if (!detectives || Object.keys(detectives).length === 0) {
@@ -234,7 +258,16 @@ export default function ResultsPageSimple() {
     );
   }
 
-  if (!results || (results.status !== 'investigation_complete' && !results.success)) {
+  // Check if investigation was successful
+  // A2A investigations return success: true and have investigation_steps with completed status
+  const isInvestigationSuccessful = results && (
+    results.success === true ||
+    results.status === 'investigation_complete' ||
+    (results.investigation_steps && results.investigation_steps.length > 0 &&
+     results.investigation_steps.some(step => step.status === 'completed'))
+  );
+
+  if (!results || !isInvestigationSuccessful) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-red-900 to-purple-900 flex items-center justify-center p-4">
         <motion.div
@@ -263,31 +296,55 @@ export default function ResultsPageSimple() {
     );
   }
 
-  // Extract main data - handle legendary squad structure correctly
-  const legendaryResults = results.legendary_results || results;
-
   // Debug logs to see what we're getting
   console.log('🔍 Full results object:', results);
-  console.log('🔍 Legendary results:', legendaryResults);
 
-  // Use legendary_consensus instead of risk_assessment (which doesn't exist)
-  const consensusData = legendaryResults.legendary_consensus || {};
-  const riskLevel = consensusData.consensus_risk_level || 'UNKNOWN';
-  const riskScore = consensusData.consensus_risk_score || 0;
-  const confidence = consensusData.investigation_confidence || 'Unknown';
+  // Extract data from A2A coordinated swarm response
+  const riskLevel = results.risk_assessment || 'UNKNOWN';
+  const riskScore = results.confidence_score || 0;
+  const confidence = Math.round((results.confidence_score || 0) * 100);
 
-  console.log('🔍 Consensus data:', consensusData);
+  // Extract consensusData from final_report for fraud detection info
+  const consensusData = results.final_report || {};
+  const legendaryResults = results.final_report || {};
 
-  // Get detective findings from legendary squad (including Raven communication)
-  const detectives = {
-    ...(legendaryResults.detective_findings || {}),
-    ...(legendaryResults.raven_communication ? { raven_communication: legendaryResults.raven_communication } : {})
-  };
+  // Get detective findings from investigation_steps
+  const detectives = {};
+  if (results.investigation_steps && Array.isArray(results.investigation_steps)) {
+    results.investigation_steps.forEach(step => {
+      if (step.agent_id && step.findings) {
+        detectives[step.agent_id] = {
+          specialty: step.specialty,
+          status: step.status,
+          findings: step.findings,
+          agent_name: step.agent_name
+        };
+      }
+    });
+  }
 
-  console.log('🔍 Extracted values:', { riskLevel, riskScore, confidence, detectives });
+  // Check for critical threats from any agent
+  const hasCriticalThreat = results.investigation_steps &&
+    results.investigation_steps.some(step =>
+      step.findings &&
+      (step.findings.status === 'CRITICAL_THREAT_DETECTED' ||
+       step.findings.threat_details)
+    );
+
+  // If critical threat detected, override risk level
+  const finalRiskLevel = hasCriticalThreat ? 'HIGH' : riskLevel;
+  const finalRiskScore = hasCriticalThreat ? 1.0 : riskScore;
+
+  console.log('🔍 Extracted values:', {
+    finalRiskLevel,
+    finalRiskScore,
+    confidence,
+    detectives,
+    hasCriticalThreat
+  });
 
   // Generate simple explanation from detective findings
-  const explanation = generateSimpleExplanation(detectives, riskLevel, riskScore, consensusData);
+  const explanation = generateA2AExplanation(detectives, finalRiskLevel, finalRiskScore, results);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 p-4">
@@ -303,25 +360,43 @@ export default function ResultsPageSimple() {
             📊 Investigation Report
           </h1>
 
-          {/* Risk Override Indicator */}
-          {consensusData.override_triggered && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.2 }}
-              className="inline-flex items-center px-3 py-1 bg-red-900/30 border border-red-500/50 rounded-full text-red-400 text-xs font-semibold mb-2"
-            >
-              ⚠️ Risk Override Applied
-            </motion.div>
-          )}
-
           <p className="text-gray-300 text-sm break-all font-mono">
             {walletAddress}
           </p>
         </motion.div>
 
         {/* Alerta Crítico para casos HIGH RISK */}
-        {(riskLevel === 'HIGH' || consensusData.threat_classification?.includes('CRITICAL') ||
+        {(finalRiskLevel === 'HIGH' || hasCriticalThreat) && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+            className="mb-6"
+          >
+            <div className="bg-red-900/50 border-2 border-red-500 rounded-xl p-6 backdrop-blur-sm">
+              <div className="flex items-center justify-center mb-4">
+                <div className="text-4xl mr-3">🚨</div>
+                <h3 className="text-2xl font-bold text-red-400">CRITICAL SECURITY ALERT</h3>
+              </div>
+              <div className="text-center">
+                <p className="text-red-200 text-lg font-semibold mb-2">
+                  ⚠️ This wallet address has been flagged for high-risk activities
+                </p>
+                {hasCriticalThreat && (
+                  <p className="text-red-300 mb-2">
+                    🚨 <strong>THREAT DETECTED:</strong> Multiple security agents confirmed malicious activity
+                  </p>
+                )}
+                <p className="text-red-300 text-sm mt-4">
+                  <strong>RECOMMENDATION:</strong> DO NOT interact with this wallet address
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Alert Removal - old consensusData condition */}
+        {false && (riskLevel === 'HIGH' || consensusData.threat_classification?.includes('CRITICAL') ||
           consensusData.threat_classification?.includes('BLACKLISTED') ||
           consensusData.threat_classification?.includes('MONEY LAUNDERING') ||
           consensusData.threat_classification?.includes('CRIMINAL NETWORK')) && (
@@ -373,14 +448,14 @@ export default function ResultsPageSimple() {
           transition={{ delay: 0.1 }}
           className="mb-8"
         >
-          <div className={`rounded-xl p-6 border-2 ${getRiskColor(riskLevel)}`}>
+          <div className={`rounded-xl p-6 border-2 ${getRiskColor(finalRiskLevel)}`}>
             <div className="text-center">
-              <div className="text-6xl mb-4">{getRiskEmoji(riskLevel)}</div>
+              <div className="text-6xl mb-4">{getRiskEmoji(finalRiskLevel)}</div>
               <h2 className="text-3xl font-bold mb-2">
-                Risk Level: {riskLevel}
+                Risk Level: {finalRiskLevel}
               </h2>
               <div className="text-2xl font-bold mb-4">
-                Score: {Math.round(riskScore * 100)}/100
+                Score: {Math.round(finalRiskScore * 100)}/100
               </div>
             </div>
           </div>

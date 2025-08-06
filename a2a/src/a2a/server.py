@@ -23,13 +23,20 @@ from starlette.routing import Route
 from starlette.responses import JSONResponse
 from starlette.requests import Request
 
-# Import local modules with relative imports
-from .a2a_types import AgentCard, AgentCapabilities, InvestigationRequest, A2AProtocolMessage
-from .julia_bridge import GhostDetectiveFactory, JuliaOSConnection
-from .ghost_swarm_coordinator import GhostSwarmCoordinator
+# Import local modules - handle both relative and absolute imports
+try:
+    # Try relative imports first (when run as module)
+    from .a2a_types import AgentCard, AgentCapabilities, InvestigationRequest, A2AProtocolMessage
+    from .julia_bridge import GhostDetectiveFactory, JuliaOSConnection
+    from .ghost_swarm_coordinator import GhostSwarmCoordinator
+except ImportError:
+    # Fallback to absolute imports (when run directly)
+    from a2a_types import AgentCard, AgentCapabilities, InvestigationRequest, A2AProtocolMessage
+    from julia_bridge import GhostDetectiveFactory, JuliaOSConnection
+    from ghost_swarm_coordinator import GhostSwarmCoordinator
 
 # Default port configuration
-DEFAULT_A2A_PORT = 10000
+DEFAULT_A2A_PORT = 9100
 
 class GhostA2AServer:
     """
@@ -40,7 +47,7 @@ class GhostA2AServer:
     REAL data only, Julia bridge integrated.
     """
 
-    def __init__(self, julia_url: str = "http://127.0.0.1:8052"):
+    def __init__(self, julia_url: str = "http://127.0.0.1:10000"):
         self.agents = {}
         self.julia_url = julia_url
         self.factory = GhostDetectiveFactory(julia_url)

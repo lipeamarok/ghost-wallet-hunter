@@ -19,7 +19,7 @@ Pkg.instantiate()
 # Lista de pacotes necessários
 required_packages = [
     "HTTP",
-    "JSON3", 
+    "JSON3",
     "Dates",
     "UUIDs"
 ]
@@ -60,7 +60,7 @@ println("🎯 Iniciando servidor Ghost Wallet Hunter...")
 println("=" ^ 50)
 
 # Configurações
-const PORT = 8052
+const PORT = parse(Int, get(ENV, "PORT", "8052"))  # Use Render PORT if available
 const HOST = "0.0.0.0"
 
 println("🚀 Iniciando Ghost Wallet Hunter - Servidor Julia")

@@ -23,12 +23,12 @@ COPY core/ ./
 # 💪 Use FULL Project.toml with ALL dependencies (no more minimal!)
 # Project.toml already has everything: Flux, PyCall, LibPQ, etc.
 
-# ⚡ Install Julia dependencies with FULL power (2GB available!)
+# ⚡ Install Julia dependencies with MEMORY OPTIMIZATION (2GB limit!)
 RUN julia --project=. -e '\
     using Pkg; \
     Pkg.instantiate(); \
-    Pkg.precompile(); \
-    println("✅ Julia FULL dependencies installed and precompiled!");'
+    println("✅ Dependencies installed - SKIPPING precompile to save memory"); \
+    println("Precompilation will happen during startup");'
 
 # Set environment variables for FULL performance
 ENV HOST=0.0.0.0

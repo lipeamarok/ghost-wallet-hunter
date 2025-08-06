@@ -9,6 +9,7 @@ const PYTHON_WRAPPER_EXISTS = isfile(joinpath(@__DIR__, "python/python_bridge.jl
 const FRAMEWORK_EXISTS = isdir(joinpath(dirname(dirname(@__DIR__)), "packages/framework"))
 
 # Include base modules first
+include("utils/env_utils.jl")
 include("agents/CommonTypes.jl")
 include("agents/Config.jl")
 include("agents/AgentCore.jl")

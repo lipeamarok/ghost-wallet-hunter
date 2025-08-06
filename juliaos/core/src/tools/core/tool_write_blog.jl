@@ -1,5 +1,12 @@
-using DotEnv
-DotEnv.load!()
+# Safe environment loading - skip if not available
+try
+    using DotEnv
+    if isfile("../../../../.env") || isfile("../../.env")
+        DotEnv.load!()
+    end
+catch
+    # Skip env loading during compilation
+end
 
 # using ...Resources: Gemini  # CHANGED TO OPENAI
 using ..Resources: OpenAI

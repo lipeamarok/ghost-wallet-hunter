@@ -6,7 +6,7 @@ include("core/tool_example_adder.jl")
 include("core/tool_ping.jl")
 include("core/tool_llm_chat.jl")
 include("core/tool_write_blog.jl")
-include("core/tool_post_to_x.jl")
+# include("core/tool_post_to_x.jl")  # DISABLED - PyCall issue in container
 include("telegram/tool_ban_user.jl")
 include("telegram/tool_detect_swearing.jl")
 include("telegram/tool_send_message.jl")
@@ -34,7 +34,7 @@ end
 # All tools to be used by agents must be registered here:
 
 register_tool(TOOL_BLOG_WRITER_SPECIFICATION)
-register_tool(TOOL_POST_TO_X_SPECIFICATION)
+# register_tool(TOOL_POST_TO_X_SPECIFICATION)  # DISABLED - PyCall issue in container
 register_tool(TOOL_EXAMPLE_ADDER_SPECIFICATION)
 register_tool(TOOL_LLM_CHAT_SPECIFICATION)
 register_tool(TOOL_PING_SPECIFICATION)

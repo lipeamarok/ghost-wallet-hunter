@@ -65,10 +65,20 @@ async def investigate_wallet_with_real_ai(
 
         solana_service = SolanaService()
 
-        # Collect comprehensive data
+        # Adjust parameters based on investigation type
+        if request.investigation_type == "quick":
+            max_transactions = min(request.max_transactions, 10)  # Limit for quick analysis
+            include_network = False
+            detective_type = "spade"  # Fast detective for quick analysis
+        else:
+            max_transactions = request.max_transactions
+            include_network = request.include_network_analysis
+            detective_type = "poirot"  # Thorough detective for comprehensive analysis
+
+        # Collect data based on investigation type
         transactions = await solana_service.get_wallet_transactions(
             request.wallet_address,
-            limit=request.max_transactions
+            limit=max_transactions
         )
 
         token_accounts = await solana_service.get_token_accounts(request.wallet_address)
@@ -104,7 +114,7 @@ async def investigate_wallet_with_real_ai(
         # Execute Julia detective investigation
         ai_investigation = await execute_julia_investigation(
             wallet_address=request.wallet_address,
-            detective_type="poirot"  # Use Poirot as default detective
+            detective_type=detective_type  # Use detective type based on investigation type
         )
 
         if ai_investigation.get("error"):

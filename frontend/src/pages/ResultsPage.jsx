@@ -1,506 +1,416 @@
-import React, { useState } from 'react';
+/**
+ * Ghost Wallet Hunter - Results Page
+ * ==================================
+ *
+ * Investigation results display with risk analysis, flagged activities,
+ * detailed findings, and export capabilities.
+ */
+
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import {
-  ArrowLeftIcon,
-  ShieldExclamationIcon,
-  ShieldCheckIcon,
-  ExclamationTriangleIcon,
-  InformationCircleIcon,
-  EyeIcon,
-  LinkIcon
-} from '@heroicons/react/24/outline';
-import Layout from '../components/Layout/Layout';
-import LoadingSpinner from '../components/UI/LoadingSpinner';
+import { useInvestigationResults } from '../hooks/index.js';
+import Header from '../components/Layout/Header.jsx';
+import ThreeBackground from '../components/Background/ThreeBackground.jsx';
 
 const ResultsPage = () => {
-  const { walletAddress } = useParams();
+  const { investigationId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const [selectedWallet, setSelectedWallet] = useState(null);
+  const [activeSection, setActiveSection] = useState('summary');
 
-  // Get investigation data from navigation state (ONLY from real investigation)
-  const navigationData = location.state?.investigationData;
-  const walletFromState = location.state?.walletAddress;
-  const blacklistData = location.state?.blacklistResult;
+  // Get results from navigation state or fetch them
+  const navigationResults = location.state?.results;
 
-  // Use only navigation data from real investigation - no fallback to mock APIs
-  const data = navigationData;
-  const displayWallet = walletFromState || walletAddress;
+  const { results, loading, error, refresh } = useInvestigationResults(investigationId, {
+    autoRefresh: false,
+    formatResults: true,
+    initialData: navigationResults
+  });
 
-  console.log('🔍 DEBUG - Investigation Data:', data);
-  console.log('🛡️ DEBUG - Blacklist Data:', blacklistData);
-
-  // Check if wallet is blacklisted (priority alert)
-  const isBlacklisted = data?.blacklist_alert?.is_blacklisted || blacklistData?.is_blacklisted || false;
-  const blacklistWarning = data?.blacklist_alert?.warning || blacklistData?.warning || null;
-
-  // Generate a professional AI explanation based on the detective findings
-  const generateProfessionalExplanation = (detectiveData, walletAddr) => {
-    // If blacklisted, show critical warning
-    if (isBlacklisted) {
-      return `🚨 CRITICAL THREAT DETECTED: Target wallet flagged in official fraud databases. HIGH RISK of financial loss. Immediate evasive action recommended.`;
+  useEffect(() => {
+    if (!investigationId) {
+      navigate('/');
     }
+  }, [investigationId, navigate]);
 
-    const riskLevel = data?.results?.risk_assessment?.risk_level?.toLowerCase() || 'unknown';
-    const riskScore = data?.results?.risk_assessment?.risk_score || 0;
+  const handleExportResults = () => {
+    if (results) {
+      const dataStr = JSON.stringify(results, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
 
-    if (riskLevel === 'high' || riskScore > 0.7) {
-      return `⚠️ ELEVATED THREAT LEVEL: Suspicious patterns detected. Wallet exhibits behavior consistent with known fraud operations. Recommend enhanced security protocols.`;
-    } else if (riskLevel === 'medium' || riskScore > 0.4) {
-      return `⚠️ MODERATE RISK DETECTED: Anomalous transaction patterns identified. Continue monitoring with caution protocols active.`;
-    } else {
-      return `✅ THREAT ASSESSMENT: No significant risk indicators detected. Wallet operations within normal parameters.`;
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `investigation-${investigationId}-results.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     }
   };
 
-  // Get risk color for UI
-  const getRiskColor = () => {
-    // Critical override for blacklisted wallets
-    if (isBlacklisted) {
-      return { color: 'text-red-500', bg: 'bg-red-600/30', border: 'border-red-500/60' };
-    }
-
-    const level = data?.results?.risk_assessment?.risk_level?.toLowerCase() || 'unknown';
-    switch (level) {
-      case 'low': return { color: 'text-green-400', bg: 'bg-green-500/20', border: 'border-green-500/30' };
-      case 'medium': return { color: 'text-yellow-400', bg: 'bg-yellow-500/20', border: 'border-yellow-500/30' };
-      case 'high': return { color: 'text-red-400', bg: 'bg-red-500/20', border: 'border-red-500/30' };
-      case 'critical': return { color: 'text-red-500', bg: 'bg-red-600/30', border: 'border-red-500/60' };
-      default: return { color: 'text-gray-400', bg: 'bg-gray-500/20', border: 'border-gray-500/30' };
-    }
+  const getRiskColor = (riskScore) => {
+    if (riskScore >= 80) return 'text-red-400';
+    if (riskScore >= 50) return 'text-yellow-400';
+    if (riskScore >= 20) return 'text-blue-400';
+    return 'text-green-400';
   };
 
-  const getRiskIcon = () => {
-    // Critical override for blacklisted wallets
-    if (isBlacklisted) {
-      return ShieldExclamationIcon;
-    }
-
-    const level = data?.results?.risk_assessment?.risk_level?.toLowerCase() || 'unknown';
-    switch (level) {
-      case 'low': return ShieldCheckIcon;
-      case 'medium': return ExclamationTriangleIcon;
-      case 'high': return ShieldExclamationIcon;
-      case 'critical': return ShieldExclamationIcon;
-      default: return InformationCircleIcon;
-    }
+  const getRiskBgColor = (riskScore) => {
+    if (riskScore >= 80) return 'bg-red-900';
+    if (riskScore >= 50) return 'bg-yellow-900';
+    if (riskScore >= 20) return 'bg-blue-900';
+    return 'bg-green-900';
   };
 
-  // Generate mock connected wallets for visualization (in real app, this would come from blockchain analysis)
-  const generateConnectedWallets = () => {
-    const riskLevel = data?.results?.risk_assessment?.risk_level?.toLowerCase() || 'low';
-    const connections = [];
-
-    // Generate 3-8 connected wallets based on risk level
-    const numConnections = riskLevel === 'high' ? 6 + Math.floor(Math.random() * 3) :
-                          riskLevel === 'medium' ? 3 + Math.floor(Math.random() * 3) :
-                          1 + Math.floor(Math.random() * 3);
-
-    for (let i = 0; i < numConnections; i++) {
-      const connectionRisk = riskLevel === 'high' ?
-        ['high', 'medium', 'medium', 'low'][Math.floor(Math.random() * 4)] :
-        riskLevel === 'medium' ?
-        ['medium', 'low', 'low'][Math.floor(Math.random() * 3)] :
-        ['low', 'low', 'medium'][Math.floor(Math.random() * 3)];
-
-      connections.push({
-        id: i,
-        address: `${displayWallet.slice(0, 8)}...${Math.random().toString(36).substr(2, 8)}`,
-        risk: connectionRisk,
-        transactions: Math.floor(Math.random() * 50) + 1,
-        volume: (Math.random() * 1000).toFixed(2)
-      });
-    }
-
-    return connections;
-  };
-
-  const connectedWallets = generateConnectedWallets();
-
-  const generateIntelligenceReport = () => {
-    const riskLevel = data?.results?.risk_assessment?.risk_level?.toLowerCase() || 'unknown';
-    const totalConnections = connectedWallets.length;
-    const highRiskNodes = connectedWallets.filter(w => w.risk === 'high').length;
-
-    const reports = {
-      high: [
-        `THREAT ANALYSIS: Target exhibits elevated risk patterns with ${totalConnections} identified connections. Immediate monitoring recommended.`,
-        `OPERATIONAL ASSESSMENT: High-risk activity detected across ${highRiskNodes} connection nodes. Enhanced surveillance protocols advised.`,
-        `INTELLIGENCE BRIEFING: Target demonstrates suspicious transaction patterns requiring immediate attention from security teams.`
-      ],
-      medium: [
-        `ASSESSMENT STATUS: Target shows moderate risk indicators with ${totalConnections} mapped connections. Continued monitoring suggested.`,
-        `SURVEILLANCE REPORT: Standard operational patterns detected with some anomalies requiring periodic review and assessment.`,
-        `INTELLIGENCE UPDATE: Target exhibits normal baseline activity with minor deviations noted for routine monitoring.`
-      ],
-      low: [
-        `CLEARANCE REPORT: Target demonstrates standard operational patterns with ${totalConnections} clean connections verified.`,
-        `ASSESSMENT COMPLETE: Low risk profile confirmed through comprehensive network analysis. No immediate threats detected.`,
-        `INTELLIGENCE STATUS: Target follows expected behavioral patterns. Routine monitoring sufficient for current threat level.`
-      ]
-    };
-
-    return reports[riskLevel] ? reports[riskLevel][Math.floor(Math.random() * reports[riskLevel].length)] :
-           "ANALYSIS_ERROR: Unable to generate assessment report. Insufficient data for threat evaluation.";
-  };
-
-  // Loading states - only for real investigation
-  if (!navigationData) {
+  if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center">
-          <div className="bg-gray-900 border border-gray-700 rounded-lg p-8 max-w-md">
-            <h2 className="text-xl font-mono font-bold text-cyan-400 mb-4">
-              [NO_INVESTIGATION_DATA]
-            </h2>
-            <p className="text-gray-400 font-mono text-sm mb-8">
-              No active investigation session found. Please initiate new investigation.
-            </p>
-            <button
-              onClick={() => navigate('/')}
-              className="w-full px-6 py-3 bg-cyan-600 text-black font-mono font-bold rounded hover:bg-cyan-500 transition-colors"
-            >
-              INITIATE_NEW_INVESTIGATION
-            </button>
+      <div className="min-h-screen relative">
+        <ThreeBackground />
+        <Header />
+        <div className="relative z-10 min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <h2 className="text-xl font-semibold text-white">Loading Results...</h2>
           </div>
         </div>
       </div>
     );
   }
 
-  const riskColors = getRiskColor();
-  const RiskIcon = getRiskIcon();
+  if (error) {
+    return (
+      <div className="min-h-screen relative">
+        <ThreeBackground />
+        <Header />
+        <div className="relative z-10 min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-red-400 mb-4">Error Loading Results</h2>
+            <p className="text-gray-400 mb-6">{error.message}</p>
+            <div className="space-x-4">
+              <button
+                onClick={refresh}
+                className="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-md font-medium transition-colors"
+              >
+                Retry
+              </button>
+              <button
+                onClick={() => navigate('/')}
+                className="bg-gray-600 hover:bg-gray-700 px-6 py-2 rounded-md font-medium transition-colors"
+              >
+                Return to Home
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!results) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-400 mb-4">No Results Available</h2>
+          <p className="text-gray-400 mb-6">Investigation results are not yet available.</p>
+          <button
+            onClick={() => navigate('/')}
+            className="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-md font-medium transition-colors"
+          >
+            Return to Home
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const { summary, detailedFindings, metadata } = results;
 
   return (
-    <Layout>
-      <div className="max-w-7xl mx-auto px-4 py-8">
-          {/* Terminal Header */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-8"
-          >
-            <button
-              onClick={() => navigate('/')}
-              className="flex items-center text-cyan-400 hover:text-cyan-300 mb-6 transition-colors font-mono"
-            >
-              <ArrowLeftIcon className="h-5 w-5 mr-2" />
-              [RETURN_TO_COMMAND_CENTER]
-            </button>
+    <div className="min-h-screen relative text-white">
+      <ThreeBackground />
+      <Header />
 
-            <div className="text-center mb-8">
-              <div className="bg-gray-900 border border-gray-700 rounded-lg p-6 max-w-4xl mx-auto">
-                <div className="bg-black border border-gray-600 rounded-lg p-4 mb-4 font-mono text-left">
-                  <div className="text-green-400 mb-2">
-                    &gt; investigation.complete() - THREAT_ASSESSMENT_REPORT
-                  </div>
-                  <div className="text-gray-400 text-sm mb-2">
-                    Investigation ID: {Date.now().toString(36).toUpperCase()}
-                  </div>
-                  <div className="text-cyan-400 text-sm">
-                    TARGET: {displayWallet}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Main Threat Assessment */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.1 }}
-          className="mb-12"
-        >
-          {/* Critical Blacklist Alert */}
-          {isBlacklisted && (
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-6 bg-gray-900 border-2 border-red-500 rounded-lg p-6"
-            >
-              <div className="bg-black border border-gray-600 rounded-lg p-4">
-                <div className="flex items-center mb-4">
-                  <ShieldExclamationIcon className="h-8 w-8 text-red-500 mr-3" />
-                  <h3 className="text-xl font-mono font-bold text-red-400">
-                    [CRITICAL_SECURITY_ALERT]
-                  </h3>
-                </div>
-                <div className="text-red-300 font-mono text-sm mb-4">
-                  {blacklistWarning || "TARGET FLAGGED: Official fraud database match detected"}
-                </div>
-                <div className="bg-red-900/30 border border-red-700 rounded-lg p-3">
-                  <p className="text-red-200 font-mono text-xs">
-                    ⚠️ RECOMMENDATION: AVOID ALL TRANSACTIONS - HIGH FINANCIAL RISK
-                  </p>
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          <div className={`bg-gray-900 border-2 rounded-lg p-8 text-center ${riskColors.border}`}>
-            <div className="bg-black border border-gray-600 rounded-lg p-6">
-              <RiskIcon className={`h-16 w-16 ${riskColors.color} mx-auto mb-4`} />
-              <h2 className="text-2xl font-mono font-bold text-cyan-400 mb-2">
-                THREAT_LEVEL: <span className={riskColors.color}>
-                  {isBlacklisted ? 'CRITICAL' : (data?.results?.risk_assessment?.risk_level || 'UNKNOWN').toUpperCase()}
-                </span>
-              </h2>
-              <div className="text-lg text-gray-300 font-mono mb-6">
-                CONFIDENCE: {isBlacklisted ? '95' : data?.results?.risk_assessment?.confidence ?
-                  Math.round(data.results.risk_assessment.confidence * 100) : 'N/A'}%
-              </div>
-
-              {/* Professional AI Analysis */}
-              <div className="bg-gray-800 border border-gray-600 rounded-lg p-6 text-left">
-                <h3 className="text-lg font-mono font-bold text-cyan-400 mb-4 flex items-center">
-                  <InformationCircleIcon className="h-6 w-6 mr-2" />
-                  [INTELLIGENCE_ANALYSIS]
-                </h3>
-                <p className="text-gray-200 font-mono text-sm leading-relaxed">
-                  {generateProfessionalExplanation()}
+      {/* Main Content */}
+      <div className="relative z-10 min-h-screen pt-24">
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          {/* Results Header */}
+          <div className="bg-gray-900/80 backdrop-blur-sm rounded-lg border border-gray-700 p-6 mb-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={() => navigate('/')}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                ← Back to Home
+              </button>
+              <div>
+                <h1 className="text-xl font-bold text-blue-400">
+                  📊 Investigation Results
+                </h1>
+                <p className="text-gray-400 text-sm">
+                  {results.walletAddress} • {metadata.completionTime}
                 </p>
               </div>
             </div>
+
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={handleExportResults}
+                className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-md text-sm font-medium transition-colors"
+              >
+                📥 Export Results
+              </button>
+            </div>
           </div>
-        </motion.div>
+        </div>
+      </div>
 
-        {/* Network Topology Visualization */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="mb-12"
-        >
-          <div className="bg-gray-900 border border-gray-700 rounded-lg p-8">
-            <h3 className="text-2xl font-mono font-bold text-cyan-400 mb-6 text-center">
-              [NETWORK_TOPOLOGY_ANALYSIS]
-            </h3>
-            <p className="text-gray-300 font-mono text-center mb-8 text-sm">
-              Interactive connection mapping - Click nodes for detailed analysis
-            </p>
-
-            {/* Network Graph Terminal */}
-            <div className="bg-black border border-gray-600 rounded-lg p-8 min-h-[400px] relative">
-              <div className="text-green-400 font-mono text-xs mb-4">
-                &gt; network.analyze_connections()
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* Risk Summary Card */}
+        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            {/* Risk Score */}
+            <div className="text-center">
+              <div className={`text-4xl font-bold mb-2 ${getRiskColor(summary.riskScore)}`}>
+                {summary.riskScore}
               </div>
+              <div className="text-sm text-gray-400">Risk Score</div>
+              <div className={`text-xs px-2 py-1 rounded-full mt-2 ${getRiskBgColor(summary.riskScore)}`}>
+                {summary.riskLevel}
+              </div>
+            </div>
 
-              {/* Central Wallet */}
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                <div className={`w-20 h-20 rounded-full border-4 ${riskColors.border} bg-gray-800 flex items-center justify-center cursor-pointer hover:scale-110 transition-transform`}
-                     onClick={() => setSelectedWallet({
-                       address: displayWallet,
-                       risk: data?.results?.risk_assessment?.risk_level?.toLowerCase() || 'unknown',
-                       isMain: true
-                     })}>
-                  <div className="text-center">
-                    <div className="text-cyan-400 font-mono font-bold text-xs">TARGET</div>
-                    <div className={`text-xs font-mono ${riskColors.color}`}>
-                      {(data?.results?.risk_assessment?.risk_level || 'UNK').toUpperCase().slice(0, 3)}
+            {/* Confidence */}
+            <div className="text-center">
+              <div className="text-4xl font-bold mb-2 text-blue-400">
+                {summary.confidence}%
+              </div>
+              <div className="text-sm text-gray-400">Confidence</div>
+              <div className="text-xs text-blue-300 mt-2">
+                {summary.confidenceLevel}
+              </div>
+            </div>
+
+            {/* Flagged Activities */}
+            <div className="text-center">
+              <div className="text-4xl font-bold mb-2 text-yellow-400">
+                {summary.flaggedActivities?.length || 0}
+              </div>
+              <div className="text-sm text-gray-400">Flagged Activities</div>
+              <div className="text-xs text-yellow-300 mt-2">
+                Suspicious Patterns
+              </div>
+            </div>
+
+            {/* Duration */}
+            <div className="text-center">
+              <div className="text-4xl font-bold mb-2 text-purple-400">
+                {metadata.formattedDuration}
+              </div>
+              <div className="text-sm text-gray-400">Analysis Time</div>
+              <div className="text-xs text-purple-300 mt-2">
+                Multi-layer Scan
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Section Navigation */}
+        <div className="bg-gray-800 rounded-lg border border-gray-700 mb-6">
+          <div className="border-b border-gray-700">
+            <div className="flex space-x-0">
+              {[
+                { id: 'summary', label: '📋 Summary' },
+                { id: 'flags', label: '🚨 Flagged Activities' },
+                { id: 'detailed', label: '🔍 Detailed Findings' },
+                { id: 'metadata', label: '📊 Metadata' }
+              ].map((section) => (
+                <button
+                  key={section.id}
+                  onClick={() => setActiveSection(section.id)}
+                  className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
+                    activeSection === section.id
+                      ? 'border-blue-500 text-blue-400 bg-gray-700'
+                      : 'border-transparent text-gray-400 hover:text-gray-300'
+                  }`}
+                >
+                  {section.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="p-6">
+            {/* Summary Section */}
+            {activeSection === 'summary' && (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold mb-4 text-blue-400">Investigation Summary</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div>
+                        <h4 className="font-medium text-gray-300 mb-2">Risk Assessment</h4>
+                        <p className="text-sm text-gray-400">
+                          The wallet shows a <span className={getRiskColor(summary.riskScore)}>
+                          {summary.riskLevel.toLowerCase()}</span> risk level with a score of {summary.riskScore}/100.
+                          Our analysis confidence is {summary.confidence}% based on {metadata.servicesUsed ?
+                          Object.values(metadata.servicesUsed).filter(Boolean).length : 0} active services.
+                        </p>
+                      </div>
+
+                      {summary.recommendations?.length > 0 && (
+                        <div>
+                          <h4 className="font-medium text-gray-300 mb-2">Recommendations</h4>
+                          <ul className="space-y-2">
+                            {summary.recommendations.slice(0, 3).map((rec, index) => (
+                              <li key={index} className="text-sm text-gray-400 flex items-start">
+                                <span className="text-blue-400 mr-2">•</span>
+                                {rec.action || rec}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </div>
-                    <div className="text-xs text-gray-300">{displayWallet.slice(0,6)}...</div>
-                  </div>
-                </div>
-              </div>
 
-              {/* Connected Wallets - Terminal Style */}
-              {connectedWallets.map((wallet, index) => {
-                const angle = (360 / connectedWallets.length) * index;
-                const radius = 120;
-                const x = Math.cos((angle * Math.PI) / 180) * radius;
-                const y = Math.sin((angle * Math.PI) / 180) * radius;
-
-                const walletRiskColors = {
-                  low: { border: 'border-green-500', color: 'text-green-400' },
-                  medium: { border: 'border-yellow-500', color: 'text-yellow-400' },
-                  high: { border: 'border-red-500', color: 'text-red-400' }
-                }[wallet.risk];
-
-                return (
-                  <div key={wallet.id}>
-                    {/* Connection Line */}
-                    <div
-                      className="absolute top-1/2 left-1/2 bg-cyan-400 opacity-30"
-                      style={{
-                        width: `${radius}px`,
-                        height: '1px',
-                        transformOrigin: '0 50%',
-                        transform: `translate(-50%, -50%) rotate(${angle}deg)`
-                      }}
-                    />
-
-                    {/* Connected Wallet Node */}
-                    <div
-                      className={`absolute w-12 h-12 rounded border-2 ${walletRiskColors.border} bg-gray-800 flex items-center justify-center cursor-pointer hover:scale-110 transition-transform`}
-                      style={{
-                        top: `calc(50% + ${y}px)`,
-                        left: `calc(50% + ${x}px)`,
-                        transform: 'translate(-50%, -50%)'
-                      }}
-                      onClick={() => setSelectedWallet({
-                        address: wallet.address,
-                        risk: wallet.risk,
-                        transactions: wallet.transactions,
-                        volume: wallet.volume,
-                        isMain: false
-                      })}
-                    >
-                      <div className="text-center">
-                        <div className={`text-xs font-mono font-bold ${walletRiskColors.color}`}>
-                          {wallet.risk.charAt(0).toUpperCase()}
+                    <div className="space-y-4">
+                      {/* Service Usage */}
+                      <div>
+                        <h4 className="font-medium text-gray-300 mb-2">Services Used</h4>
+                        <div className="space-y-2">
+                          {metadata.servicesUsed && Object.entries(metadata.servicesUsed).map(([service, used]) => (
+                            <div key={service} className="flex items-center justify-between text-sm">
+                              <span className="text-gray-400 capitalize">{service}:</span>
+                              <span className={used ? 'text-green-400' : 'text-gray-500'}>
+                                {used ? '✓ Used' : '✗ Not Used'}
+                              </span>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     </div>
                   </div>
-                );
-              })}
-            </div>
-
-            {/* Threat Level Legend */}
-            <div className="flex justify-center mt-6 space-x-8">
-              <div className="flex items-center">
-                <div className="w-4 h-4 rounded border border-green-500 bg-gray-800 mr-2"></div>
-                <span className="text-green-400 text-sm font-mono">LOW_RISK</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-4 h-4 rounded border border-yellow-500 bg-gray-800 mr-2"></div>
-                <span className="text-yellow-400 text-sm font-mono">MODERATE</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-4 h-4 rounded border border-red-500 bg-gray-800 mr-2"></div>
-                <span className="text-red-400 text-sm font-mono">HIGH_RISK</span>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Target Analysis Details */}
-        {selectedWallet && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-8"
-          >
-            <div className="bg-gray-900 border border-gray-700 rounded-lg p-6">
-              <div className="bg-black border border-gray-600 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <h4 className="text-lg font-mono font-bold text-cyan-400">
-                    {selectedWallet.isMain ? '[TARGET_ANALYSIS]' : '[CONNECTION_ANALYSIS]'}
-                  </h4>
-                  <button
-                    onClick={() => setSelectedWallet(null)}
-                    className="text-gray-400 hover:text-cyan-400 font-mono"
-                  >
-                    [CLOSE]
-                  </button>
                 </div>
+              </div>
+            )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <div className="text-sm text-gray-400 font-mono mb-1">ADDRESS:</div>
-                    <div className="font-mono text-cyan-400 break-all text-sm">{selectedWallet.address}</div>
-
-                    {!selectedWallet.isMain && (
-                      <>
-                        <div className="text-sm text-gray-400 font-mono mt-4 mb-1">ACTIVITY:</div>
-                        <div className="text-gray-300 font-mono text-sm">
-                          TXN_COUNT: {selectedWallet.transactions} | VOLUME: {selectedWallet.volume} SOL
+            {/* Flagged Activities Section */}
+            {activeSection === 'flags' && (
+              <div>
+                <h3 className="text-lg font-semibold mb-4 text-blue-400">🚨 Flagged Activities</h3>
+                {summary.formattedFlags?.length > 0 ? (
+                  <div className="space-y-4">
+                    {summary.formattedFlags.map((flag, index) => (
+                      <div key={index} className="bg-gray-700 rounded-lg p-4 border-l-4 border-red-500">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-xl">{flag.icon}</span>
+                            <span className="font-medium text-red-400">{flag.type.replace('_', ' ').toUpperCase()}</span>
+                          </div>
+                          <span className={`px-2 py-1 rounded text-xs ${
+                            flag.severityLevel === 'Critical' ? 'bg-red-900 text-red-300' :
+                            flag.severityLevel === 'High' ? 'bg-orange-900 text-orange-300' :
+                            flag.severityLevel === 'Medium' ? 'bg-yellow-900 text-yellow-300' :
+                            'bg-gray-600 text-gray-300'
+                          }`}>
+                            {flag.severityLevel}
+                          </span>
                         </div>
-                      </>
-                    )}
+                        <p className="text-sm text-gray-300">{flag.description}</p>
+                        {flag.details && (
+                          <p className="text-xs text-gray-400 mt-2">{flag.details}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center text-gray-400 py-8">
+                    <div className="text-4xl mb-4">✅</div>
+                    <p>No suspicious activities detected</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Detailed Findings Section */}
+            {activeSection === 'detailed' && (
+              <div>
+                <h3 className="text-lg font-semibold mb-4 text-blue-400">🔍 Detailed Findings</h3>
+                <div className="space-y-6">
+                  {detailedFindings && Object.entries(detailedFindings).map(([source, findings]) => {
+                    if (!findings || findings.error) return null;
+                    return (
+                      <div key={source} className="bg-gray-700 rounded-lg p-4">
+                        <h4 className="font-medium text-gray-300 mb-3 capitalize">{source} Analysis</h4>
+                        <div className="bg-gray-800 rounded p-3 overflow-x-auto">
+                          <pre className="text-xs text-gray-300 whitespace-pre-wrap">
+                            {JSON.stringify(findings, null, 2)}
+                          </pre>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Metadata Section */}
+            {activeSection === 'metadata' && (
+              <div>
+                <h3 className="text-lg font-semibold mb-4 text-blue-400">📊 Investigation Metadata</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="font-medium text-gray-300 mb-2">Investigation Details</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Investigation ID:</span>
+                          <span className="font-mono">{results.investigationId}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Wallet Address:</span>
+                          <span className="font-mono">{results.walletAddress}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Investigation Type:</span>
+                          <span>{results.investigationType}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Completion Time:</span>
+                          <span>{metadata.completionTime}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Duration:</span>
+                          <span>{metadata.formattedDuration}</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
-                  <div>
-                    <div className="text-sm text-gray-400 font-mono mb-2">THREAT_ANALYSIS:</div>
-                    <div className="text-gray-200 font-mono text-sm">
-                      {selectedWallet.isMain ?
-                        generateProfessionalExplanation() :
-                        selectedWallet.risk === 'high' ?
-                          "⚠️ ELEVATED RISK: Connection exhibits suspicious patterns. Enhanced monitoring recommended." :
-                        selectedWallet.risk === 'medium' ?
-                          "🔍 MODERATE RISK: Activity requires monitoring. No immediate threats detected." :
-                          "✅ LOW RISK: Connection follows normal operational patterns."
-                      }
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="font-medium text-gray-300 mb-2">Service Performance</h4>
+                      <div className="space-y-2 text-sm">
+                        {metadata.servicesUsed && Object.entries(metadata.servicesUsed).map(([service, used]) => (
+                          <div key={service} className="flex justify-between">
+                            <span className="text-gray-400 capitalize">{service}:</span>
+                            <span className={used ? 'text-green-400' : 'text-red-400'}>
+                              {used ? 'Successfully Used' : 'Not Available'}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </motion.div>
-        )}
-
-        {/* Intelligence Analysis Summary */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="mb-8"
-        >
-          <div className="bg-gray-900 border border-gray-700 rounded-lg p-6">
-            <div className="flex items-center mb-4">
-              <div className="w-3 h-3 bg-cyan-400 rounded-full mr-3 animate-pulse"></div>
-              <h3 className="text-xl font-mono font-bold text-cyan-400 text-center w-full">
-                [AI_INTELLIGENCE_ANALYSIS]
-              </h3>
-            </div>
-
-            <div className="bg-black border border-gray-600 rounded-lg p-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {data?.results?.detective_findings && Object.entries(data.results.detective_findings).slice(0, 4).map(([name, findings], index) => (
-                  <div key={name} className="bg-gray-800 border border-gray-600 rounded-lg p-4">
-                    <div className="flex items-center mb-3">
-                      <span className="text-cyan-400 font-mono mr-2">&gt;</span>
-                      <h4 className="font-mono text-cyan-400 uppercase">AGENT_{name}</h4>
-                    </div>
-                    <div className="text-gray-300 text-sm font-mono leading-relaxed">
-                      {findings.reasoning?.substring(0, 150) || findings.explanation?.substring(0, 150) || 'ANALYSIS_IN_PROGRESS...'}
-                      {(findings.reasoning?.length > 150 || findings.explanation?.length > 150) && '...'}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            )}
           </div>
-        </motion.div>
-
-        {/* Command Interface */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="text-center"
-        >
-          <div className="bg-gray-900 border border-gray-700 rounded-lg p-6">
-            <div className="bg-black border border-gray-600 rounded-lg p-4">
-              <div className="text-sm text-gray-400 font-mono mb-4 text-center">
-                [COMMAND_INTERFACE]
-              </div>
-              <div className="space-y-4 sm:space-y-0 sm:space-x-4 sm:flex sm:justify-center">
-                <button
-                  onClick={() => navigate('/')}
-                  className="block w-full sm:w-auto px-8 py-3 bg-cyan-600 border border-cyan-500 text-white font-mono font-bold rounded-lg hover:bg-cyan-700 hover:border-cyan-400 transition-colors"
-                >
-                  &gt; ANALYZE_NEW_TARGET
-                </button>
-
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(window.location.href);
-                    alert('Report URL copied to system clipboard');
-                  }}
-                  className="block w-full sm:w-auto px-8 py-3 bg-gray-700 border border-gray-500 text-white font-mono font-bold rounded-lg hover:bg-gray-600 hover:border-gray-400 transition-colors"
-                >
-                  &gt; EXPORT_REPORT
-                </button>
-              </div>
-            </div>
           </div>
-        </motion.div>
-    </Layout>
+        </div>
+      </div>
+    </div>
   );
 };
-
-export default ResultsPage;

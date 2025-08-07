@@ -17,7 +17,7 @@ const ENV_VAR_PREFIX = "JULIAOS_"
 const DEFAULT_CONFIG = Dict(
     "api" => Dict(
         "host" => "127.0.0.1",
-        "port" => 8052,
+        "port" => 10000,
         "log_level" => "info"
     ),
     "storage" => Dict(
@@ -53,7 +53,7 @@ const DEFAULT_CONFIG = Dict(
         "api_keys" => ["default-secret-key-please-change"] # List of valid API keys
     ),
     "bridge" => Dict(
-        "port" => 8052,
+        "port" => 10000,
         "host" => "localhost",
         "bridge_api_url" => "http://localhost:3001/api/v1"
     ),

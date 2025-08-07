@@ -21,7 +21,7 @@ def start_server():
     """Start Ghost Wallet Hunter backend server"""
     try:
         logger.info("🚀 Starting Ghost Wallet Hunter Backend Server...")
-        logger.info("🔗 JuliaOS Integration: Enabled (port 8052)")
+        logger.info("🔗 JuliaOS Integration: Enabled (port 10000)")
         logger.info("🕵️‍♂️ Detective Squad: Phase 4 Active")
         logger.info("🧠 Swarm Intelligence: Coordinated Analysis")
         logger.info("📡 Backend Server: Starting on port 8001...")

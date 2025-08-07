@@ -48,7 +48,7 @@ class AIConfiguration(BaseModel):
 
     # JuliaOS-specific settings
     juliaos_host: str = "localhost"
-    juliaos_port: int = 8052
+    juliaos_port: int = 10000
     juliaos_timeout: float = 30.0
 
     # Temperature & Generation Settings

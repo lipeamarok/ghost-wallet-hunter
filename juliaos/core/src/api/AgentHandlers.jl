@@ -234,9 +234,9 @@ function agent_lifecycle_handler(agent_id::String, action_func::Function, action
         end
 
         success = action_func(agent_id) # Calls functions like Agents.startAgent
-        
+
         # Re-fetch agent to get the most up-to-date status after the action
-        current_agent = Agents.getAgent(agent_id) 
+        current_agent = Agents.getAgent(agent_id)
         # This should ideally not be nothing if the check above passed and action didn't delete it (which lifecycle actions don't)
         current_status_str = isnothing(current_agent) ? "unknown_after_action" : string(current_agent.status)
 
@@ -344,7 +344,7 @@ function get_task_status_handler(req::HTTP.Request, agent_id::String, task_id::S
     try
         result = Agents.getTaskStatus(agent_id, task_id)
         # getTaskStatus returns a dict with "status" and "error" if not found
-        if get(result, "status", "") == "error" 
+        if get(result, "status", "") == "error"
             err_msg = get(result, "error", "Failed to get task status")
             details = Dict("agent_id"=>agent_id, "task_id"=>task_id)
             if occursin("Agent $agent_id not found", err_msg)
@@ -451,7 +451,7 @@ function set_agent_memory_handler(req::HTTP.Request, agent_id::String, key::Stri
         if isnothing(Agents.getAgent(agent_id))
             return Utils.error_response("Agent not found", 404, error_code=Utils.ERROR_CODE_NOT_FOUND, details=Dict("agent_id" => agent_id))
         end
-        
+
         success = Agents.setAgentMemory(agent_id, key, value_to_set)
         # setAgentMemory in Agents.jl returns true if agent found, false otherwise.
         # Since we checked agent existence above, success should be true here.
@@ -521,13 +521,13 @@ function evaluate_agent_fitness_handler(req::HTTP.Request, agent_id::String)
     try
         # This function will be implemented in Agents.jl
         result = Agents.evaluateAgentFitness(agent_id, objective_function_id, candidate_solution, problem_context)
-        
+
         if get(result, "success", false)
             return Utils.json_response(Dict("fitness_value" => result["fitness_value"], "agent_id" => agent_id, "objective_function_id" => objective_function_id), 200)
         else
             err_msg = get(result, "error", "Fitness evaluation failed")
             details = Dict("agent_id"=>agent_id, "objective_function_id"=>objective_function_id, "raw_result"=>result)
-            
+
             if occursin("Agent $agent_id not found", err_msg)
                 return Utils.error_response(err_msg, 404, error_code=Utils.ERROR_CODE_NOT_FOUND, details=details)
             elseif occursin("not RUNNING or IDLE", err_msg) # Assuming an agent needs to be in a certain state

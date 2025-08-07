@@ -30,7 +30,7 @@ async def test_juliaos_integration():
     print("📋 This script tests EXCLUSIVE JuliaOS integration")
     print("   🚀 NO mocks, NO fallbacks, NO other AI providers")
     print("   🎯 100% JuliaOS focus for production readiness")
-    print("   ⚠️ JuliaOS must be running on localhost:8052")
+    print("   ⚠️ JuliaOS must be running on localhost:10000")
     print("=" * 70)
 
     logger.info("🚀 STARTING JULIAOS-ONLY INTEGRATION TEST")

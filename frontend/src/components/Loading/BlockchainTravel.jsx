@@ -129,9 +129,17 @@ export default function BlockchainTravel() {
     hemiLight.position.set(0, 200, 0);
     scene.add(hemiLight);
 
-    scene.add(new THREE.PointLight(0x3b82f6, 3, 1700).position.set(500, 500, 500));
-    scene.add(new THREE.PointLight(0x22c55e, 2, 900).position.set(-700, -600, -800));
-    scene.add(new THREE.DirectionalLight(0xffffff, 0.65).position.set(0, 900, 0));
+    const pointLight1 = new THREE.PointLight(0x3b82f6, 3, 1700);
+    pointLight1.position.set(500, 500, 500);
+    scene.add(pointLight1);
+    
+    const pointLight2 = new THREE.PointLight(0x22c55e, 2, 900);
+    pointLight2.position.set(-700, -600, -800);
+    scene.add(pointLight2);
+    
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.65);
+    dirLight.position.set(0, 900, 0);
+    scene.add(dirLight);
 
     // --- ANIMAÇÃO
     function animate() {

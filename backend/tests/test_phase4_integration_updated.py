@@ -28,7 +28,7 @@ async def test_juliaos_connection():
     """Test basic connection to JuliaOS Docker backend"""
     logger.info("🔧 Testing JuliaOS Docker Backend Connection...")
 
-    integration = JuliaOSDetectiveIntegration("http://localhost:8052")
+    integration = JuliaOSDetectiveIntegration("http://localhost:10000")
 
     # Test connection
     connected = await integration.initialize()
@@ -49,7 +49,7 @@ async def test_detective_swarm_integration():
     """Test detective swarm integration with JuliaOS"""
     logger.info("🕵️‍♂️ Testing Detective Swarm Integration...")
 
-    integration = JuliaOSDetectiveIntegration("http://localhost:8052")
+    integration = JuliaOSDetectiveIntegration("http://localhost:10000")
 
     if not await integration.initialize():
         logger.error("❌ Failed to initialize JuliaOS integration")
@@ -99,7 +99,7 @@ async def test_llm_chat_integration():
     """Test LLM chat integration via JuliaOS"""
     logger.info("🤖 Testing LLM Chat Integration...")
 
-    integration = JuliaOSDetectiveIntegration("http://localhost:8052")
+    integration = JuliaOSDetectiveIntegration("http://localhost:10000")
 
     if not await integration.initialize():
         logger.error("❌ Failed to initialize JuliaOS integration")

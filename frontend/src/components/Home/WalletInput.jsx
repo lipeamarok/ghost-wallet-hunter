@@ -4,80 +4,108 @@ import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import ExampleAddress from './ExampleAddress';
-import { legendarySquadService } from '../../services/detectiveAPI';
-import { getInvestigateUrl } from '../../config/api';
+
+// Clean Architecture Integration
+import { useInvestigation } from '../../hooks/useInvestigation.js';
+import { validateWalletAddress, BLOCKCHAIN_NETWORKS } from '../../utils/validation.js';
+import { formatWalletAddress } from '../../utils/formatters.js';
+
+// Transition Components
+import PageTransition from '../Transitions/PageTransition.jsx';
+import BlockchainTravel from '../Loading/BlockchainTravel.jsx';
 
 export default function WalletInput() {
   const [inputValue, setInputValue] = useState('');
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isInvestigating, setIsInvestigating] = useState(false);
   const navigate = useNavigate();
 
-  const validateSolanaAddress = (address) => {
-    // Solana address validation (32-44 characters, base58)
-    const solanaRegex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
-    return solanaRegex.test(address);
-  };
+  // Using clean architecture hooks
+  const {
+    startInvestigation,
+    isLoading: isAnalyzing,
+    error: investigationError
+  } = useInvestigation({
+    autoConnect: false, // Don't auto-connect WebSockets
+    pollingInterval: null // Don't poll for status updates
+  });
 
   const handleAnalyze = async () => {
     if (!inputValue.trim()) {
-      toast.error('Please enter a Solana wallet address');
+      toast.error('Please enter a wallet address');
       return;
     }
 
-    if (!validateSolanaAddress(inputValue.trim())) {
-      toast.error('Invalid Solana wallet address format');
+    // Use new validation system (supports multiple chains)
+    const validation = validateWalletAddress(inputValue.trim());
+
+    if (!validation.isValid) {
+      // Maintain original Solana-focused error message for UX consistency
+      if (validation.error.includes('Unrecognized')) {
+        toast.error('Invalid Solana wallet address format');
+      } else {
+        toast.error(validation.error);
+      }
       return;
     }
-
-    setIsAnalyzing(true);
 
     try {
-      // 🎯 USAR BACKEND PRINCIPAL - Port 8001 que está funcionando
+      // Start investigation loading state
+      setIsInvestigating(true);
+
+      // Use investigation hook
       toast.loading('🕵️ Starting REAL investigation...', { duration: 3000 });
 
-      // Usar backend principal que integra com Julia + A2A
-      const investigationPayload = {
-        wallet_address: inputValue.trim()
-      };
-
-      // Chamar backend principal (Produção Render)
-      const response = await fetch(getInvestigateUrl(), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(investigationPayload)
+      const investigationResult = await startInvestigation({
+        walletAddress: inputValue.trim(),
+        investigationType: 'comprehensive',
+        priority: 'medium',
+        options: {
+          realTimeUpdates: true,
+          includeMetadata: true
+        }
       });
 
-      if (response.ok) {
-        const investigationData = await response.json();
+      // Check for investigation ID using multiple possible field names
+      const investigationId = investigationResult?.investigation_id ||
+                             investigationResult?.investigationId ||
+                             investigationResult?.id;
 
+      if (investigationId) {
         toast.success('✅ Investigation started! Redirecting...', { duration: 2000 });
 
-        // Navigate to analysis page with investigation data
-        navigate('/analysis', {
-          state: {
-            walletAddress: inputValue.trim(),
-            investigationData: investigationData,
-            realTimeMode: true
-          }
-        });
+        // Add a small delay before navigation to show the loading state
+        setTimeout(() => {
+          // Navigate to investigation page with ID in URL and data in state
+          navigate(`/investigation/${investigationId}`, {
+            state: {
+              walletAddress: inputValue.trim(),
+              investigationData: {
+                ...investigationResult,
+                id: investigationId // Ensure consistent ID field
+              },
+              realTimeMode: true
+            }
+          });
+        }, 1000);
       } else {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to start investigation');
+        console.error('🚨 No investigation ID found in response:', investigationResult);
+        throw new Error('No investigation ID returned from backend');
       }
 
     } catch (error) {
       console.error('Investigation failed:', error);
       toast.error('Failed to start investigation. Please try again.');
+      setIsInvestigating(false);
 
-      // Fallback: Navigate anyway but without real-time data
-      navigate('/analysis', {
-        state: {
-          walletAddress: inputValue.trim(),
-          fallbackMode: true
-        }
-      });
-    } finally {
-      setIsAnalyzing(false);
+      // Maintain same fallback behavior for UX consistency
+      setTimeout(() => {
+        navigate('/investigation', {
+          state: {
+            walletAddress: inputValue.trim(),
+            fallbackMode: true
+          }
+        });
+      }, 1000);
     }
   };
 
@@ -99,7 +127,7 @@ export default function WalletInput() {
           <div className="flex-1">
             <input
               type="text"
-              placeholder="Enter Solana wallet address to investigate..."
+              placeholder="Enter wallet address to investigate..."
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleAnalyze()}
@@ -140,6 +168,10 @@ export default function WalletInput() {
       <div className="text-center">
         <ExampleAddress onAddressSelect={handleExampleSelect} />
       </div>
+
+      {/* Investigation Loading States */}
+      <PageTransition show={isInvestigating} />
+      {isInvestigating && <BlockchainTravel />}
     </motion.div>
   );
 }

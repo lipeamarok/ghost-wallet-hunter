@@ -1,67 +1,105 @@
-import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { HomeIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 
-const Header = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  const isActive = (path) => location.pathname === path;
-
-  const navigationItems = [
-    { path: '/', label: 'HOME', icon: HomeIcon },
-    { path: '/about', label: 'ABOUT', icon: InformationCircleIcon }
-  ];
+export default function Header() {
+  const [logoAnim, setLogoAnim] = useState(true);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isReturning, setIsReturning] = useState(false);
+  const hoverTimeout = useRef(null);
+  const returnTimeout = useRef(null);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="border-b border-gray-800 bg-gray-900 sticky top-0 z-50"
+    <header
+      className="fixed top-0 left-0 w-full z-50 bg-black/30 backdrop-blur-[1.5px]"
+      // Blur fraquinho + preto transparente
+      style={{
+        WebkitBackdropFilter: 'blur(1.5px)',
+        backdropFilter: 'blur(1.5px)'
+      }}
     >
-      <div className="max-w-7xl mx-auto px-4 py-4">
-        <div className="flex items-center justify-between">
-          <div
-            className="cursor-pointer group"
-            onClick={() => navigate('/')}
-          >
-            <h1 className="text-2xl font-mono font-bold text-cyan-400 group-hover:text-cyan-300 transition-colors">
-              GHOST WALLET HUNTER v2.0
-            </h1>
-            <p className="text-sm text-gray-400 font-mono">
-              Professional Blockchain Intelligence Platform
+      {/* TAG BETA */}
+      <div className="absolute top-2 left-2">
+        <span className="bg-gradient-to-r from-purple-600 to-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm tracking-widest border border-white/10 drop-shadow-lg select-none pointer-events-none" style={{ letterSpacing: "0.13em" }}>
+          BETA
+        </span>
+      </div>
+
+      <motion.div
+        initial={{ opacity: 0, y: -30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+        className="mx-auto max-w-3xl pt-5 pb-2 px-2 sm:px-0"
+      >
+        <motion.div
+          className="flex items-center justify-center space-x-0"
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 0.2, duration: 0.6 }}
+        >
+          <motion.img
+            src="/logo.png"
+            alt="Ghost Detective Logo"
+            className="w-14 h-14 sm:w-16 sm:h-16 object-contain rounded-full shadow-lg -ml-12"
+            animate={
+              isHovered
+                ? { scale: 4, rotate: 11 }
+                : isReturning
+                ? { scale: 1, rotate: 0 }
+                : {
+                    scale: logoAnim ? [1, 1.07, 0.97, 1.04, 1] : 1,
+                    rotate: logoAnim ? [0, -3, 2, 0] : 0
+                  }
+            }
+            transition={
+              isHovered || isReturning
+                ? { duration: 1.5, ease: "easeInOut" }
+                : {
+                    repeat: Infinity,
+                    duration: 3.7,
+                    repeatType: "loop",
+                    ease: "easeInOut",
+                    scale: { type: "tween", duration: 1.5, ease: "easeInOut" },
+                    rotate: { type: "tween", duration: 1.5, ease: "easeInOut" }
+                  }
+            }
+            onMouseEnter={() => {
+              if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
+              if (returnTimeout.current) clearTimeout(returnTimeout.current);
+              setIsHovered(true);
+              setIsReturning(false);
+              setLogoAnim(false);
+            }}
+            onMouseLeave={() => {
+              hoverTimeout.current = setTimeout(() => {
+                setIsHovered(false);
+                setIsReturning(true);
+                returnTimeout.current = setTimeout(() => {
+                  setIsReturning(false);
+                  setLogoAnim(true);
+                }, 1500);
+              }, 5000);
+            }}
+            draggable={false}
+            style={{ filter: 'drop-shadow(0 0 14px #3b82f688)' }}
+          />
+          <div className="text-left ml-[-0.5rem]">
+            <h2 className="text-2xl sm:text-3xl font-bold text-white-ice drop-shadow-lg">
+              <style>
+                {`
+                  h2 {
+                    -webkit-text-stroke: 0.01px #fff;
+                    text-stroke: 0.01px #fff;
+                  }
+                `}
+              </style>
+              Ghost Wallet Hunter
+            </h2>
+            <p className="text-sm sm:text-base text-gray-400">
+              AI-Powered Blockchain Forensics
             </p>
           </div>
-
-          {/* Navigation */}
-          <div className="flex items-center space-x-4">
-            {navigationItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <button
-                  key={item.path}
-                  onClick={() => navigate(item.path)}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded font-mono text-sm font-medium transition-all ${
-                    isActive(item.path)
-                      ? 'bg-cyan-600 text-black'
-                      : 'text-gray-400 hover:text-cyan-400 hover:bg-gray-800'
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span>[{item.label}]</span>
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="text-xs text-gray-500 font-mono">
-            {new Date().toISOString()}
-          </div>
-        </div>
-      </div>
-    </motion.div>
+        </motion.div>
+      </motion.div>
+    </header>
   );
-};
-
-export default Header;
+}

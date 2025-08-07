@@ -47,15 +47,20 @@ class GhostA2AServer:
     REAL data only, Julia bridge integrated.
     """
 
-    def __init__(self, julia_url: str = "http://127.0.0.1:10000"):
+    def __init__(self, julia_url: Optional[str] = None):
+        # Use environment variable first, fallback to localhost
+        import os
+        self.julia_url = (julia_url or
+                         os.getenv('JULIAOS_BASE_URL') or
+                         os.getenv('JULIA_URL') or
+                         "http://127.0.0.1:10000")
         self.agents = {}
-        self.julia_url = julia_url
-        self.factory = GhostDetectiveFactory(julia_url)
+        self.factory = GhostDetectiveFactory(self.julia_url)
         self.solana_rpc = "https://api.mainnet-beta.solana.com"
         # Swarm Coordinator for coordinated investigations
         self.swarm_coordinator = GhostSwarmCoordinator(
             a2a_url=f"http://127.0.0.1:{DEFAULT_A2A_PORT}",
-            julia_url=julia_url
+            julia_url=self.julia_url
         )
 
     async def load_real_agents(self):

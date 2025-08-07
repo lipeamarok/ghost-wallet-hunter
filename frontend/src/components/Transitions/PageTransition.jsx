@@ -28,7 +28,7 @@ export default function PageTransition({ show }) {
             transition={{ duration: 0.6, delay: 0.23 }}
           >
             <span className="text-xl md:text-3xl font-bold text-blue-200 drop-shadow">
-              Investigando blockchain...
+              investigating...
             </span>
           </motion.div>
         </motion.div>

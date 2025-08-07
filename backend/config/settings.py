@@ -74,7 +74,7 @@ class Settings(BaseSettings):
     MIN_CONNECTIONS_FOR_CLUSTER: int = 3
 
     # JuliaOS Integration
-    JULIAOS_BASE_URL: str = "http://localhost:8052"  # Default: desenvolvimento local
+    JULIAOS_BASE_URL: str = "http://localhost:10000"  # Default: desenvolvimento local
     JULIAOS_API_KEY: Optional[str] = None
     JULIAOS_ENVIRONMENT: str = "development"
     JULIAOS_ENABLED: bool = True

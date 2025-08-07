@@ -20,8 +20,13 @@ class JuliaOSDetectiveIntegration:
     Simplified integration service that connects Python backend with Julia detective server.
     """
 
-    def __init__(self, julia_url: str = "http://localhost:10000"):
-        self.julia_url = julia_url.rstrip('/')
+    def __init__(self, julia_url: Optional[str] = None):
+        # Use environment variable first, fallback to localhost
+        import os
+        self.julia_url = (julia_url or
+                         os.getenv('JULIAOS_BASE_URL') or
+                         os.getenv('JULIA_URL') or
+                         "http://localhost:10000").rstrip('/')
         self.client = None
         self.available_detectives = []
         self.is_connected = False
@@ -36,7 +41,7 @@ class JuliaOSDetectiveIntegration:
             response = await self.client.get(f"{self.julia_url}/health")
             if response.status_code == 200:
                 logger.info("🚀 Julia detective server connection established!")
-                
+
                 # Get available detectives
                 await self.refresh_available_detectives()
                 self.is_connected = True
@@ -54,12 +59,12 @@ class JuliaOSDetectiveIntegration:
         try:
             if self.client is None:
                 self.client = httpx.AsyncClient(timeout=30.0)
-                
+
             response = await self.client.get(f"{self.julia_url}/api/v1/agents")
             if response.status_code == 200:
                 agents_data = response.json()
                 self.available_detectives = [agent.get("name", "") for agent in agents_data.get("agents", [])]
-                
+
                 logger.info(f"🕵️ Julia detectives available: {len(self.available_detectives)}")
                 return self.available_detectives
             else:
@@ -77,7 +82,7 @@ class JuliaOSDetectiveIntegration:
         try:
             if not self.is_connected:
                 await self.initialize()
-            
+
             if self.client is None:
                 self.client = httpx.AsyncClient(timeout=30.0)
 
@@ -99,17 +104,17 @@ class JuliaOSDetectiveIntegration:
             if response.status_code == 200:
                 result = response.json()
                 logger.info("✅ Julia investigation completed successfully!")
-                
+
                 # Add metadata
                 result["integration_method"] = "julia_native"
                 result["detective_used"] = detective_type
                 result["execution_timestamp"] = datetime.now().isoformat()
-                
+
                 return result
             else:
                 logger.error(f"Julia investigation failed with status {response.status_code}")
                 return {
-                    "error": f"Julia investigation failed: {response.status_code}", 
+                    "error": f"Julia investigation failed: {response.status_code}",
                     "status": "failed",
                     "wallet_address": wallet_address
                 }
@@ -117,7 +122,7 @@ class JuliaOSDetectiveIntegration:
         except Exception as e:
             logger.error(f"Error executing Julia investigation: {e}")
             return {
-                "error": str(e), 
+                "error": str(e),
                 "status": "failed",
                 "wallet_address": wallet_address
             }
@@ -127,7 +132,7 @@ class JuliaOSDetectiveIntegration:
         try:
             if self.client is None:
                 self.client = httpx.AsyncClient(timeout=30.0)
-                
+
             response = await self.client.get(f"{self.julia_url}/api/v1/agents")
             if response.status_code == 200:
                 return response.json().get("agents", [])
@@ -142,7 +147,7 @@ class JuliaOSDetectiveIntegration:
         try:
             if self.client is None:
                 self.client = httpx.AsyncClient(timeout=30.0)
-                
+
             response = await self.client.get(f"{self.julia_url}/health")
             if response.status_code == 200:
                 health_data = response.json()
@@ -154,14 +159,14 @@ class JuliaOSDetectiveIntegration:
                 }
             else:
                 return {
-                    "status": "unhealthy", 
+                    "status": "unhealthy",
                     "julia_available": False,
                     "error": f"HTTP {response.status_code}"
                 }
         except Exception as e:
             return {
                 "status": "error",
-                "julia_available": False, 
+                "julia_available": False,
                 "error": str(e)
             }
 
@@ -177,29 +182,29 @@ _julia_integration = None
 async def get_julia_detective_integration() -> JuliaOSDetectiveIntegration:
     """Get singleton instance of Julia integration"""
     global _julia_integration
-    
+
     if _julia_integration is None:
         _julia_integration = JuliaOSDetectiveIntegration()
         await _julia_integration.initialize()
-    
+
     return _julia_integration
 
 
 async def execute_julia_investigation(wallet_address: str, detective_type: str = "poirot") -> Dict:
     """
     Execute investigation using Julia detective server.
-    
+
     Args:
         wallet_address: The wallet address to investigate
         detective_type: Detective to use ("poirot", "marple", "spade", etc.)
-        
+
     Returns:
         Dict containing the investigation results
     """
     try:
         integration = await get_julia_detective_integration()
         return await integration.investigate_wallet(wallet_address, detective_type)
-        
+
     except Exception as e:
         logger.error(f"Error in Julia investigation: {e}")
         return {
@@ -213,17 +218,17 @@ async def test_julia_integration() -> Dict:
     """Test the Julia integration"""
     try:
         integration = await get_julia_detective_integration()
-        
+
         # Test health check
         health = await integration.health_check()
-        
+
         if health["julia_available"]:
             # Test with sample wallet
             test_result = await integration.investigate_wallet(
                 "1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2",
                 "poirot"
             )
-            
+
             return {
                 "integration_status": "success",
                 "health": health,
@@ -233,11 +238,11 @@ async def test_julia_integration() -> Dict:
             }
         else:
             return {
-                "integration_status": "failed", 
+                "integration_status": "failed",
                 "health": health,
                 "reason": "Julia server not available"
             }
-            
+
     except Exception as e:
         return {
             "integration_status": "error",

@@ -1,4 +1,10 @@
 /**
+ * DEPRECATED: This backend.service.js file refers to the old Python FastAPI backend.
+ * The project migrated to a direct Julia-only pipeline. Keep temporarily only for reference.
+ * Safe to delete once no residual imports remain.
+ */
+
+/**
  * Ghost Wallet Hunter - Backend Service
  * =====================================
  *

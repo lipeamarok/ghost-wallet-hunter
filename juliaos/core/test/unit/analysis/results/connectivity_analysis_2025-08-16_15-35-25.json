@@ -1,0 +1,96 @@
+{
+    "average_connections": 3,
+    "hostname": "Filipe",
+    "max_connectivity_strength": 0.3,
+    "category": "analysis",
+    "connectivity_details": [
+        {
+            "sample_signatures": [
+                {
+                    "blockTime": 1755369318,
+                    "confirmationStatus": "finalized",
+                    "err": null,
+                    "memo": null,
+                    "signature": "4nTj7a3fTHuU9S7Dczq81yniHus653JBgDAvPAmknAYuSxA5Xahxfg8bhVRbHAQDejjpxHUEg4QYumMLHbixrxr2",
+                    "slot": 360493992
+                },
+                {
+                    "blockTime": 1755369318,
+                    "confirmationStatus": "finalized",
+                    "err": null,
+                    "memo": null,
+                    "signature": "r97MHynE4SEkZWA1bqxAWGV65PDk6efA8QZZm6kQyaxcFJwXpDpKeiXm1PR7auFtTMVvXR54L1m76iuzJjVQLTT",
+                    "slot": 360493992
+                }
+            ],
+            "wallet_type": "defi_protocol",
+            "wallet": "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8",
+            "transaction_count": 3,
+            "connectivity_strength": 0.3,
+            "has_connections": true
+        },
+        {
+            "sample_signatures": [
+                {
+                    "blockTime": 1755369320,
+                    "confirmationStatus": "finalized",
+                    "err": null,
+                    "memo": null,
+                    "signature": "2xVPqbbeeGcrnjYGx4MgWEUhT1CtdUFeVXaXLhXcMpsA91gSMc38VSxwFbT2vMzZ7qy7BNoETgqGHQufiT4Xwmp1",
+                    "slot": 360493996
+                },
+                {
+                    "blockTime": 1755369320,
+                    "confirmationStatus": "finalized",
+                    "err": {
+                        "InstructionError": [
+                            3,
+                            "InsufficientFunds"
+                        ]
+                    },
+                    "memo": null,
+                    "signature": "3NQQvcG8UCNjhGVh2voo8sgXW3hocBiNL92dNx54q2f8X68h8D4EfD1ZLm7vEz6xttGaPgSEb9Vo68Ecf7QFx6cK",
+                    "slot": 360493996
+                }
+            ],
+            "wallet_type": "defi_protocol",
+            "wallet": "whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc",
+            "transaction_count": 3,
+            "connectivity_strength": 0.3,
+            "has_connections": true
+        },
+        {
+            "sample_signatures": [
+                {
+                    "blockTime": 1755369321,
+                    "confirmationStatus": "finalized",
+                    "err": null,
+                    "memo": null,
+                    "signature": "4K5X435J3JFbLt4FNaQJMDu5VPkKNCJr2nSA1b5kkkfzEkciUEFWQePeP7EX4ychFgzJ27VtkTtR4bBZ47iEdVA3",
+                    "slot": 360493999
+                },
+                {
+                    "blockTime": 1755369321,
+                    "confirmationStatus": "finalized",
+                    "err": null,
+                    "memo": null,
+                    "signature": "NhEuDLsNqBhCQSBr3y9zndbFVhSiTQAHAX6dqM3kJFesT4S1PaxdjtCfumYCxa8V2YyFVB8jCs3bxYcq41CXepF",
+                    "slot": 360493999
+                }
+            ],
+            "wallet_type": "defi_protocol",
+            "wallet": "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4",
+            "transaction_count": 3,
+            "connectivity_strength": 0.3,
+            "has_connections": true
+        }
+    ],
+    "julia_version": "1.11.6",
+    "test_name": "connectivity_analysis",
+    "saved_at": "2025-08-16T15:35:25.681",
+    "wallets_analyzed": 3,
+    "timestamp": "2025-08-16T15:35:25.496",
+    "rpc_method": "getSignaturesForAddress",
+    "successful_connections": 3,
+    "total_connections": 9
+}

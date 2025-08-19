@@ -1,0 +1,52 @@
+{
+    "targets_analyzed": 3,
+    "max_coordination_score": 0.46604669776133834,
+    "julia_version": "1.11.6",
+    "test_name": "unit_analysis_entity_clustering",
+    "coordination_analysis": [
+        {
+            "operation_patterns": [
+            ],
+            "transaction_count": 8,
+            "coordination_indicators": [
+            ],
+            "target_wallet": "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM",
+            "coordination_score": 0.46604669776133834,
+            "timing_synchronization": {
+                "sync_level": "low",
+                "timing_score": 0.5081615929752806
+            }
+        },
+        {
+            "operation_patterns": [
+            ],
+            "transaction_count": 8,
+            "coordination_indicators": [
+            ],
+            "target_wallet": "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU",
+            "coordination_score": 0.446898498297565,
+            "timing_synchronization": {
+                "sync_level": "low",
+                "timing_score": 0.5336314964775875
+            }
+        },
+        {
+            "operation_patterns": [
+            ],
+            "transaction_count": 8,
+            "coordination_indicators": [
+            ],
+            "target_wallet": "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4",
+            "coordination_score": 0.25998226859935014,
+            "timing_synchronization": {
+                "sync_level": "low",
+                "timing_score": 0.39606254995196866
+            }
+        }
+    ],
+    "hostname": "Filipe",
+    "saved_at": "2025-08-15T10:28:16.547",
+    "timestamp": "2025-08-15T10:28:16.546",
+    "category": "coordinated_operations_detection",
+    "highly_coordinated_count": 0
+}

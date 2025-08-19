@@ -94,6 +94,42 @@ export const coreAnalysisService = {
     return withRetry(() =>
       juliaClient.get(ENDPOINTS.JULIA.ANALYSIS.RESULTS.replace(':id', analysisId))
     );
+  },
+
+  /**
+   * Investigate wallet using Julia Frontend - REAL ENDPOINT ONLY
+   * @param {string} walletAddress - Wallet address to investigate
+   * @param {Object} options - Investigation options
+   */
+  async investigateWallet(walletAddress, options = {}) {
+    if (IS_DEVELOPMENT) {
+      console.log('🧠 Julia Investigation (REAL ENDPOINT ONLY):', walletAddress, options);
+    }
+
+    const path = ENDPOINTS.JULIA.API_INVESTIGATE;
+    const synchronous = options.synchronous !== undefined ? options.synchronous : true;
+
+    try {
+      console.log('📡 Calling REAL Julia endpoint:', path);
+      const result = await withRetry(() =>
+        juliaClient.post(path, {
+          wallet_address: walletAddress,
+          agent_id: options.agent_id || 'poirot',
+          investigation_type: options.investigation_type || 'comprehensive',
+          priority: options.priority || 'normal',
+          notify_frontend: options.notify_frontend || false,
+          synchronous
+        })
+      );
+
+      console.log('✅ REAL Julia response received:', result);
+      return result;
+
+    } catch (error) {
+      console.error('🚨 REAL Julia endpoint failed:', error);
+      console.error('🚨 Error details:', error.response?.data || error.message);
+      throw error;
+    }
   }
 };
 
@@ -390,7 +426,14 @@ export const juliaService = {
   data: juliaDataService,
   performance: performanceService,
   config: juliaConfigService,
-  health: juliaHealthService
+  health: juliaHealthService,
+  // Async investigation polling helpers (Passo 2 em andamento)
+  async getInvestigationStatus(id) {
+    return withRetry(() => juliaClient.get(ENDPOINTS.JULIA.API_INVESTIGATION_STATUS.replace(':id', id)));
+  },
+  async getInvestigationResults(id) {
+    return withRetry(() => juliaClient.get(ENDPOINTS.JULIA.API_INVESTIGATION_RESULTS.replace(':id', id)));
+  }
 };
 
 export default juliaService;

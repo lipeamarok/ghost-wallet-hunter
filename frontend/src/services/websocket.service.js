@@ -563,65 +563,25 @@ export const juliaWebSocketService = {
 /**
  * System WebSocket Service
  */
-export const systemWebSocketService = {
-  /**
-   * Connect to system notifications
-   */
-  async connectToSystem() {
-    const url = `${CURRENT_URLS.BACKEND_WS}/system`;
-    return wsManager.connect('system_notifications', url, {
-      autoReconnect: true,
-      heartbeat: true
-    });
-  },
+export const systemWebSocketService = { /* disabled in Julia-only mode */ };
 
-  /**
-   * Subscribe to system alerts
-   */
-  subscribeToSystemAlerts(callback) {
-    return wsManager.subscribe('system_notifications', 'alert', callback);
-  },
-
-  /**
-   * Subscribe to health status updates
-   */
-  subscribeToHealthUpdates(callback) {
-    return wsManager.subscribe('system_notifications', 'health_update', callback);
-  }
-};
-
-// Export comprehensive WebSocket service
+/**
+ * Comprehensive WebSocket Service
+ */
 export const webSocketService = {
   // Core manager
   manager: wsManager,
 
   // Specialized services
   investigations: investigationWebSocketService,
-  agents: agentWebSocketService,
+  agents: agentWebSocketService, // kept if Julia emits agent channels later
   julia: juliaWebSocketService,
   system: systemWebSocketService,
 
   // Utility methods
   async connectAll() {
-    const connections = await Promise.allSettled([
-      investigationWebSocketService.connectToBackend(),
-      agentWebSocketService.connectToA2A(),
-      juliaWebSocketService.connectToJulia(),
-      systemWebSocketService.connectToSystem()
-    ]);
-
-    const results = connections.map((result, index) => ({
-      service: ['backend', 'a2a', 'julia', 'system'][index],
-      status: result.status,
-      connection: result.status === 'fulfilled' ? result.value : null,
-      error: result.status === 'rejected' ? result.reason : null
-    }));
-
-    if (IS_DEVELOPMENT) {
-      console.log('🔗 WebSocket connections:', results);
-    }
-
-    return results;
+    // Synchronous Julia-only investigations: skip WebSocket connections entirely
+    return { skipped: true };
   },
 
   disconnectAll() {

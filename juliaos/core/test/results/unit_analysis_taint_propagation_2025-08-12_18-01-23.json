@@ -1,0 +1,14 @@
+{
+    "targets_analyzed": 3,
+    "hostname": "Filipe",
+    "path_details": [
+    ],
+    "category": "propagation_path_analysis",
+    "julia_version": "1.11.6",
+    "paths_found": 0,
+    "test_name": "unit_analysis_taint_propagation",
+    "saved_at": "2025-08-12T18:01:23.418",
+    "strong_paths": 0,
+    "source_wallet": "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8",
+    "timestamp": "2025-08-12T18:01:23.255"
+}

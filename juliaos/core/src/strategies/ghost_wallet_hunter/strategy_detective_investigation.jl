@@ -212,6 +212,8 @@ function execute_blacklist_check(wallet_address::String)
             "wallet_address" => wallet_address,
             "blacklist_status" => "clean",
             "risk_score" => 0.0,
+            # Compat: manter sources_checked, mas preferir sources_used
+            "sources_used" => ["chainalysis", "elliptic", "custom_db"],
             "sources_checked" => ["chainalysis", "elliptic", "custom_db"],
             "flagged_sources" => [],
             "confidence" => 0.95,
@@ -410,7 +412,7 @@ end
 Gera relatório final da investigação.
 """
 function generate_final_report(config::DetectiveInvestigationConfig, wallet_analysis::Dict, blacklist_status::Dict, risk_assessment::Dict, detective_insights::Vector{Dict})
-    timestamp = string(now())
+    timestamp = string(now(UTC))
 
     report = """
 
@@ -456,6 +458,9 @@ function generate_final_report(config::DetectiveInvestigationConfig, wallet_anal
     reais da blockchain Solana. Todos os detetives da equipe foram consultados
     e suas análises especializadas foram compiladas neste relatório.
 
+    Nota: Caso a carteira não possua transações recentes ou históricas, o veredito prioriza clareza:
+    "Carteira sem atividade on-chain observável no período analisado; risco aparente baixo por ausência de evidências,
+    porém recomenda-se monitoramento e reavaliação quando surgirem transações."
     ═══════════════════════════════════════════════════════════════════════
     """
 

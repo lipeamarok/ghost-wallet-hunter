@@ -61,9 +61,13 @@ export default function WalletInput() {
         priority: 'medium',
         options: {
           realTimeUpdates: true,
-          includeMetadata: true
+          includeMetadata: true,
+          synchronous: false // Enable async mode per Passo 2
         }
       });
+
+      console.log('🔍 WalletInput - Investigation result received:', investigationResult);
+      console.log('🔍 WalletInput - Result status:', investigationResult?.status);
 
       // Check for investigation ID using multiple possible field names
       const investigationId = investigationResult?.investigation_id ||
@@ -73,20 +77,25 @@ export default function WalletInput() {
       if (investigationId) {
         toast.success('✅ Investigation started! Redirecting...', { duration: 2000 });
 
-        // Add a small delay before navigation to show the loading state
+        // Always add a minimum delay for UX and go through investigation page
+        const minDelayMs = 2000; // Minimum 2 seconds for loading experience
+
         setTimeout(() => {
-          // Navigate to investigation page with ID in URL and data in state
+          // Always go to investigation page first for proper UX flow
+          // InvestigationPage will handle redirecting to results when ready
           navigate(`/investigation/${investigationId}`, {
             state: {
               walletAddress: inputValue.trim(),
               investigationData: {
                 ...investigationResult,
-                id: investigationId // Ensure consistent ID field
+                id: investigationId
               },
-              realTimeMode: true
+              realTimeMode: true,
+              quickCompletion: investigationResult?.status === 'completed', // Flag for quick completion
+              lastInvestigationResult: investigationResult // EMERGENCY BACKUP for results
             }
           });
-        }, 1000);
+        }, minDelayMs);
       } else {
         console.error('🚨 No investigation ID found in response:', investigationResult);
         throw new Error('No investigation ID returned from backend');

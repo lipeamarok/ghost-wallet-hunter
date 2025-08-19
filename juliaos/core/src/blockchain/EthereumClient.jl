@@ -33,7 +33,7 @@ struct EthereumConfig
     default_gas_limit::Int
     default_gas_price_gwei::Float64 # In Gwei
     timeout_seconds::Int
-    
+
     function EthereumConfig(;
         rpc_url::String,
         chain_id::Int = 1, # Default to Ethereum Mainnet
@@ -56,78 +56,34 @@ struct EthereumProvider
     connection_dict::Dict{String, Any} # Contains rpc_url, chain_id, connected status
 
     function EthereumProvider(config::EthereumConfig, connection_dict::Dict{String,Any})
-        if !connection_dict["connected"]
+        if !get(connection_dict, "connected", false)
             error("Cannot create EthereumProvider with a disconnected connection.")
         end
-    elseif startswith(canonical_type, "bytes") && !endswith(canonical_type, "[]") # bytes1..bytes32
-        len_match = match(r"bytes(\d+)", canonical_type)
-        if !isnothing(len_match) && isa(value, Vector{UInt8})
-            num_bytes = parse(Int, len_match.captures[1])
-            if length(value) > num_bytes error("Data for bytes$num_bytes is too long: $(length(value)) bytes") end
-            return rpad(bytes2hex(value), 64, '0') # bytesN are left-aligned
-        else
-            error("Invalid value for bytesN type '$canonical_type' or value type '$(typeof(value))'. Expected Vector{UInt8}.")
-        end
-    elseif startswith(canonical_type, "(") && endswith(canonical_type, ")") # Static Tuple/Struct
-        if !isa(value, Tuple) && !isa(value, AbstractVector)
-            error("Argument for static tuple/struct type $canonical_type must be a Tuple or Vector. Got $(typeof(value))")
-        end
-        element_types_str_content = canonical_type[2:end-1]
-        element_type_strs = []
-        balance = 0; current_type = ""
-        for char in element_types_str_content
-            if char == '(' balance +=1 elseif char == ')' balance -=1 end
-            if char == ',' && balance == 0
-                push!(element_type_strs, strip(current_type)); current_type = ""
-            else current_type *= char end
-        end
-        push!(element_type_strs, strip(current_type))
-
-        if length(value) != length(element_type_strs)
-            error("Number of values in static tuple/struct ($(length(value))) does not match types in signature ($canonical_type -> $(length(element_type_strs)))")
-        end
-
-        encoded_elements = ""
-        for (idx, elem_val) in enumerate(value)
-            elem_type_str = strip(element_type_strs[idx])
-            # Ensure element type is static for a static tuple
-            canonical_elem_type = _get_canonical_type(elem_type_str)
-            if canonical_elem_type == "string" || canonical_elem_type == "bytes" || endswith(canonical_elem_type, "[]") || (startswith(canonical_elem_type, "(") && occursin(r"string|bytes|\[\]", canonical_elem_type))
-                error("Static tuple $canonical_type cannot contain dynamic element type '$elem_type_str'. This indicates an issue with how the tuple was classified as static or the ABI type string itself.")
-            end
-            encoded_elements *= _abi_encode_static_value(elem_val, elem_type_str) # Recursive call for static elements
-        end
-        # Static tuples are encoded in-place and are not padded to 32 bytes themselves,
-        # but their combined encoding contributes to the 32-byte slots of the parent structure.
-        # If a static tuple is a top-level argument, it will be padded as part of the main encoding loop.
-        # Here, we just return the concatenated hex of its elements.
-        return encoded_elements
-    else
-        error("Unsupported static ABI type '$canonical_type' or value type '$(typeof(value))' for _abi_encode_static_value.")
+        new(config, connection_dict)
     end
 end
 
 function create_ethereum_provider(rpc_url::String, chain_id::Int;
                                   default_gas_limit=300000, default_gas_price_gwei=20.0, timeout=30)
-    
+
     config = EthereumConfig(
-        rpc_url=rpc_url, 
+        rpc_url=rpc_url,
         chain_id=chain_id,
         default_gas_limit=default_gas_limit,
         default_gas_price_gwei=default_gas_price_gwei,
         timeout_seconds=timeout
     )
-    
+
     # Attempt to connect to get network name for Blockchain.connect
     # This is a bit circular. Blockchain.connect should ideally just take rpc_url.
     # For now, we derive a placeholder network name.
-    network_name = "evm_chain_$(chain_id)" 
+    network_name = "evm_chain_$(chain_id)"
     connection = Main.Blockchain.connect(network=network_name, endpoint_url=rpc_url) # Use Main.Blockchain if Blockchain.jl is top-level
-    
+
     if !connection["connected"]
         error("Failed to connect to Ethereum RPC at $rpc_url for chain ID $chain_id")
     end
-    
+
     return EthereumProvider(config, connection)
 end
 
@@ -211,14 +167,14 @@ function _abi_encode_static_value(value::Any, abi_type_str::String)::String
     elseif (startswith(canonical_type, "uint") || startswith(canonical_type, "int")) && isa(value, Integer)
         bits_str = match(r"(u?int)(\d*)", canonical_type)
         bits = isempty(bits_str.captures[2]) ? 256 : parse(Int, bits_str.captures[2])
-        
+
         val_big = BigInt(value)
         if val_big < 0 && startswith(canonical_type, "uint")
             error("Cannot encode negative value $value for unsigned type $canonical_type")
         end
         # Handle two's complement for negative signed integers
         if startswith(canonical_type, "int") && val_big < 0
-            val_big = (BigInt(1) << bits) + val_big 
+            val_big = (BigInt(1) << bits) + val_big
         end
         hex_val = string(val_big, base=16)
         if length(hex_val) > div(bits, 4)
@@ -259,7 +215,7 @@ function _abi_encode_dynamic_value(value::Any, abi_type_str::String)::String
         return len_hex * padded_data_hex
     elseif endswith(canonical_type, "[]") && isa(value, AbstractVector) # Dynamic array of static types
         element_type_str = replace(canonical_type, "[]" => "")
-        
+
         # Check if the element type is itself dynamic (e.g. string, bytes, another_array[], or a dynamic tuple)
         is_element_type_dynamic = false
         if element_type_str == "string" || element_type_str == "bytes" || endswith(element_type_str, "[]")
@@ -292,7 +248,7 @@ function _abi_encode_dynamic_value(value::Any, abi_type_str::String)::String
             # Placeholder logic: encode length, then try to encode each dynamic element's data sequentially.
             # This will be incorrect for offsets. A proper implementation needs to calculate all tail sizes first.
             len_hex = lpad(string(length(value), base=16), 64, '0')
-            
+
             # This part needs a complete rewrite for arrays of dynamic types.
             # It should build a head part (offsets) and a tail part (actual data of dynamic elements).
             # For now, this will likely be incorrect.
@@ -316,20 +272,20 @@ function _abi_encode_dynamic_value(value::Any, abi_type_str::String)::String
 
             # Array of dynamic types (e.g., string[], bytes[], MyDynamicStruct[])
             len_hex = lpad(string(length(value), base=16), 64, '0')
-            
+
             # Head part of the array data will contain offsets to each dynamic element.
             # Tail part will contain the actual data of each dynamic element.
             array_head_parts_hex = String[] # Will store offsets
             array_tail_parts_hex = String[] # Will store encoded data of dynamic elements
-            
+
             # The first offset is relative to the start of the array's data block (i.e., after len_hex).
             # This offset points to the start of the first dynamic element's data, which comes *after* all the offset words.
             # Number of offset words = number of elements in the array.
-            current_offset_in_tail_bytes = length(value) * 32 
+            current_offset_in_tail_bytes = length(value) * 32
 
             for elem_val in value
                 push!(array_head_parts_hex, lpad(string(current_offset_in_tail_bytes, base=16), 64, '0'))
-                
+
                 # Now encode the dynamic element itself.
                 # If element_type_str is "string" or "bytes", _abi_encode_dynamic_value handles it.
                 # If element_type_str is a dynamic tuple like "(uint,string)", we need a robust way to encode it.
@@ -391,7 +347,7 @@ function _abi_encode_dynamic_value(value::Any, abi_type_str::String)::String
                     # Should not happen if is_element_type_dynamic was determined correctly
                     error("Unexpected dynamic element type in array: $element_type_str")
                 end
-                
+
                 push!(array_tail_parts_hex, encoded_elem_data)
                 current_offset_in_tail_bytes += div(length(encoded_elem_data), 2) # Add length of this element's data block
             end
@@ -422,19 +378,19 @@ Encodes function arguments for an EVM contract call.
 """
 function encode_function_call_abi(function_signature_str::String, args_with_types::Vector{Tuple{Any, String}})::String
     # @warn """encode_function_call_abi: This implementation is improved to handle static tuples (structs)
-    #          and basic dynamic types, but has limitations for complex nested dynamic types (see notes above). 
+    #          and basic dynamic types, but has limitations for complex nested dynamic types (see notes above).
     #          Use with caution and test thoroughly for your specific ABI."""
-    
+
     sig_bytes = Vector{UInt8}(function_signature_str)
     hash_bytes = SHA.keccak256(sig_bytes)
     selector = bytes2hex(hash_bytes[1:4])
-    
+
     head_parts_hex = String[]
     tail_parts_hex = String[]
-    
+
     # Calculate initial offset for dynamic data: number of args * 32 bytes
     # This is the offset from the beginning of the arguments block (after selector)
-    current_dynamic_offset_bytes = length(args_with_types) * 32 
+    current_dynamic_offset_bytes = length(args_with_types) * 32
 
     # First pass: encode static parts and offsets for dynamic parts
     for (arg_val, arg_type_str) in args_with_types
@@ -444,7 +400,7 @@ function encode_function_call_abi(function_signature_str::String, args_with_type
         if is_dynamic
             # For dynamic types, head part is the offset to its data in the tail
             push!(head_parts_hex, lpad(string(current_dynamic_offset_bytes, base=16), 64, '0'))
-            
+
             encoded_dynamic_data = _abi_encode_dynamic_value(arg_val, canonical_arg_type)
             push!(tail_parts_hex, encoded_dynamic_data)
             current_dynamic_offset_bytes += div(length(encoded_dynamic_data), 2) # Length of data part only
@@ -459,7 +415,7 @@ function encode_function_call_abi(function_signature_str::String, args_with_type
             # This simplified encoder might not correctly handle dynamic tuples as direct arguments yet.
             # The check for is_tuple_dynamic was inside the tuple handling block.
             # Let's refine this:
-            
+
             # Determine if the tuple itself is dynamic
             is_tuple_dynamic = false # Placeholder: needs proper check
             temp_element_types_str_content = canonical_arg_type[2:end-1]
@@ -488,7 +444,7 @@ function encode_function_call_abi(function_signature_str::String, args_with_type
                 @error "Encoding of dynamic tuples/structs as direct function arguments is NOT YET FULLY SUPPORTED and may be incorrect. Arg type: $canonical_arg_type"
                 # Placeholder: push offset, and a (likely incorrect) concatenation for tail.
                 push!(head_parts_hex, lpad(string(current_dynamic_offset_bytes, base=16), 64, '0'))
-                
+
                 # This is where a recursive call to a full tuple encoder would go.
                 # For now, it will likely fail or produce wrong results for complex dynamic tuples.
                 # Let's try to use _abi_encode_static_value which now handles static tuples,
@@ -497,7 +453,7 @@ function encode_function_call_abi(function_signature_str::String, args_with_type
                 # For now, this path for dynamic tuples as arguments is problematic.
                 # We'll let it attempt with _abi_encode_static_value, which will error if it's truly dynamic.
                 # A better approach would be a dedicated _abi_encode_tuple_data function.
-                
+
                 # --- Placeholder for dynamic tuple encoding ---
                 # This part needs a robust recursive encoder.
                 # The current _abi_encode_static_value is for *static* tuples.
@@ -506,7 +462,7 @@ function encode_function_call_abi(function_signature_str::String, args_with_type
                 # if it has dynamic members, but illustrates the point of needing a proper handler.
                 # A truly dynamic tuple's encoding would itself have a head (for its static parts and offsets)
                 # and a tail (for its dynamic parts' data).
-                
+
                 # This is a conceptual placeholder for what `_abi_encode_dynamic_tuple_data` would do:
                 # encoded_dynamic_tuple_data_block = _abi_encode_tuple_recursively(arg_val, element_type_strs)
                 # push!(tail_parts_hex, encoded_dynamic_tuple_data_block)
@@ -525,7 +481,7 @@ function encode_function_call_abi(function_signature_str::String, args_with_type
                 # If static, it's data in head.
                 # The current `_abi_encode_static_value` handles static tuples.
                 # So, if `is_tuple_dynamic` is true, we need to place an offset.
-                
+
                 # Corrected logic:
                 if is_tuple_dynamic
                     push!(head_parts_hex, lpad(string(current_dynamic_offset_bytes, base=16), 64, '0'))
@@ -553,7 +509,7 @@ function encode_function_call_abi(function_signature_str::String, args_with_type
             push!(head_parts_hex, _abi_encode_static_value(arg_val, canonical_arg_type))
         end
     end
-    
+
     return "0x" * selector * join(head_parts_hex) * join(tail_parts_hex)
 end
 
@@ -593,7 +549,7 @@ function _abi_decode_value(data_segment_hex::String, abi_type_str::String, full_
         if !isnothing(len_match)
             num_bytes = parse(Int, len_match.captures[1])
             # bytesN are left-padded (stored at the beginning of the 32-byte word)
-            return hex2bytes(data_segment_hex[1 : num_bytes*2]) 
+            return hex2bytes(data_segment_hex[1 : num_bytes*2])
         end
     # --- Dynamic Type Decoding ---
     elseif canonical_type == "string" || canonical_type == "bytes"
@@ -607,11 +563,11 @@ function _abi_decode_value(data_segment_hex::String, abi_type_str::String, full_
             @error "ABI Decoding: Offset for dynamic type $canonical_type points out of bounds or not enough data for length."
             return "ERROR_DECODING_OFFSET_$(canonical_type)"
         end
-        
+
         # Read the length of the data (which is itself a uint256)
         len_hex = full_data_hex_no_prefix[offset_char_idx : offset_char_idx + 63]
         len_bytes = parse(Int, len_hex, base=16)
-        
+
         data_start_char_idx = offset_char_idx + 64
         data_hex_chars_to_read = len_bytes * 2
 
@@ -619,9 +575,9 @@ function _abi_decode_value(data_segment_hex::String, abi_type_str::String, full_
             @error "ABI Decoding: Dynamic type $canonical_type data length ($len_bytes bytes) exceeds available data."
             return "ERROR_DECODING_DATA_LENGTH_$(canonical_type)"
         end
-        
+
         actual_data_hex = full_data_hex_no_prefix[data_start_char_idx : data_start_char_idx + data_hex_chars_to_read - 1]
-        
+
         return canonical_type == "string" ? String(hex2bytes(actual_data_hex)) : hex2bytes(actual_data_hex)
 
     elseif endswith(canonical_type, "[]") # Dynamic array of static types
@@ -635,7 +591,7 @@ function _abi_decode_value(data_segment_hex::String, abi_type_str::String, full_
 
         len_elements = parse(Int, full_data_hex_no_prefix[offset_char_idx : offset_char_idx + 63], base=16)
         elements_data_start_char_idx = offset_char_idx + 64
-        
+
         element_type_str = replace(canonical_type, "[]" => "")
         if element_type_str == "string" || element_type_str == "bytes" || endswith(element_type_str, "[]")
             @error "Decoding arrays of dynamic types (e.g., string[], bytes[][]) is not supported by this simplified decoder."
@@ -674,7 +630,7 @@ function decode_function_result_abi(result_hex::String, output_abi_types::Vector
     # @warn """decode_function_result_abi: This implementation is improved for static types and basic dynamic types/arrays.
     #          However, it has limitations for complex nested or dynamic structures (see notes above).
     #          Use with caution and test thoroughly for your specific ABI."""
-    
+
     (isempty(result_hex) || result_hex == "0x" || length(result_hex) < 2) && return Any[] # Allow "0x" for empty returns
     if result_hex == "0x" && !isempty(output_abi_types)
         @warn "ABI decoding: Received '0x' but expected outputs $(output_abi_types). Returning empty array."
@@ -694,7 +650,7 @@ function decode_function_result_abi(result_hex::String, output_abi_types::Vector
 
     outputs = Any[]
     head_read_char_idx = 1 # Character index in data_hex_no_prefix for reading head slots
-    
+
     # The start of the dynamic data section is after all head slots.
     # Each head slot is 32 bytes (64 hex chars).
     dynamic_section_start_char_idx = (length(output_abi_types) * 64) + 1
@@ -705,16 +661,16 @@ function decode_function_result_abi(result_hex::String, output_abi_types::Vector
         if head_read_char_idx + 64 - 1 > length(data_hex_no_prefix)
             @error "ABI decoding: Not enough data left in head to decode type '$type_str'. Expected 32 bytes, got $(length(data_hex_no_prefix) - head_read_char_idx + 1) chars. Decoded $(length(outputs))."
             # This often indicates an issue with the contract call or the expected output_abi_types.
-            break 
+            break
         end
         segment_hex = data_hex_no_prefix[head_read_char_idx : head_read_char_idx + 63]
-        
+
         # The _abi_decode_value function will handle if it's static or needs to look at dynamic part.
         # It will use/update current_dynamic_read_ptr if it decodes a dynamic type from its offset.
         # Note: The current _abi_decode_value for dynamic types is still a placeholder.
         decoded_val = _abi_decode_value(segment_hex, type_str, data_hex_no_prefix, current_dynamic_read_ptr)
         push!(outputs, decoded_val)
-        
+
         head_read_char_idx += 64 # Move to the next 32-byte slot in the head
     end
     return outputs

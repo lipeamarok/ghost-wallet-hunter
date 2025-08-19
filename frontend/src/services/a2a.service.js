@@ -1,4 +1,10 @@
 /**
+ * DEPRECATED: a2a.service.js relates to the legacy multi-agent (Python A2A) layer.
+ * Replaced by Julia multi-detective orchestration. Keep only for transitional reference.
+ * Remove after confirming no imports remain.
+ */
+
+/**
  * Ghost Wallet Hunter - A2A Service
  * ==================================
  *

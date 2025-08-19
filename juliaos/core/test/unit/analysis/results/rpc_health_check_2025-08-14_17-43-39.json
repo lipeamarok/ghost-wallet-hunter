@@ -1,0 +1,12 @@
+{
+    "health_status": "ok",
+    "response_time": 0.36700010299682617,
+    "julia_version": "1.11.6",
+    "test_name": "rpc_health_check",
+    "rpc_url": "https://wiser-damp-flower.solana-mainnet.quiknode.pro/60f08abda0fecd7a5c424c009ccc09fd82067e4c/",
+    "success": true,
+    "hostname": "Filipe",
+    "saved_at": "2025-08-14T17:43:39.121",
+    "timestamp": "2025-08-14T17:43:38.463",
+    "category": "analysis"
+}

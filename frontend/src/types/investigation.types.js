@@ -48,9 +48,93 @@ export const INVESTIGATION_PRIORITY = {
 };
 
 /**
- * Risk Assessment Levels
+ * Detective Agent Types
+ */
+export const DETECTIVE_AGENTS = {
+  POIROT: 'poirot',
+  MARPLE: 'marple',
+  SHADOW: 'shadow',
+  RAVEN: 'raven',
+  MARLOWE: 'marlowe',
+  DUPIN: 'dupin',
+  SPADE: 'spade'
+};
+
+/**
+ * Detective Agent Information
+ */
+export const DETECTIVE_INFO = {
+  poirot: {
+    name: 'Hercule Poirot',
+    emoji: '🧐',
+    methodology: 'methodical_analysis',
+    description: 'Systematic and methodical investigation approach'
+  },
+  marple: {
+    name: 'Miss Jane Marple',
+    emoji: '👵',
+    methodology: 'pattern_anomaly_detection',
+    description: 'Pattern recognition and anomaly detection'
+  },
+  shadow: {
+    name: 'The Shadow',
+    emoji: '🕵️',
+    methodology: 'stealth_investigation',
+    description: 'Covert analysis and stealth investigation'
+  },
+  raven: {
+    name: 'Detective Raven',
+    emoji: '🐦‍⬛',
+    methodology: 'dark_investigation',
+    description: 'Dark web and cryptic pattern analysis'
+  },
+  marlowe: {
+    name: 'Philip Marlowe',
+    emoji: '🚬',
+    methodology: 'deep_analysis_investigation',
+    description: 'Deep dive analysis and corruption detection'
+  },
+  dupin: {
+    name: 'Auguste Dupin',
+    emoji: '🎓',
+    methodology: 'analytical_reasoning_investigation',
+    description: 'Logical reasoning and deductive analysis'
+  },
+  spade: {
+    name: 'Sam Spade',
+    emoji: '🍸',
+    methodology: 'hard_boiled_investigation',
+    description: 'Hard-boiled approach and threat evaluation'
+  }
+};
+
+/**
+ * Risk Level Classifications
  */
 export const RISK_LEVELS = {
+  VERY_LOW: 'Very Low',
+  LOW: 'Low',
+  MEDIUM: 'Medium',
+  HIGH: 'High',
+  VERY_HIGH: 'Very High',
+  CRITICAL: 'Critical'
+};
+
+/**
+ * Confidence Level Classifications
+ */
+export const CONFIDENCE_LEVELS = {
+  VERY_LOW: 'Very Low',
+  LOW: 'Low',
+  MEDIUM: 'Medium',
+  HIGH: 'High',
+  VERY_HIGH: 'Very High'
+};
+
+/**
+ * Risk Assessment Levels (updated for Julia backend compatibility)
+ */
+export const RISK_LEVELS_RAW = {
   VERY_LOW: 'very_low',
   LOW: 'low',
   MEDIUM: 'medium',
@@ -60,9 +144,9 @@ export const RISK_LEVELS = {
 };
 
 /**
- * Confidence Levels
+ * Confidence Levels (updated for Julia backend compatibility)
  */
-export const CONFIDENCE_LEVELS = {
+export const CONFIDENCE_LEVELS_RAW = {
   VERY_LOW: 'very_low',    // 0-20%
   LOW: 'low',              // 21-40%
   MEDIUM: 'medium',        // 41-60%

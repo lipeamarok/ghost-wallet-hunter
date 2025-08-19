@@ -1,0 +1,15 @@
+{
+    "rate_limiting": "1.0s_between_calls",
+    "test_module": "spade_agent",
+    "execution_time": "2025-08-16T17:04:56.206",
+    "hostname": "Filipe",
+    "real_data_sources": "solana_mainnet",
+    "detective_type": "sam_spade",
+    "methodology": "hard_boiled_investigation",
+    "category": "agents",
+    "julia_version": "1.11.6",
+    "cases_investigated": 4,
+    "test_name": "unit_agents_spade",
+    "saved_at": "2025-08-16T17:04:56.209",
+    "precision_level": 0.92
+}

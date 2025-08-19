@@ -122,7 +122,9 @@ Specialized function for blacklist analysis using OpenAI.
 function openai_blacklist_analysis(config::OpenAIConfig, blacklist_data::Dict)
     wallet_address = get(blacklist_data, "wallet_address", "unknown")
     is_blacklisted = get(blacklist_data, "is_blacklisted", false)
-    sources = get(blacklist_data, "sources_checked", 0)
+    # Prefer new field; fallback to legacy
+    sources_list = get(blacklist_data, "sources_used", get(blacklist_data, "sources_checked", []))
+    sources = sources_list isa Vector ? length(sources_list) : sources_list
     risk_level = get(blacklist_data, "risk_level", "UNKNOWN")
 
     prompt = """

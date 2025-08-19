@@ -2,14 +2,15 @@
 module SwarmHandlers
 
 using HTTP
-using ..Utils # For standardized responses
+include("Utils.jl")
+using .Utils # For standardized responses
 # Assuming Swarms.jl is made available via JuliaOSFramework or direct using
 # This might need to be `using Main.JuliaOSFramework.Swarms` or similar
 # depending on how JuliaOSFramework exports/makes modules available.
 # For now, let's assume `Swarms` and `SwarmBase` are directly accessible if `JuliaOSFramework` is `using`'d.
-# Corrected import path based on JuliaOSFramework structure
-import ..framework.JuliaOSFramework.Swarms
-import ..framework.JuliaOSFramework.SwarmBase # For types like SwarmConfig, OptimizationProblem
+# TEMPORARILY COMMENTED - framework module not available
+# import ..framework.JuliaOSFramework.Swarms
+# import ..framework.JuliaOSFramework.SwarmBase # For types like SwarmConfig, OptimizationProblem
 
 function create_swarm_handler(req::HTTP.Request)
     body = Utils.parse_request_body(req)
@@ -41,11 +42,11 @@ function create_swarm_handler(req::HTTP.Request)
         dims = get(problem_def_data, "dimensions", 0)
         bounds_data = get(problem_def_data, "bounds", [])
         is_min = get(problem_def_data, "is_minimization", true)
-        
+
         if dims <= 0 || !isa(bounds_data, AbstractVector) || length(bounds_data) != dims
              return Utils.error_response("Invalid 'problem_definition': dimensions and bounds mismatch or missing.", 400, error_code=Utils.ERROR_CODE_INVALID_INPUT, details=Dict("field"=>"problem_definition"))
         end
-        
+
         bounds_tuples = Vector{Tuple{Float64, Float64}}()
         for b_item in bounds_data
             if isa(b_item, AbstractVector) && length(b_item) == 2 && all(isa.(b_item, Number))
@@ -57,7 +58,7 @@ function create_swarm_handler(req::HTTP.Request)
 
         obj_func_name = get(problem_def_data, "objective_function_name", "default_placeholder_objective")
         obj_func_name = get(problem_def_data, "objective_function_name", "default_sum_objective") # Default if not provided
-        
+
         # Resolve the objective function using the name from the registry in Swarms.jl
         objective_function = Swarms.get_objective_function_by_name(obj_func_name)
         if objective_function == Swarms.get_objective_function_by_name("default_sum_objective") && obj_func_name != "default_sum_objective"
@@ -73,17 +74,17 @@ function create_swarm_handler(req::HTTP.Request)
         problem_def = SwarmBase.OptimizationProblem(dims, bounds_tuples, objective_function; is_minimization=is_min)
 
         config = Swarms.SwarmConfig(name, algo_type, problem_def; # Pass problem_def as positional argument
-                                   algorithm_params=algo_params, 
-                                   objective_desc=obj_desc, 
-                                   max_iter=max_iter, 
+                                   algorithm_params=algo_params,
+                                   objective_desc=obj_desc,
+                                   max_iter=max_iter,
                                    target_fit=target_fit_val)
-        
+
         swarm = Swarms.createSwarm(config)
-        status_dict = Swarms.getSwarmStatus(swarm.id) 
+        status_dict = Swarms.getSwarmStatus(swarm.id)
         return Utils.json_response(status_dict, 201)
 
     catch e
-        if isa(e, ArgumentError) 
+        if isa(e, ArgumentError)
             @error "Error creating swarm due to invalid arguments" exception=(e, catch_backtrace())
             return Utils.error_response("Failed to create swarm: $(e.msg)", 400, error_code=Utils.ERROR_CODE_INVALID_INPUT)
         else
@@ -96,7 +97,7 @@ end
 function list_swarms_handler(req::HTTP.Request)
     query_params = HTTP.queryparams(HTTP.URI(req.target))
     filter_status_str = get(query_params, "status", nothing)
-    
+
     filter_status_enum = nothing
     if !isnothing(filter_status_str)
         try
@@ -206,7 +207,7 @@ function add_agent_to_swarm_handler(req::HTTP.Request, swarm_id::String)
                 return Utils.error_response("Swarm $swarm_id not found.", 404, error_code=Utils.ERROR_CODE_NOT_FOUND, details=Dict("swarm_id"=>swarm_id))
             # Corrected path to Agents.getAgent:
             # The `import ..agents.Agents` at the top makes `Agents` available directly.
-            elseif isnothing(Agents.getAgent(agent_id)) 
+            elseif isnothing(Agents.getAgent(agent_id))
                 return Utils.error_response("Agent $agent_id not found.", 404, error_code=Utils.ERROR_CODE_NOT_FOUND, details=Dict("agent_id"=>agent_id))
             else # Other failure, e.g. agent already present (which addAgentToSwarm handles as success with info log)
                  return Utils.error_response("Failed to add agent $agent_id to swarm $swarm_id.", 400, error_code="AGENT_ADD_TO_SWARM_FAILED")
@@ -222,7 +223,7 @@ function remove_agent_from_swarm_handler(req::HTTP.Request, swarm_id::String, ag
     if isempty(swarm_id) || isempty(agent_id)
         return Utils.error_response("Swarm ID and Agent ID cannot be empty", 400, error_code=Utils.ERROR_CODE_INVALID_INPUT, details=Dict("fields"=>["swarm_id", "agent_id"]))
     end
-    
+
     try
         success = Swarms.removeAgentFromSwarm(swarm_id, agent_id)
         if success
@@ -249,8 +250,8 @@ function elect_leader_handler(req::HTTP.Request, swarm_id::String)
         return Utils.error_response("Swarm ID cannot be empty", 400, error_code=Utils.ERROR_CODE_INVALID_INPUT)
     end
     # Criteria function might be passed in body, or use a default. For now, default.
-    # body = Utils.parse_request_body(req) 
-    # criteria_func_name = get(body, "criteria_func_name", nothing) 
+    # body = Utils.parse_request_body(req)
+    # criteria_func_name = get(body, "criteria_func_name", nothing)
     # Resolve criteria_func_name to actual function (complex, needs registry)
 
     try
@@ -298,7 +299,7 @@ function claim_task_handler(req::HTTP.Request, swarm_id::String, task_id::String
 
     try
         # Swarms.claimTask returns Dict with "success" and "task" or "error"
-        result = Swarms.claimTask(swarm_id, task_id, agent_id) 
+        result = Swarms.claimTask(swarm_id, task_id, agent_id)
         if get(result, "success", false)
             return Utils.json_response(result)
         else

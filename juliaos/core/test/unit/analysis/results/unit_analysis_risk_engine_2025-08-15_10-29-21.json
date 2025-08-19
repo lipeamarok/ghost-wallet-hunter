@@ -1,0 +1,111 @@
+{
+    "config_used": "balanced",
+    "julia_version": "1.11.6",
+    "test_name": "unit_analysis_risk_engine",
+    "test_type": "complete_risk_assessment",
+    "hostname": "Filipe",
+    "saved_at": "2025-08-15T10:29:22.105",
+    "results": [
+        {
+            "assessment_time": "2025-08-15T10:29:16.005",
+            "wallet_address": "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4",
+            "transaction_count": 7,
+            "final_score": 0.12085714285714286,
+            "risk_level": "LOW",
+            "components": [
+                {
+                    "score": 0.07,
+                    "weight": 0.4,
+                    "description": "Taint proximity analysis based on 7 tainted transactions",
+                    "evidence": [
+                        "low_taint_exposure"
+                    ]
+                },
+                {
+                    "score": 0.20952380952380953,
+                    "weight": 0.3,
+                    "description": "Convergence analysis: 15 nodes, 22 edges, density 0.105",
+                    "evidence": [
+                        "low_convergence_pattern"
+                    ]
+                },
+                {
+                    "score": 0.1,
+                    "weight": 0.3,
+                    "description": "Control signals analysis: 7 transactions analyzed",
+                    "evidence": [
+                        "normal_control_patterns"
+                    ]
+                }
+            ]
+        },
+        {
+            "assessment_time": "2025-08-15T10:29:18.529",
+            "wallet_address": "whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc",
+            "transaction_count": 7,
+            "final_score": 0.28300000000000003,
+            "risk_level": "LOW",
+            "components": [
+                {
+                    "score": 0.07,
+                    "weight": 0.4,
+                    "description": "Taint proximity analysis based on 7 tainted transactions",
+                    "evidence": [
+                        "low_taint_exposure"
+                    ]
+                },
+                {
+                    "score": 0.75,
+                    "weight": 0.3,
+                    "description": "Convergence analysis: 9 nodes, 27 edges, density 0.375",
+                    "evidence": [
+                        "medium_convergence_pattern"
+                    ]
+                },
+                {
+                    "score": 0.1,
+                    "weight": 0.3,
+                    "description": "Control signals analysis: 7 transactions analyzed",
+                    "evidence": [
+                        "normal_control_patterns"
+                    ]
+                }
+            ]
+        },
+        {
+            "assessment_time": "2025-08-15T10:29:20.877",
+            "wallet_address": "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM",
+            "transaction_count": 7,
+            "final_score": 0.17618181818181816,
+            "risk_level": "LOW",
+            "components": [
+                {
+                    "score": 0.07,
+                    "weight": 0.4,
+                    "description": "Taint proximity analysis based on 7 tainted transactions",
+                    "evidence": [
+                        "low_taint_exposure"
+                    ]
+                },
+                {
+                    "score": 0.3939393939393939,
+                    "weight": 0.3,
+                    "description": "Convergence analysis: 12 nodes, 26 edges, density 0.197",
+                    "evidence": [
+                        "low_convergence_pattern"
+                    ]
+                },
+                {
+                    "score": 0.1,
+                    "weight": 0.3,
+                    "description": "Control signals analysis: 7 transactions analyzed",
+                    "evidence": [
+                        "normal_control_patterns"
+                    ]
+                }
+            ]
+        }
+    ],
+    "wallets_assessed": 3,
+    "category": "analysis"
+}

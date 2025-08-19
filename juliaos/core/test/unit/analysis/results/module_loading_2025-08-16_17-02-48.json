@@ -1,0 +1,13 @@
+{
+    "dependencies": [
+        "HTTP",
+        "JSON3"
+    ],
+    "julia_version": "1.11.6",
+    "status": "success",
+    "test_name": "module_loading",
+    "hostname": "Filipe",
+    "saved_at": "2025-08-16T17:02:48.528",
+    "timestamp": "2025-08-16T17:02:48.334",
+    "category": "analysis"
+}

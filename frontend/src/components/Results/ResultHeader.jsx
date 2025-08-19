@@ -2,20 +2,28 @@
 import React from "react";
 import clsx from "clsx";
 
-export default function ResultHeader({ score = 0.87, level = "high" }) {
-  // Mapas para cor e label
-  const levelMap = {
-    low: { color: "bg-green-500", label: "Risco Baixo" },
-    medium: { color: "bg-yellow-400", label: "Risco Médio" },
-    high: { color: "bg-red-600", label: "Risco Alto" }
-  };
+export default function ResultHeader({ score, level }) {
+  // Derive score normalization (accept 0-100 or 0-1)
+  const numeric = typeof score === 'number' ? (score > 1 ? score / 100 : score) : null;
+  const safeScore = numeric !== null ? Math.max(0, Math.min(1, numeric)) : null;
 
-  const { color, label } = levelMap[level] || levelMap["medium"];
+  // Derive level if not provided
+  let derivedLevel = level;
+  if (!derivedLevel && safeScore !== null) {
+    derivedLevel = safeScore >= 0.8 ? 'high' : safeScore >= 0.5 ? 'medium' : 'low';
+  }
+
+  const levelMap = {
+    low: { color: "bg-green-500", label: "Low Risk" },
+    medium: { color: "bg-yellow-400", label: "Medium Risk" },
+    high: { color: "bg-red-600", label: "High Risk" }
+  };
+  const { color, label } = levelMap[derivedLevel] || { color: "bg-gray-600", label: "No Score" };
 
   return (
     <div className="flex items-center gap-6 py-6 px-4 rounded-xl shadow-xl bg-gradient-to-br from-[#0a2540bb] via-[#131e2ecc] to-[#221a2e99] border border-blue-900/30">
       <div className={clsx("w-16 h-16 flex items-center justify-center rounded-full text-3xl font-black", color)}>
-        {level === "high" ? "🚨" : level === "medium" ? "⚠️" : "🟢"}
+        {derivedLevel === 'high' ? '🚨' : derivedLevel === 'medium' ? '⚠️' : derivedLevel === 'low' ? '🟢' : 'ℹ️'}
       </div>
       <div>
         <div className="text-lg font-semibold text-gray-200 tracking-wide">{label}</div>
@@ -24,12 +32,12 @@ export default function ResultHeader({ score = 0.87, level = "high" }) {
             <div
               className={clsx(
                 "h-3 rounded transition-all",
-                level === "high" ? "bg-red-500" : level === "medium" ? "bg-yellow-400" : "bg-green-400"
+                derivedLevel === 'high' ? 'bg-red-500' : derivedLevel === 'medium' ? 'bg-yellow-400' : derivedLevel === 'low' ? 'bg-green-400' : 'bg-gray-500'
               )}
-              style={{ width: `${Math.round(score * 100)}%` }}
+              style={{ width: safeScore !== null ? `${Math.round(safeScore * 100)}%` : '0%' }}
             />
           </div>
-          <span className="text-sm text-gray-400 font-mono">{Math.round(score * 100)}%</span>
+          <span className="text-sm text-gray-400 font-mono">{safeScore !== null ? `${Math.round(safeScore * 100)}%` : '--'}</span>
         </div>
       </div>
     </div>

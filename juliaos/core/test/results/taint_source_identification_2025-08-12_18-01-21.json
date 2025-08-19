@@ -1,0 +1,13 @@
+{
+    "sources_analyzed": 3,
+    "julia_version": "1.11.6",
+    "test_name": "taint_source_identification",
+    "sources_with_data": 0,
+    "hostname": "Filipe",
+    "saved_at": "2025-08-12T18:01:21.815",
+    "high_risk_sources": 0,
+    "timestamp": "2025-08-12T18:01:21.572",
+    "taint_results": [
+    ],
+    "category": "unit_analysis_taint_propagation"
+}

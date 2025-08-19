@@ -1,0 +1,72 @@
+{
+    "analyzed_wallets": 4,
+    "patterns_identified": 4,
+    "julia_version": "1.11.6",
+    "test_name": "unit_analysis_entity_clustering",
+    "hostname": "Filipe",
+    "clustering_results": [
+        {
+            "activity_pattern": "low_activity",
+            "wallet": "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8",
+            "transaction_count": 10,
+            "timing_clusters": {
+                "frequency": "daily",
+                "consistency_score": 0.7,
+                "pattern_type": "regular"
+            },
+            "interaction_style": {
+                "complexity_score": 0.6,
+                "protocol_diversity": "low",
+                "interaction_style": "defi_focused"
+            }
+        },
+        {
+            "activity_pattern": "low_activity",
+            "wallet": "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4",
+            "transaction_count": 10,
+            "timing_clusters": {
+                "frequency": "daily",
+                "consistency_score": 0.7,
+                "pattern_type": "regular"
+            },
+            "interaction_style": {
+                "complexity_score": 0.6,
+                "protocol_diversity": "low",
+                "interaction_style": "defi_focused"
+            }
+        },
+        {
+            "activity_pattern": "low_activity",
+            "wallet": "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM",
+            "transaction_count": 10,
+            "timing_clusters": {
+                "frequency": "daily",
+                "consistency_score": 0.7,
+                "pattern_type": "regular"
+            },
+            "interaction_style": {
+                "complexity_score": 0.6,
+                "protocol_diversity": "low",
+                "interaction_style": "defi_focused"
+            }
+        },
+        {
+            "activity_pattern": "low_activity",
+            "wallet": "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU",
+            "transaction_count": 10,
+            "timing_clusters": {
+                "frequency": "daily",
+                "consistency_score": 0.7,
+                "pattern_type": "regular"
+            },
+            "interaction_style": {
+                "complexity_score": 0.6,
+                "protocol_diversity": "low",
+                "interaction_style": "defi_focused"
+            }
+        }
+    ],
+    "saved_at": "2025-08-15T10:21:00.621",
+    "timestamp": "2025-08-15T10:21:00.484",
+    "category": "behavioral_clustering"
+}

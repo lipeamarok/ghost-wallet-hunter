@@ -3,13 +3,23 @@ module MainServer # Filename MainServer.jl implies module MainServer
 
 using Oxygen
 using HTTP # Required for HTTP.Request, HTTP.Response if using custom middleware
-using ..Routes # Sibling module
 using JSON3 # For JSON responses in middleware
+
+include("Routes.jl")
+using .Routes # Local module in same directory
+
+# NEW: load frontend-specific handlers so their direct /api/v1/wallet/* routes register
+include("FrontendHandlers.jl")
+using .FrontendHandlers
+
+# NEW: Include UnifiedInvestigationHandler so unified route is registered
+include("UnifiedInvestigationHandler.jl")
+using .UnifiedInvestigationHandler
 
 # Import the main application Config module
 include("../../config/config.jl") # Assuming MainServer.jl is in src/api/
 # Use `MainAppConfig` to avoid conflict with `agents.Config` if it were also used here.
-MainAppConfig = Config 
+MainAppConfig = Config
 
 # Load the main application configuration once
 const APP_CONFIG = MainAppConfig.load(joinpath(@__DIR__, "..", "..", "config", "config.toml"))
@@ -50,13 +60,13 @@ function auth_middleware(handler)
     return function(req::HTTP.Request)
         auth_enabled = MainAppConfig.get_value(APP_CONFIG, "security.enable_authentication", true)
         @info "AuthMiddleware: auth_enabled = $auth_enabled"
-        
+
         if !auth_enabled
             return handler(req) # Authentication is disabled, proceed
         end
 
         api_key_header = HTTP.header(req, "X-API-Key", "")
-        
+
         if isempty(api_key_header)
             @warn "AuthMiddleware: Missing X-API-Key header"
             return HTTP.Response(401, ["Content-Type" => "application/json"], body=JSON3.write(Dict("error" => "Unauthorized: Missing API Key")))
@@ -73,7 +83,7 @@ function auth_middleware(handler)
             @warn "AuthMiddleware: Invalid API Key provided"
             return HTTP.Response(403, ["Content-Type" => "application/json"], body=JSON3.write(Dict("error" => "Forbidden: Invalid API Key")))
         end
-        
+
         # API Key is valid
         return handler(req)
     end
@@ -92,13 +102,14 @@ function start_server(; default_host::String="0.0.0.0", default_port::Int=8000) 
     @info "Initializing API server on $api_host:$api_port..."
 
     Routes.register_routes()
-    
+    # FrontendHandlers.__init__ already auto-registers its routes on module load
+
     # Middleware order matters: logging -> cors -> auth -> router
     # Auth middleware should be one of the first to protect endpoints.
     # CORS should typically be early to handle OPTIONS requests.
     # Logging can be first or last depending on what you want to log.
     # Here, logging is outermost to capture all request/response info.
-    
+
     # Oxygen's serveparallel can take a vector of middleware.
     # The order in the vector is the order they are applied (wrapper order).
     # Outermost (first applied) to innermost (last applied before route handler).

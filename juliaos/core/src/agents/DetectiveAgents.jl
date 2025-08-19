@@ -8,6 +8,11 @@ using Dates
 using UUIDs
 using Logging
 using Statistics
+const Threads = Base.Threads
+
+# CommonTypes will be available from parent module JuliaOS
+include("CommonTypes.jl")
+using .CommonTypes
 
 # Import all individual detective agents
 include("PoirotAgent.jl")
@@ -17,6 +22,18 @@ include("MarloweeAgent.jl")
 include("DupinAgent.jl")
 include("ShadowAgent.jl")
 include("RavenAgent.jl")
+
+# Ensure SolanaService is loaded ONCE into Main (avoid per-agent nested modules that break constructors)
+try
+    if !isdefined(Main, :SolanaService)
+        Base.include(Main, joinpath(@__DIR__, "..", "blockchain", "SolanaService.jl"))
+        @info "SolanaService loaded into Main from DetectiveAgents preload"
+    else
+        @debug "SolanaService already present in Main (skipping preload)"
+    end
+catch e
+    @warn "Failed to preload SolanaService into Main" error=e
+end
 
 using .PoirotAgent
 using .MarpleAgent
@@ -28,7 +45,8 @@ using .RavenAgent
 
 export Detective, GhostDetectives
 export create_detective, investigate_wallet, get_all_detectives, create_detective_by_type
-export investigate_wallet_multi_detective
+export investigate_wallet_multi_detective, create_detective_squad
+export count_active_detectives, investigate
 
 # ==========================================
 # DETECTIVE BASE STRUCTURE
@@ -56,7 +74,7 @@ end
 function get_all_detectives()
     """Returns a list of all available detective agents"""
     return [
-        Dict(
+        Dict{String,Any}(
             "id" => "poirot",
             "name" => "Detective Hercule Poirot",
             "specialty" => "methodical_transaction_analysis",
@@ -64,7 +82,7 @@ function get_all_detectives()
             "persona" => "Belgian master of deduction applied to blockchain analysis",
             "catchphrase" => "Ah, mon ami, the little grey cells, they work!"
         ),
-        Dict(
+        Dict{String,Any}(
             "id" => "marple",
             "name" => "Detective Miss Jane Marple",
             "specialty" => "pattern_anomaly_detection",
@@ -72,7 +90,7 @@ function get_all_detectives()
             "persona" => "Perceptive observer who notices details others miss",
             "catchphrase" => "Oh my dear, that's rather peculiar, isn't it?"
         ),
-        Dict(
+        Dict{String,Any}(
             "id" => "spade",
             "name" => "Detective Sam Spade",
             "specialty" => "hard_boiled_investigation_compliance",
@@ -80,7 +98,7 @@ function get_all_detectives()
             "persona" => "Hard-boiled private detective with compliance expertise",
             "catchphrase" => "When you're slapped, you'll take it and like it."
         ),
-        Dict(
+        Dict{String,Any}(
             "id" => "marlowee",
             "name" => "Detective Philip Marlowe",
             "specialty" => "deep_analysis_investigation",
@@ -88,7 +106,7 @@ function get_all_detectives()
             "persona" => "Knight of the mean streets with narrative depth",
             "catchphrase" => "Down these mean streets a man must go who is not himself mean."
         ),
-        Dict(
+        Dict{String,Any}(
             "id" => "dupin",
             "name" => "Detective Auguste Dupin",
             "specialty" => "analytical_reasoning_investigation",
@@ -96,7 +114,7 @@ function get_all_detectives()
             "persona" => "Master of ratiocination and pure logic",
             "catchphrase" => "The mental features discoursed of as the analytical, are, in themselves, but little susceptible of analysis."
         ),
-        Dict(
+        Dict{String,Any}(
             "id" => "shadow",
             "name" => "The Shadow",
             "specialty" => "stealth_investigation",
@@ -104,7 +122,7 @@ function get_all_detectives()
             "persona" => "Master of stealth and hidden network investigations",
             "catchphrase" => "Who knows what evil lurks in the hearts of wallets? The Shadow knows!"
         ),
-        Dict(
+        Dict{String,Any}(
             "id" => "raven",
             "name" => "Detective Raven",
             "specialty" => "dark_investigation",
@@ -113,6 +131,11 @@ function get_all_detectives()
             "catchphrase" => "Nevermore shall evil transactions escape my vigilant gaze."
         )
     ]
+end
+
+# Count active detectives
+function count_active_detectives()::Int
+    return length(get_all_detectives())
 end
 
 # Create detective by type
@@ -137,6 +160,27 @@ function create_detective_by_type(detective_type::String)
     end
 end
 
+"""
+Initialize all detective agents into a squad.
+"""
+function create_detective_squad()::Vector{Any}
+    detective_types = ["poirot", "marple", "spade", "marlowee", "dupin", "shadow", "raven"]
+    squad = Vector{Any}()
+
+    for detective_type in detective_types
+        try
+            detective = create_detective_by_type(detective_type)
+            push!(squad, detective)
+            @info "Detective $detective_type initialized successfully"
+        catch e
+            @warn "Failed to initialize detective $detective_type: $e"
+        end
+    end
+
+    @info "Detective squad created with $(length(squad)) active detectives"
+    return squad
+end
+
 # Create a new detective agent
 function create_detective(config::Dict)
     @info "Creating detective agent: $(config["name"])"
@@ -157,6 +201,13 @@ function create_detective(config::Dict)
 
     return detective
 end
+
+# Helper to normalize outward-facing detective IDs (keep internal ids intact)
+const DETECTIVE_ID_OUTPUT_MAP = Dict(
+    "marlowee" => "marlowe",
+)
+
+_display_id(id::String) = get(DETECTIVE_ID_OUTPUT_MAP, id, id)
 
 # Investigate wallet using specific detective methodology - REAL BLOCKCHAIN ANALYSIS
 function investigate_wallet(detective_type::String, wallet_address::String, investigation_id::String)
@@ -191,7 +242,7 @@ function investigate_wallet(detective_type::String, wallet_address::String, inve
 
         # Add orchestration metadata
         investigation_result["orchestrated_by"] = "DetectiveAgents"
-        investigation_result["orchestration_timestamp"] = string(now())
+        investigation_result["orchestration_timestamp"] = Dates.format(now(UTC), dateformat"yyyy-mm-ddTHH:MM:SS.sssZ")
         investigation_result["investigation_id"] = investigation_id
 
         return investigation_result
@@ -211,16 +262,36 @@ function investigate_wallet(detective_type::String, wallet_address::String, inve
     end
 end
 
-# Orchestrate multi-detective investigation
-function investigate_wallet_multi_detective(wallet_address::String, investigation_id::String, detective_types::Vector{String} = ["poirot", "marple", "spade"])
+# Orchestrate multi-detective investigation (parallel across all 7 by default)
+function investigate_wallet_multi_detective(wallet_address::String, investigation_id::String, detective_types::Vector{String} = ["poirot", "marple", "spade", "marlowee", "dupin", "shadow", "raven"])
     @info "🔍 Multi-detective investigation for wallet: $wallet_address"
 
-    results = Dict()
+    # Pre-warm: run a quick Poirot fetch to populate cache and basic analysis
+    try
+        @info "⚡ Pre-warming cache with quick Poirot run"
+        # Minimal depth and no AI to be fast but fill cache sufficiently
+        cfg = PoirotAgent.ToolAnalyzeWalletConfig(max_transactions=300, analysis_depth="quick", include_ai_analysis=false, rate_limit_delay=0.2)
+        task = Dict("wallet_address"=>wallet_address)
+        base = PoirotAgent.tool_analyze_wallet(cfg, task)
+        if !(get(base, "success", false))
+            @warn "Pre-warm failed: $(get(base, "error", "unknown"))"
+        end
+    catch e
+        @warn "Pre-warm error: $e"
+    end
 
+    results = Dict{String,Any}()
+
+    # Run each detective in parallel
+    tasks = Dict{String,Task}()
     for detective_type in detective_types
+        tasks[detective_type] = Threads.@spawn investigate_wallet(detective_type, wallet_address, investigation_id)
+    end
+
+    # Collect results
+    for (detective_type, t) in tasks
         try
-            result = investigate_wallet(detective_type, wallet_address, investigation_id)
-            results[detective_type] = result
+            results[detective_type] = fetch(t)
         catch e
             @error "Failed investigation with $detective_type: $e"
             results[detective_type] = Dict(
@@ -231,24 +302,33 @@ function investigate_wallet_multi_detective(wallet_address::String, investigatio
         end
     end
 
-    # Calculate consensus
-    valid_results = filter(r -> get(r.second, "status", "") != "failed", results)
+    # Calculate consensus (consider only fully completed agents as successful)
+    valid_results = filter(r -> get(r.second, "status", "") == "completed", results)
 
     if length(valid_results) > 0
         avg_risk = mean([get(r.second, "risk_score", 0.0) for r in valid_results])
         avg_confidence = mean([get(r.second, "confidence", 0.0) for r in valid_results])
 
+        # Map internal ids to outward-facing ids for output with stable ordering
+        display_results = Dict{String,Any}()
+        for dt in detective_types
+            if haskey(results, dt)
+                display_results[_display_id(dt)] = results[dt]
+            end
+        end
+        display_detectives = [_display_id(x) for x in detective_types]
+
         consensus = Dict(
             "multi_detective_analysis" => true,
-            "participating_detectives" => detective_types,
+            "participating_detectives" => display_detectives,
             "successful_investigations" => length(valid_results),
             "failed_investigations" => length(detective_types) - length(valid_results),
             "consensus_risk_score" => avg_risk,
             "consensus_confidence" => avg_confidence,
-            "individual_results" => results,
+            "individual_results" => display_results,
             "investigation_id" => investigation_id,
             "wallet_address" => wallet_address,
-            "timestamp" => string(now())
+            "timestamp" => Dates.format(now(UTC), dateformat"yyyy-mm-ddTHH:MM:SS.sssZ")
         )
 
         return consensus
@@ -256,10 +336,10 @@ function investigate_wallet_multi_detective(wallet_address::String, investigatio
         return Dict(
             "multi_detective_analysis" => true,
             "error" => "All detective investigations failed",
-            "participating_detectives" => detective_types,
+            "participating_detectives" => [_display_id(x) for x in detective_types],
             "successful_investigations" => 0,
             "failed_investigations" => length(detective_types),
-            "individual_results" => results,
+            "individual_results" => Dict{String,Any}([_display_id(k) => v for (k,v) in results]),
             "investigation_id" => investigation_id,
             "status" => "all_failed"
         )
@@ -320,6 +400,16 @@ Framework-compatible investigation function.
 function investigate_with_agent(detective_type::String, wallet_address::String, params::Dict = Dict())
     investigation_id = get(params, "investigation_id", string(uuid4()))
     return investigate_wallet(detective_type, wallet_address, investigation_id)
+end
+
+# High-level investigate entry used by JuliaOS.investigate_wallet
+function investigate(squad::Vector{Any}, wallet_address::String, detective_type::String)
+    inv_id = string(uuid4())
+    if lowercase(detective_type) in ("comprehensive", "multi", "all")
+        return investigate_wallet_multi_detective(wallet_address, inv_id)
+    else
+        return investigate_wallet(lowercase(detective_type), wallet_address, inv_id)
+    end
 end
 
 # Legacy compatibility function for JuliaOS.jl
@@ -397,5 +487,38 @@ end
 # Update exports for framework compatibility
 export create_detective_by_type, get_detective_registry, investigate_with_agent
 export get_detective_name, get_detective_specialty, get_detective_skills
+
+# ADD MISSING FUNCTIONS FOR FRAMEWORK COMPATIBILITY
+function getAgent(agent_id::String)
+    """Get agent by ID - compatibility function"""
+    return create_detective_by_type(agent_id)
+end
+
+function executeAgentTask(agent::Detective, task::Dict)
+    """Execute agent task - compatibility function"""
+    wallet_address = get(task, "wallet_address", "")
+    if !isempty(wallet_address)
+        return investigate_wallet(agent, wallet_address)
+    end
+    return Dict("error" => "No wallet address provided")
+end
+
+function getAgentStatus(agent::Detective)
+    """Get agent status - compatibility function"""
+    return agent.status
+end
+
+function listAgents()
+    """List all agents - compatibility function"""
+    return get_all_detectives()
+end
+
+function startAgent(agent_type::String)
+    """Start agent - compatibility function"""
+    return create_detective_by_type(agent_type)
+end
+
+# Export compatibility functions
+export getAgent, executeAgentTask, getAgentStatus, listAgents, startAgent
 
 end # module DetectiveAgents

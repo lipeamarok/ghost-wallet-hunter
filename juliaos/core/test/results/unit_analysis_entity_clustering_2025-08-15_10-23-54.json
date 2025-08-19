@@ -1,0 +1,26 @@
+{
+    "julia_version": "1.11.6",
+    "high_suspicion_count": 0,
+    "test_name": "unit_analysis_entity_clustering",
+    "clusters_analyzed": 3,
+    "hostname": "Filipe",
+    "suspicious_clusters": [
+        {
+            "suspicious_patterns": [
+            ],
+            "wallet": "mv3ekLzLbnVPNxjSKvqBpU3ZeZXPQdEC3bp5MDEBG68",
+            "risk_indicators": [
+            ],
+            "cluster_behavior": {
+                "cluster_size": 12,
+                "behavior_type": "small_cluster"
+            },
+            "transaction_volume": 12,
+            "suspicion_score": 0.27753348351939006
+        }
+    ],
+    "average_suspicion_score": 0.27753348351939006,
+    "saved_at": "2025-08-15T10:23:54.996",
+    "timestamp": "2025-08-15T10:23:54.848",
+    "category": "suspicious_cluster_identification"
+}

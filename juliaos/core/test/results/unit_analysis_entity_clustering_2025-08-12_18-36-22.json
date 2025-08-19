@@ -1,0 +1,13 @@
+{
+    "julia_version": "1.11.6",
+    "high_suspicion_count": 0,
+    "test_name": "unit_analysis_entity_clustering",
+    "clusters_analyzed": 3,
+    "hostname": "Filipe",
+    "suspicious_clusters": [
+    ],
+    "average_suspicion_score": 0,
+    "saved_at": "2025-08-12T18:36:22.036",
+    "timestamp": "2025-08-12T18:36:21.877",
+    "category": "suspicious_cluster_identification"
+}

@@ -1,0 +1,40 @@
+{
+    "contamination_results": [
+        {
+            "final_contamination_level": 0.18000000000000002,
+            "wallet": "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4",
+            "transaction_count": 6,
+            "base_contamination": 0.30000000000000004,
+            "contamination_grade": "MINIMAL",
+            "type_multiplier": 0.6
+        },
+        {
+            "final_contamination_level": 0.24000000000000005,
+            "wallet": "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU",
+            "transaction_count": 6,
+            "base_contamination": 0.30000000000000004,
+            "contamination_grade": "LOW",
+            "type_multiplier": 0.8
+        },
+        {
+            "final_contamination_level": 0.030000000000000006,
+            "wallet": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+            "transaction_count": 6,
+            "base_contamination": 0.30000000000000004,
+            "contamination_grade": "MINIMAL",
+            "type_multiplier": 0.1
+        }
+    ],
+    "julia_version": "1.11.6",
+    "test_name": "unit_analysis_taint_propagation",
+    "hostname": "Filipe",
+    "saved_at": "2025-08-15T10:19:09.553",
+    "unique_levels_detected": 2,
+    "wallets_analyzed": 4,
+    "timestamp": "2025-08-15T10:19:09.459",
+    "category": "contamination_level_calculation",
+    "contamination_distribution": {
+        "LOW": 1,
+        "MINIMAL": 2
+    }
+}

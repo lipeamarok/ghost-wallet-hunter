@@ -1,0 +1,12 @@
+{
+    "analyzed_wallets": 4,
+    "patterns_identified": 0,
+    "julia_version": "1.11.6",
+    "test_name": "unit_analysis_entity_clustering",
+    "hostname": "Filipe",
+    "clustering_results": [
+    ],
+    "saved_at": "2025-08-12T18:36:15.401",
+    "timestamp": "2025-08-12T18:36:15.266",
+    "category": "behavioral_clustering"
+}

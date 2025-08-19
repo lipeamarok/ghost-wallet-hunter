@@ -9,17 +9,42 @@ module AgentMetrics
 
 using Dates, DataStructures, Statistics, Logging
 
-# Import necessary functions from the Config module.
-# Assumes Config.jl defines "module Config" and is a sibling to this file
-# within the "agents" directory/module scope.
-# Config is now loaded by framework
-import ..Config: get_config
+# Use centralized Configuration module from JuliaOS
+const get_config = Main.JuliaOS.Configuration.get_config
 import ..AgentCore: AGENTS, AGENTS_LOCK, AgentStatus, RUNNING, PAUSED, DetectiveMemory, InvestigationTask
 
 export record_metric, get_metrics, get_agent_metrics, reset_metrics, get_system_summary_metrics,
        MetricType, COUNTER, GAUGE, HISTOGRAM, SUMMARY, # Export MetricType enum and its values
        record_investigation_metric, record_risk_detection, get_detective_metrics,
        get_investigation_stats, get_risk_detection_stats
+
+# ---------------------------------------------------------------------------
+# Internal helpers (quantile safety & normalization)
+# ---------------------------------------------------------------------------
+_safe_quantile(arr::AbstractVector{T}, q::Real) where {T<:Real} = isempty(arr) ? missing : (length(arr)==1 ? first(arr) : try
+    quantile(arr, q)
+catch
+    # Fallback: approximate quantile via sorted index
+    s = sort(arr); idx = clamp(Int(ceil(q*length(s))), 1, length(s)); s[idx]
+end)
+
+function _compute_distribution_stats(values::AbstractVector{<:Real})
+    if isempty(values)
+    return Dict{String,Any}()  # empty
+    end
+    return Dict(
+        "count" => length(values),
+        "min" => minimum(values),
+        "max" => maximum(values),
+        "avg" => mean(values),
+        "median" => median(values),
+        "p50" => _safe_quantile(values, 0.50),
+        "p95" => _safe_quantile(values, 0.95),
+        "p99" => _safe_quantile(values, 0.99),
+    )
+end
+
+_normalize_score(x) = x > 1 ? x/100 : x
 
 # Metric types
 @enum MetricType begin
@@ -394,22 +419,25 @@ function record_risk_detection(agent_id::String, wallet_address::String, risk_sc
         "wallet_type" => "investigated"
     )
 
+    # Normalize score if provided on 0-100 scale
+    risk_score_norm = _normalize_score(risk_score)
+
     # Record risk score distribution
-    record_metric(agent_id, "risk_score", HISTOGRAM, risk_score, tags)
+    record_metric(agent_id, "risk_score", HISTOGRAM, risk_score_norm, tags)
 
     # Record risk level counts
     record_metric(agent_id, "risk_detections_$(lowercase(risk_level))", COUNTER, 1, tags)
 
     # Record high-risk detections specifically
-    if risk_score >= 0.8
+    if risk_score_norm >= 0.8
         record_metric(agent_id, "high_risk_detections", COUNTER, 1, tags)
-    elseif risk_score >= 0.6
+    elseif risk_score_norm >= 0.6
         record_metric(agent_id, "medium_risk_detections", COUNTER, 1, tags)
     else
         record_metric(agent_id, "low_risk_detections", COUNTER, 1, tags)
     end
 
-    @debug "Recorded risk detection for agent $agent_id: wallet $wallet_address, score $risk_score"
+    @debug "Recorded risk detection for agent $agent_id: wallet $wallet_address, score $risk_score_norm (normalized)"
 end
 
 """
@@ -456,9 +484,12 @@ function get_detective_metrics(agent_id::String, time_window_hours::Int=24)
             if haskey(agent_metrics, "investigation_execution_time")
                 execution_times = get_histogram_values(agent_metrics["investigation_execution_time"], cutoff_time)
                 if !isempty(execution_times)
-                    metrics_summary["performance"]["avg_execution_time"] = mean(execution_times)
-                    metrics_summary["performance"]["median_execution_time"] = median(execution_times)
-                    metrics_summary["performance"]["p95_execution_time"] = length(execution_times) > 1 ? quantile(execution_times, 0.95) : execution_times[1]
+                    dist = _compute_distribution_stats(execution_times)
+                    metrics_summary["performance"]["avg_execution_time"] = dist["avg"]
+                    metrics_summary["performance"]["median_execution_time"] = dist["median"]
+                    metrics_summary["performance"]["p50_execution_time"] = dist["p50"]
+                    metrics_summary["performance"]["p95_execution_time"] = dist["p95"]
+                    metrics_summary["performance"]["p99_execution_time"] = dist["p99"]
                 end
             end
 
@@ -518,11 +549,14 @@ function get_investigation_stats(time_window_hours::Int=24)
 
     # Calculate performance statistics
     if !isempty(all_execution_times)
-        stats["performance"]["avg_execution_time"] = mean(all_execution_times)
-        stats["performance"]["median_execution_time"] = median(all_execution_times)
-        stats["performance"]["p95_execution_time"] = quantile(all_execution_times, 0.95)
-        stats["performance"]["min_execution_time"] = minimum(all_execution_times)
-        stats["performance"]["max_execution_time"] = maximum(all_execution_times)
+    dist = _compute_distribution_stats(all_execution_times)
+    stats["performance"]["avg_execution_time"] = dist["avg"]
+    stats["performance"]["median_execution_time"] = dist["median"]
+    stats["performance"]["p50_execution_time"] = dist["p50"]
+    stats["performance"]["p95_execution_time"] = dist["p95"]
+    stats["performance"]["p99_execution_time"] = dist["p99"]
+    stats["performance"]["min_execution_time"] = dist["min"]
+    stats["performance"]["max_execution_time"] = dist["max"]
     end
 
     stats["success_rate"] = stats["total_investigations"] > 0 ? stats["successful_investigations"] / stats["total_investigations"] : 0.0
@@ -569,11 +603,18 @@ function get_risk_detection_stats(time_window_hours::Int=24)
 
     # Calculate risk score distribution
     if !isempty(all_risk_scores)
-        stats["risk_distribution"]["avg_risk_score"] = mean(all_risk_scores)
-        stats["risk_distribution"]["median_risk_score"] = median(all_risk_scores)
-        stats["risk_distribution"]["p95_risk_score"] = quantile(all_risk_scores, 0.95)
-        stats["risk_distribution"]["min_risk_score"] = minimum(all_risk_scores)
-        stats["risk_distribution"]["max_risk_score"] = maximum(all_risk_scores)
+        # Normalize scores to 0-1 if any exceed 1 (mixed scales defense)
+        if any(x->x>1, all_risk_scores)
+            all_risk_scores .= map(_normalize_score, all_risk_scores)
+        end
+        dist = _compute_distribution_stats(all_risk_scores)
+        stats["risk_distribution"]["avg_risk_score"] = dist["avg"]
+        stats["risk_distribution"]["median_risk_score"] = dist["median"]
+        stats["risk_distribution"]["p50_risk_score"] = dist["p50"]
+        stats["risk_distribution"]["p95_risk_score"] = dist["p95"]
+        stats["risk_distribution"]["p99_risk_score"] = dist["p99"]
+        stats["risk_distribution"]["min_risk_score"] = dist["min"]
+        stats["risk_distribution"]["max_risk_score"] = dist["max"]
     end
 
     stats["collected_at"] = string(now())

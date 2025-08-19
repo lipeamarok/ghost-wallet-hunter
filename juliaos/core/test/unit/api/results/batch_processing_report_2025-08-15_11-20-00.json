@@ -1,0 +1,156 @@
+{
+  "batch_id": "test_batch_20250815_111959",
+  "job_details": [
+    {
+      "retry_count": 3,
+      "priority": 1,
+      "wallet_address": "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM",
+      "status": "failed",
+      "processing_time": 0.5269999504089355,
+      "job_id": "1a4fd804",
+      "job_type": "risk_assessment"
+    },
+    {
+      "retry_count": 3,
+      "priority": 1,
+      "wallet_address": "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM",
+      "status": "failed",
+      "processing_time": 0.5269999504089355,
+      "job_id": "1a4fd804",
+      "job_type": "risk_assessment"
+    },
+    {
+      "retry_count": 3,
+      "priority": 1,
+      "wallet_address": "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM",
+      "status": "failed",
+      "processing_time": 0.5269999504089355,
+      "job_id": "1a4fd804",
+      "job_type": "risk_assessment"
+    },
+    {
+      "retry_count": 3,
+      "priority": 2,
+      "wallet_address": "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU",
+      "status": "failed",
+      "processing_time": 0.41700005531311035,
+      "job_id": "001d130e",
+      "job_type": "taint_analysis"
+    },
+    {
+      "retry_count": 3,
+      "priority": 2,
+      "wallet_address": "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU",
+      "status": "failed",
+      "processing_time": 0.41700005531311035,
+      "job_id": "001d130e",
+      "job_type": "taint_analysis"
+    },
+    {
+      "retry_count": 3,
+      "priority": 2,
+      "wallet_address": "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU",
+      "status": "failed",
+      "processing_time": 0.41700005531311035,
+      "job_id": "001d130e",
+      "job_type": "taint_analysis"
+    },
+    {
+      "retry_count": 3,
+      "priority": 3,
+      "wallet_address": "5Q544fKrFoe6tsEbD7S8EmxGTJYAKtTVhAW5Q5pge4j1",
+      "status": "failed",
+      "processing_time": 0.41499996185302734,
+      "job_id": "b5578d3b",
+      "job_type": "pattern_recognition"
+    },
+    {
+      "retry_count": 3,
+      "priority": 3,
+      "wallet_address": "5Q544fKrFoe6tsEbD7S8EmxGTJYAKtTVhAW5Q5pge4j1",
+      "status": "failed",
+      "processing_time": 0.41499996185302734,
+      "job_id": "b5578d3b",
+      "job_type": "pattern_recognition"
+    },
+    {
+      "retry_count": 3,
+      "priority": 3,
+      "wallet_address": "5Q544fKrFoe6tsEbD7S8EmxGTJYAKtTVhAW5Q5pge4j1",
+      "status": "failed",
+      "processing_time": 0.41499996185302734,
+      "job_id": "b5578d3b",
+      "job_type": "pattern_recognition"
+    },
+    {
+      "retry_count": 3,
+      "priority": 4,
+      "wallet_address": "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4",
+      "status": "failed",
+      "processing_time": 0.4199998378753662,
+      "job_id": "5a6d4ff6",
+      "job_type": "network_analysis"
+    },
+    {
+      "retry_count": 3,
+      "priority": 4,
+      "wallet_address": "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4",
+      "status": "failed",
+      "processing_time": 0.4199998378753662,
+      "job_id": "5a6d4ff6",
+      "job_type": "network_analysis"
+    },
+    {
+      "retry_count": 3,
+      "priority": 4,
+      "wallet_address": "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4",
+      "status": "failed",
+      "processing_time": 0.4199998378753662,
+      "job_id": "5a6d4ff6",
+      "job_type": "network_analysis"
+    },
+    {
+      "retry_count": 3,
+      "priority": 5,
+      "wallet_address": "whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc",
+      "status": "failed",
+      "processing_time": 0.41499996185302734,
+      "job_id": "fe8a5874",
+      "job_type": "compliance_check"
+    },
+    {
+      "retry_count": 3,
+      "priority": 5,
+      "wallet_address": "whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc",
+      "status": "failed",
+      "processing_time": 0.41499996185302734,
+      "job_id": "fe8a5874",
+      "job_type": "compliance_check"
+    },
+    {
+      "retry_count": 3,
+      "priority": 5,
+      "wallet_address": "whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc",
+      "status": "failed",
+      "processing_time": 0.41499996185302734,
+      "job_id": "fe8a5874",
+      "job_type": "compliance_check"
+    }
+  ],
+  "performance_metrics": {
+    "average_job_time": 0.0,
+    "throughput_wallets_per_minute": 0.0,
+    "throughput_jobs_per_second": 0.0,
+    "total_processing_time": 6.624
+  },
+  "processing_summary": {
+    "queued": 0,
+    "success_rate": 0.0,
+    "total_jobs": 15,
+    "active": 0,
+    "elapsed_time_seconds": 6.624,
+    "completed": 0,
+    "failed": 15,
+    "processing_rate": 0.0
+  }
+}

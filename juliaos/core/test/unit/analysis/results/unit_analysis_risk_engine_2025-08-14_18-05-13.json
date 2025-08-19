@@ -1,0 +1,111 @@
+{
+    "config_used": "balanced",
+    "julia_version": "1.11.6",
+    "test_name": "unit_analysis_risk_engine",
+    "test_type": "complete_risk_assessment",
+    "hostname": "Filipe",
+    "saved_at": "2025-08-14T18:05:13.107",
+    "results": [
+        {
+            "assessment_time": "2025-08-14T18:05:07.364",
+            "wallet_address": "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4",
+            "transaction_count": 7,
+            "final_score": 0.24014285714285713,
+            "risk_level": "LOW",
+            "components": [
+                {
+                    "score": 0.07,
+                    "weight": 0.4,
+                    "description": "Taint proximity analysis based on 7 tainted transactions",
+                    "evidence": [
+                        "low_taint_exposure"
+                    ]
+                },
+                {
+                    "score": 0.6071428571428571,
+                    "weight": 0.3,
+                    "description": "Convergence analysis: 8 nodes, 17 edges, density 0.304",
+                    "evidence": [
+                        "medium_convergence_pattern"
+                    ]
+                },
+                {
+                    "score": 0.1,
+                    "weight": 0.3,
+                    "description": "Control signals analysis: 7 transactions analyzed",
+                    "evidence": [
+                        "normal_control_patterns"
+                    ]
+                }
+            ]
+        },
+        {
+            "assessment_time": "2025-08-14T18:05:09.738",
+            "wallet_address": "whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc",
+            "transaction_count": 7,
+            "final_score": 0.17254545454545456,
+            "risk_level": "LOW",
+            "components": [
+                {
+                    "score": 0.07,
+                    "weight": 0.4,
+                    "description": "Taint proximity analysis based on 7 tainted transactions",
+                    "evidence": [
+                        "low_taint_exposure"
+                    ]
+                },
+                {
+                    "score": 0.38181818181818183,
+                    "weight": 0.3,
+                    "description": "Convergence analysis: 11 nodes, 21 edges, density 0.191",
+                    "evidence": [
+                        "low_convergence_pattern"
+                    ]
+                },
+                {
+                    "score": 0.1,
+                    "weight": 0.3,
+                    "description": "Control signals analysis: 7 transactions analyzed",
+                    "evidence": [
+                        "normal_control_patterns"
+                    ]
+                }
+            ]
+        },
+        {
+            "assessment_time": "2025-08-14T18:05:12.088",
+            "wallet_address": "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM",
+            "transaction_count": 7,
+            "final_score": 0.2513333333333333,
+            "risk_level": "LOW",
+            "components": [
+                {
+                    "score": 0.07,
+                    "weight": 0.4,
+                    "description": "Taint proximity analysis based on 7 tainted transactions",
+                    "evidence": [
+                        "low_taint_exposure"
+                    ]
+                },
+                {
+                    "score": 0.6444444444444445,
+                    "weight": 0.3,
+                    "description": "Convergence analysis: 10 nodes, 29 edges, density 0.322",
+                    "evidence": [
+                        "medium_convergence_pattern"
+                    ]
+                },
+                {
+                    "score": 0.1,
+                    "weight": 0.3,
+                    "description": "Control signals analysis: 7 transactions analyzed",
+                    "evidence": [
+                        "normal_control_patterns"
+                    ]
+                }
+            ]
+        }
+    ],
+    "wallets_assessed": 3,
+    "category": "analysis"
+}

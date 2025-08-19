@@ -1,0 +1,13 @@
+{
+    "targets_analyzed": 3,
+    "max_coordination_score": 0,
+    "julia_version": "1.11.6",
+    "test_name": "unit_analysis_entity_clustering",
+    "coordination_analysis": [
+    ],
+    "hostname": "Filipe",
+    "saved_at": "2025-08-12T18:36:23.168",
+    "timestamp": "2025-08-12T18:36:23.167",
+    "category": "coordinated_operations_detection",
+    "highly_coordinated_count": 0
+}

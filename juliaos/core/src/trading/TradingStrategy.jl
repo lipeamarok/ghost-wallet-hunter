@@ -4,12 +4,12 @@ TradingStrategy.jl - Core module for defining and managing trading strategies in
 module TradingStrategy
 
 try
-    using ..dex.DEXBase 
-    using ..dex.DEX 
-    using ..swarm 
+    using ..dex.DEXBase
+    using ..dex.DEX
+    using ..swarm
     using ..swarm.SwarmBase
     using ..price.PriceFeedBase
-    using ..price.PriceFeed 
+    using ..price.PriceFeed
     using Statistics, LinearAlgebra, Random, Dates, Logging
     # Explicitly import Blockchain to access its functions if needed by helpers here
     using ..blockchain # For Blockchain.get_gas_price_generic
@@ -43,21 +43,21 @@ struct OptimalPortfolioStrategy <: AbstractStrategy
 end
 
 struct ArbitrageStrategy <: AbstractStrategy
-    name::String; dex_instances::Vector{AbstractDEX}; tokens_of_interest::Vector{DEXToken}; 
-    min_profit_threshold_percent::Float64; max_trade_size_usd::Float64; 
-    optimization_params::Dict{String, Any}; 
-    price_feed_provider_name::String; 
-    price_feed_config::Dict{Symbol, Any}; 
+    name::String; dex_instances::Vector{AbstractDEX}; tokens_of_interest::Vector{DEXToken};
+    min_profit_threshold_percent::Float64; max_trade_size_usd::Float64;
+    optimization_params::Dict{String, Any};
+    price_feed_provider_name::String;
+    price_feed_config::Dict{Symbol, Any};
 
-    function ArbitrageStrategy(name, dex_instances, tokens; 
-                               min_profit_threshold_percent=0.1, 
-                               max_trade_size_usd=1000.0, 
+    function ArbitrageStrategy(name, dex_instances, tokens;
+                               min_profit_threshold_percent=0.1,
+                               max_trade_size_usd=1000.0,
                                optimization_params=Dict("typical_swap_gas_units"=>200000, "liquidity_fraction_threshold"=>0.05),
-                               price_feed_provider="chainlink", 
+                               price_feed_provider="chainlink",
                                price_feed_config_override=Dict())
         (length(dex_instances)<1 && length(tokens)<2) && @warn "Arbitrage may not find opportunities."
         isempty(tokens) && error("Tokens of interest required.")
-        
+
         default_pf_chain_id = !isempty(dex_instances) ? dex_instances[1].config.chain_id : 1
         default_pf_rpc_url = !isempty(dex_instances) ? dex_instances[1].config.rpc_url : get(ENV,"ETH_RPC_URL","http://localhost:8545")
         default_pf_config = Dict{Symbol, Any}(:name => name * "_arb_gas_pf", :chain_id => default_pf_chain_id, :rpc_url => default_pf_rpc_url)
@@ -69,20 +69,20 @@ end
 
 # New constructor for ArbitrageStrategy that takes DEX configuration dictionaries
 function ArbitrageStrategy(
-    name::String, 
+    name::String,
     dex_configurations::Vector{Dict{String,Any}}, # List of Dicts, each a DEX config
     tokens::Vector{DEXBase.DEXToken};
-    min_profit_threshold_percent=0.1, 
-    max_trade_size_usd=1000.0, 
+    min_profit_threshold_percent=0.1,
+    max_trade_size_usd=1000.0,
     optimization_params=Dict("typical_swap_gas_units"=>200000, "liquidity_fraction_threshold"=>0.05),
-    price_feed_provider="chainlink", 
+    price_feed_provider="chainlink",
     price_feed_config_override=Dict()
 )
     rehydrated_dex_instances = DEXBase.AbstractDEX[]
     for dex_conf_item in dex_configurations
         protocol = get(dex_conf_item, "protocol", "uniswap") # Default if missing
         version = get(dex_conf_item, "version", "v2")     # Default if missing
-        
+
         # Construct DEXConfig parameters from dex_conf_item
         # Ensure all required fields for DEXConfig are present or have defaults
         dex_config_args = Dict{Symbol, Any}(
@@ -122,7 +122,7 @@ function ArbitrageStrategy(
     end
 
     # Call the original constructor with the rehydrated DEX instances
-    return ArbitrageStrategy(name, rehydrated_dex_instances, tokens; 
+    return ArbitrageStrategy(name, rehydrated_dex_instances, tokens;
                              min_profit_threshold_percent=min_profit_threshold_percent,
                              max_trade_size_usd=max_trade_size_usd,
                              optimization_params=optimization_params,
@@ -140,11 +140,11 @@ function optimize_portfolio(strategy::OptimalPortfolioStrategy, hist_prices::Mat
     n_tok=length(strategy.tokens); (size(hist_prices,2)!=n_tok || size(hist_prices,1)<20) && error("Price data mismatch or insufficient.")
     mr=_calc_expected_returns(hist_prices); cv=_calc_cov_matrix(hist_prices)
     objfn(w) = (s=sum(abs.(w)); s < 1e-9 ? Inf : -_calc_portfolio_perf(abs.(w)./s,mr,cv,strategy.risk_free_rate))
-    p=strategy.optimization_params; algo=get(p,"algorithm_type","PSO"); pop=get(p,"population_size",30); iter=get(p,"max_iterations",50) 
+    p=strategy.optimization_params; algo=get(p,"algorithm_type","PSO"); pop=get(p,"population_size",30); iter=get(p,"max_iterations",50)
     ap=get(p,lowercase(algo)*"_params",Dict{String,Any}()); ap[Symbol(algo=="PSO" ? "num_particles" : "pop_size")] = pop
     sw_cfg = Swarms.SwarmConfig(strategy.name*"-Opt",algo,opt_prob; algorithm_params=ap,max_iter=iter)
     sw = Swarms.createSwarm(sw_cfg); @info "Starting swarm $(sw.id) for portfolio optimization..."
-    Swarms.startSwarm(sw.id); _wait_for_swarm_completion(sw.id, 300) 
+    Swarms.startSwarm(sw.id); _wait_for_swarm_completion(sw.id, 300)
     res=Swarms.getSwarm(sw.id); opt_w=fill(1.0/n_tok,n_tok)
     if !isnothing(res) && !isnothing(res.best_solution_found) && sum(res.best_solution_found.position)>1e-6
         opt_w=abs.(res.best_solution_found.position)./sum(abs.(res.best_solution_found.position))
@@ -156,16 +156,16 @@ end
 _wait_for_swarm_completion(id,timeout) = for _ in 1:timeout/2 if (s=Swarms.getSwarmStatus(id); isnothing(s) || s["status"]∈["COMPLETED","ERROR","STOPPED"]) break; end; sleep(2); end
 
 function _find_dex_pair(dex::AbstractDEX, tA::DEXToken, tB::DEXToken)
-    try 
-        pairs_from_dex = DEXBase.get_pairs(dex, limit=1000) 
-        for p_obj in pairs_from_dex 
-            if (lowercase(p_obj.token0.address)==lowercase(tA.address) && lowercase(p_obj.token1.address)==lowercase(tB.address)) || 
-               (uppercase(p_obj.token0.symbol)==uppercase(tA.symbol) && uppercase(p_obj.token1.symbol)==uppercase(tB.symbol)) 
-                return p_obj 
+    try
+        pairs_from_dex = DEXBase.get_pairs(dex, limit=1000)
+        for p_obj in pairs_from_dex
+            if (lowercase(p_obj.token0.address)==lowercase(tA.address) && lowercase(p_obj.token1.address)==lowercase(tB.address)) ||
+               (uppercase(p_obj.token0.symbol)==uppercase(tA.symbol) && uppercase(p_obj.token1.symbol)==uppercase(tB.symbol))
+                return p_obj
             end
-            if (lowercase(p_obj.token0.address)==lowercase(tB.address) && lowercase(p_obj.token1.address)==lowercase(tA.address)) || 
-               (uppercase(p_obj.token0.symbol)==uppercase(tB.symbol) && uppercase(p_obj.token1.symbol)==uppercase(tA.symbol)) 
-                return p_obj 
+            if (lowercase(p_obj.token0.address)==lowercase(tB.address) && lowercase(p_obj.token1.address)==lowercase(tA.address)) ||
+               (uppercase(p_obj.token0.symbol)==uppercase(tB.symbol) && uppercase(p_obj.token1.symbol)==uppercase(tA.symbol))
+                return p_obj
             end
         end
     catch e @warn "Err finding pair" dex=dex.config.name error=e end
@@ -173,9 +173,9 @@ function _find_dex_pair(dex::AbstractDEX, tA::DEXToken, tB::DEXToken)
 end
 
 function _get_native_asset_price_for_gas(strat_arb::ArbitrageStrategy, dex_chain_id::Int)::Float64
-    native_symbol = if dex_chain_id == 1 || dex_chain_id == 5 "ETH" 
-                     elseif dex_chain_id == 137 "MATIC" 
-                     elseif dex_chain_id == 56 "BNB"   
+    native_symbol = if dex_chain_id == 1 || dex_chain_id == 5 "ETH"
+                     elseif dex_chain_id == 137 "MATIC"
+                     elseif dex_chain_id == 56 "BNB"
                      else nothing end
     if isnothing(native_symbol)
         @warn "Cannot determine native asset for chain ID $dex_chain_id. Using default gas cost USD."
@@ -201,12 +201,12 @@ _get_v3_quoter_address(dex_config::DEXBase.DEXConfig) = get(dex_config.metadata,
 # This is a simplified version for single-hop exact input.
 function _get_v3_quoted_output_amount(
     dex_v3::DEXBase.AbstractDEX, # Assumed to be a UniswapV3 instance
-    token_in::DEXToken, 
-    token_out::DEXToken, 
+    token_in::DEXToken,
+    token_out::DEXToken,
     amount_in_units_smallest::BigInt,
     pool_fee_tier_raw::Float64 # e.g., 0.0005 for 0.05%
 )::Union{BigInt, Nothing}
-    
+
     # Ensure this is actually a Uniswap instance to access its specific fields/helpers
     # This check might be better using multiple dispatch or a more robust type check
     # if other DEX types could be passed. For now, assume it's a Uniswap struct.
@@ -257,9 +257,9 @@ function _get_v3_quoted_output_amount(
         (amount_in_units_smallest, "uint256"),
         (sqrt_price_limit_x96_for_quote, "uint160")
     ]
-    
+
     quoter_call_data = Blockchain.EthereumClient.encode_function_call_abi(quoter_sig, quoter_args)
-    
+
     try
         quoted_hex = Blockchain.eth_call_generic(quoter_address, quoter_call_data, conn)
         if isempty(quoted_hex) || quoted_hex == "0x"
@@ -282,11 +282,11 @@ end
 
 function find_arbitrage_opportunities(strat::ArbitrageStrategy)
     ops=[]; @info "Scanning arbitrage: $(strat.name)"
-    liquidity_fraction_threshold = get(strat.optimization_params, "liquidity_fraction_threshold", 0.05) 
-    
+    liquidity_fraction_threshold = get(strat.optimization_params, "liquidity_fraction_threshold", 0.05)
+
     # Refined gas units: allow a dict or a single value
     gas_units_param = get(strat.optimization_params, "swap_gas_units", 200000) # Default if not specified or malformed
-    
+
     function get_gas_units_for_dex(dex_instance::AbstractDEX, is_multi_hop_leg::Bool=false)
         # Define default gas units
         default_v2_swap = 150000
@@ -315,10 +315,10 @@ function find_arbitrage_opportunities(strat::ArbitrageStrategy)
     for i in 1:length(strat.tokens_of_interest), j in (i+1):length(strat.tokens_of_interest)
         tA=strat.tokens_of_interest[i]; tB=strat.tokens_of_interest[j]
         for d1_idx in 1:length(strat.dex_instances), d2_idx in 1:length(strat.dex_instances)
-            if d1_idx==d2_idx && length(strat.dex_instances) > 1 continue end 
+            if d1_idx==d2_idx && length(strat.dex_instances) > 1 continue end
             dex1=strat.dex_instances[d1_idx]; dex2=strat.dex_instances[d2_idx]
             p1=_find_dex_pair(dex1,tA,tB); p2=_find_dex_pair(dex2,tA,tB); (isnothing(p1)||isnothing(p2)) && continue
-            price1_tA_in_tB_raw=DEXBase.get_price(dex1,p1); 
+            price1_tA_in_tB_raw=DEXBase.get_price(dex1,p1);
             # Ensure tA is token0 for price1_tA_in_tB_raw to mean "price of tA in tB"
             # If p1.token0 is tB, then get_price returns price of tB in tA, so we need to invert.
             # The get_price in UniswapDEX already handles this inversion based on pair.token0 vs pair.token1.
@@ -330,24 +330,24 @@ function find_arbitrage_opportunities(strat::ArbitrageStrategy)
                  price1_tA_in_tB_raw = (price1_tA_in_tB_raw == 0.0 ? Inf : 1.0/price1_tA_in_tB_raw)
             end
 
-            price2_tA_in_tB_raw=DEXBase.get_price(dex2,p2); 
+            price2_tA_in_tB_raw=DEXBase.get_price(dex2,p2);
             if lowercase(p2.token0.address) == lowercase(tB.address)
                  price2_tA_in_tB_raw = (price2_tA_in_tB_raw == 0.0 ? Inf : 1.0/price2_tA_in_tB_raw)
             end
-            
+
             (price1_tA_in_tB_raw<=0||price2_tA_in_tB_raw<=0||price1_tA_in_tB_raw==Inf||price2_tA_in_tB_raw==Inf) && continue
-            
+
             # --- Effective Price Calculation (Buy on dex1, Sell on dex2) ---
             # Amount of tA to use for quoting, based on max_trade_size_usd
             # Need USD price of tA. Use strategy's price feed.
             pf_cfg_symbols = strat.price_feed_config
             pf_instance_for_sizing = PriceFeed.create_price_feed(strat.price_feed_provider_name, PriceFeedBase.PriceFeedConfig(;pf_cfg_symbols...))
             price_tA_usd = try PriceFeed.get_latest_price(pf_instance_for_sizing, tA.symbol, "USD").price catch _ 0.0 end
-            
+
             (price_tA_usd <= 0) && (@warn "Could not get USD price for $(tA.symbol) for sizing. Skipping path."; continue)
-            
+
             amount_in_tA_for_quote_smallest = BigInt(round((strat.max_trade_size_usd / price_tA_usd) * (10^tA.decimals)))
-            
+
             local price1_tA_in_tB_effective_buy::Float64
             local price2_tA_in_tB_effective_sell::Float64
 
@@ -361,7 +361,7 @@ function find_arbitrage_opportunities(strat::ArbitrageStrategy)
                 else
                     amount_in_tA_float = Float64(amount_in_tA_for_quote_smallest) / (10^tA.decimals)
                     amount_out_tB_float = Float64(quoted_amount_out_tB_smallest) / (10^tB.decimals)
-                    price1_tA_in_tB_effective_buy = amount_out_tB_float > 0 ? amount_in_tA_float / amount_out_tB_float : Inf 
+                    price1_tA_in_tB_effective_buy = amount_out_tB_float > 0 ? amount_in_tA_float / amount_out_tB_float : Inf
                     # This is price of tB in tA. We need price of tA in tB for buying tB.
                     # If 1 tA gets X tB, price of tA in tB is X.
                     # If we spend Y tA to get Z tB, effective price of tA in tB is Z/Y.
@@ -370,7 +370,7 @@ function find_arbitrage_opportunities(strat::ArbitrageStrategy)
             else # V2 or other DEX
                 slippage_factor_dex1 = (strat.max_trade_size_usd / 10000.0) * (simulated_slippage_pct_per_10k_usd / 100.0)
                 # Buying tB with tA: price of tA in tB. If price increases due to slippage, we get less tB for tA.
-                price1_tA_in_tB_effective_buy = price1_tA_in_tB_raw * (1 - slippage_factor_dex1) 
+                price1_tA_in_tB_effective_buy = price1_tA_in_tB_raw * (1 - slippage_factor_dex1)
             end
 
             # Effective price for selling tB for tA on dex2
@@ -398,7 +398,7 @@ function find_arbitrage_opportunities(strat::ArbitrageStrategy)
                 slippage_factor_dex2 = (strat.max_trade_size_usd / 10000.0) * (simulated_slippage_pct_per_10k_usd / 100.0)
                 price2_tA_in_tB_effective_sell = price2_tA_in_tB_raw * (1 - slippage_factor_dex2)
             end
-            
+
             (price1_tA_in_tB_effective_buy <=0 || price2_tA_in_tB_effective_sell <=0 || price1_tA_in_tB_effective_buy == Inf) && continue
 
             # Arbitrage: Buy tA on dex1 (pay tB), sell tA on dex2 (receive tB)
@@ -415,31 +415,31 @@ function find_arbitrage_opportunities(strat::ArbitrageStrategy)
             # So, price1_tA_in_tB_raw is "how many tB for one tA".
             # When buying tA on dex1, we pay more tB: effective_cost_tA_in_tB_dex1 = price1_tA_in_tB_raw / (1 - slippage_factor_dex1) (if using factor on output)
             # Or, if using factor on input price: price1_tA_in_tB_raw * (1 + slippage_factor_dex1)
-            
+
             # Let's use the Quoter output directly for V3, and stick to the existing linear model for V2 for now,
             # but ensure the direction of slippage application is correct.
             # price1_tA_in_tB_effective_buy: cost of 1 tA in terms of tB on dex1 (buy leg)
             # price2_tA_in_tB_effective_sell: revenue for 1 tA in terms of tB on dex2 (sell leg)
             # We need price2_tA_in_tB_effective_sell > price1_tA_in_tB_effective_buy
 
-            if price2_tA_in_tB_effective_sell > price1_tA_in_tB_effective_buy 
+            if price2_tA_in_tB_effective_sell > price1_tA_in_tB_effective_buy
                 gross_profit_ratio = (price2_tA_in_tB_effective_sell / price1_tA_in_tB_effective_buy) - 1.0
-                
+
                 # Use the USD price of tA for sizing the trade in tA units
                 trade_size_tA_units_float = strat.max_trade_size_usd / price_tA_usd
-                
+
                 liq1_res0, liq1_res1 = DEXBase.get_liquidity(dex1, p1)
                 dex1_tA_liq = lowercase(p1.token0.address)==lowercase(tA.address) ? liq1_res0 : liq1_res1
                 liq2_res0, liq2_res1 = DEXBase.get_liquidity(dex2, p2)
                 dex2_tA_liq = lowercase(p2.token0.address)==lowercase(tA.address) ? liq2_res0 : liq2_res1
                 is_liquid_enough = (dex1_tA_liq > 0 && trade_size_tA_units < liquidity_fraction_threshold * dex1_tA_liq) && (dex2_tA_liq > 0 && trade_size_tA_units < liquidity_fraction_threshold * dex2_tA_liq)
-                
+
                 # Dynamic gas cost (assuming DEXs are on same chain for simplicity of this example leg)
                 # A more robust solution would get gas for each DEX's chain.
                 dex1_chain_id = dex1.config.chain_id
                 # Assuming dex1 and dex2 are on the same chain for gas price calculation for simplicity.
-                conn_dex1 = _get_conn(dex1) 
-                current_gas_price_gwei = Blockchain.get_gas_price_generic(conn_dex1) 
+                conn_dex1 = _get_conn(dex1)
+                current_gas_price_gwei = Blockchain.get_gas_price_generic(conn_dex1)
                 native_asset_price_usd = _get_native_asset_price_for_gas(strat, dex1_chain_id)
 
                 gas_units_dex1 = get_gas_units_for_dex(dex1)
@@ -448,13 +448,13 @@ function find_arbitrage_opportunities(strat::ArbitrageStrategy)
                 gas_cost_dex1_usd = (current_gas_price_gwei * 1e-9) * gas_units_dex1 * native_asset_price_usd
                 gas_cost_dex2_usd = (current_gas_price_gwei * 1e-9) * gas_units_dex2 * native_asset_price_usd
                 total_gas_cost_usd = gas_cost_dex1_usd + gas_cost_dex2_usd
-                
+
                 net_profit_usd = (strat.max_trade_size_usd * gross_profit_ratio) - total_gas_cost_usd
                 net_profit_pct_before_risk_adj = strat.max_trade_size_usd > 0 ? (net_profit_usd / strat.max_trade_size_usd) * 100.0 : 0.0
 
                 risk_adjustment_factor_pct = get(strat.optimization_params, "risk_adjustment_factor_pct", 0.0)
                 final_net_profit_pct = net_profit_pct_before_risk_adj * (1 - risk_adjustment_factor_pct / 100.0)
-                
+
                 if final_net_profit_pct >= strat.min_profit_threshold_percent && is_liquid_enough
                     push!(ops, Dict("type"=>"spatial",
                                     "path"=>"$(tA.symbol) $(dex1.config.name)->$(dex2.config.name)",
@@ -464,15 +464,15 @@ function find_arbitrage_opportunities(strat::ArbitrageStrategy)
             end
         end
     end
-    num_tokens_of_interest = length(strat.tokens_of_interest) 
+    num_tokens_of_interest = length(strat.tokens_of_interest)
     if num_tokens_of_interest >=3
         for dex_inst in strat.dex_instances, i in 1:num_tokens_of_interest, j in 1:num_tokens_of_interest, k in 1:num_tokens_of_interest
             if i==j||j==k||k==i continue end
             tA=strat.tokens_of_interest[i]; tB=strat.tokens_of_interest[j]; tC=strat.tokens_of_interest[k]
-            
+
             pAB=_find_dex_pair(dex_inst,tA,tB); pBC=_find_dex_pair(dex_inst,tB,tC); pCA=_find_dex_pair(dex_inst,tC,tA)
             (isnothing(pAB)||isnothing(pBC)||isnothing(pCA)) && continue
-            
+
             priceAB_raw=DEXBase.get_price(dex_inst,pAB); if lowercase(pAB.token0.address)==lowercase(tB.address) priceAB_raw=(priceAB_raw==0.0 ? Inf : 1.0/priceAB_raw) end
             priceBC_raw=DEXBase.get_price(dex_inst,pBC); if lowercase(pBC.token0.address)==lowercase(tC.address) priceBC_raw=(priceBC_raw==0.0 ? Inf : 1.0/priceBC_raw) end
             priceCA_raw=DEXBase.get_price(dex_inst,pCA); if lowercase(pCA.token0.address)==lowercase(tA.address) priceCA_raw=(priceCA_raw==0.0 ? Inf : 1.0/priceCA_raw) end
@@ -481,7 +481,7 @@ function find_arbitrage_opportunities(strat::ArbitrageStrategy)
             # --- Triangular Arbitrage Effective Rate Calculation ---
             # Start with an initial amount of tA (e.g., strat.max_trade_size_usd worth)
             # For simplicity in quoting, we'll use strat.max_trade_size_usd as the reference value for each leg's input.
-            
+
             # USD prices for sizing quotes
             price_tA_usd_tri = try PriceFeed.get_latest_price(pf_instance_for_sizing, tA.symbol, "USD").price catch _ 0.0 end
             price_tB_usd_tri = try PriceFeed.get_latest_price(pf_instance_for_sizing, tB.symbol, "USD").price catch _ 0.0 end
@@ -522,7 +522,7 @@ function find_arbitrage_opportunities(strat::ArbitrageStrategy)
                 amount_tC_after_leg2_smallest = BigInt(round(amount_tB_leg2_input_float * effective_rate_BC * (10^tC.decimals)))
             end
             (isnothing(amount_tC_after_leg2_smallest) || amount_tC_after_leg2_smallest <= 0) && continue
-            
+
             # Leg 3: tC -> tA
             # Input for this leg is amount_tC_after_leg2_smallest
             if dex_inst.config.protocol == "uniswap" && dex_inst.config.version == "v3"
@@ -537,28 +537,28 @@ function find_arbitrage_opportunities(strat::ArbitrageStrategy)
             (isnothing(final_amount_tA_after_leg3_smallest) || final_amount_tA_after_leg3_smallest <= 0) && continue
 
             final_amount_tA_units_float = Float64(final_amount_tA_after_leg3_smallest) / (10^tA.decimals)
-            
+
             # Profit calculation
             gross_profit_ratio_tri = (final_amount_tA_units_float / initial_amount_tA_units_float) - 1.0
-            
+
             dex_chain_id = dex_inst.config.chain_id
-            conn_dex = _get_conn(dex_inst) 
+            conn_dex = _get_conn(dex_inst)
             current_gas_price_gwei = Blockchain.get_gas_price_generic(conn_dex)
             native_asset_price_usd = _get_native_asset_price_for_gas(strat, dex_chain_id)
-            
+
             # For triangular, all 3 swaps are on the same dex_inst
             gas_units_per_leg_tri = get_gas_units_for_dex(dex_inst) # Assuming single-hop for each leg
             gas_cost_one_tx_usd = (current_gas_price_gwei * 1e-9) * gas_units_per_leg_tri * native_asset_price_usd
             total_gas_cost_usd_tri = 3 * gas_cost_one_tx_usd
 
-            value_of_trade_in_usd = strat.max_trade_size_usd 
+            value_of_trade_in_usd = strat.max_trade_size_usd
             net_profit_usd_tri = (value_of_trade_in_usd * gross_profit_ratio_tri) - total_gas_cost_usd_tri
             net_profit_pct_before_risk_adj_tri = value_of_trade_in_usd > 0 ? (net_profit_usd_tri / value_of_trade_in_usd) * 100.0 : 0.0
-            
+
             risk_adjustment_factor_pct = get(strat.optimization_params, "risk_adjustment_factor_pct", 0.0)
             final_net_profit_pct_tri = net_profit_pct_before_risk_adj_tri * (1 - risk_adjustment_factor_pct / 100.0)
 
-            if final_net_profit_pct_tri >= strat.min_profit_threshold_percent 
+            if final_net_profit_pct_tri >= strat.min_profit_threshold_percent
                  final_rate_tri = 1.0 + gross_profit_ratio_tri # This is rate after slippage but before gas/risk_adj
                  push!(ops, Dict("type"=>"triangular","dex"=>dex_inst.config.name,"path"=>"$(tA.symbol)->$(tB.symbol)->$(tC.symbol)->$(tA.symbol)","rate_after_slippage"=>round(final_rate_tri, digits=8),"profit_pct_net"=>round(final_net_profit_pct_tri,digits=4), "gross_profit_pct_pre_gas"=>round(gross_profit_ratio_tri*100,digits=4), "est_gas_cost_usd"=>round(total_gas_cost_usd_tri,digits=2), "risk_adj_pct_applied"=>risk_adjustment_factor_pct))
             end
@@ -593,28 +593,27 @@ function execute_strategy(strategy::OptimalPortfolioStrategy; historical_prices_
         @info "Fetching historical data for OptimalPortfolio..."
         pf_cfg = PriceFeedBase.PriceFeedConfig(;strategy.price_feed_config...)
         pf_inst = PriceFeed.create_price_feed(strategy.price_feed_provider_name, pf_cfg) # Removed Symbol()
-        @warn "Multi-asset historical data fetching placeholder."
-        num_tok = length(strategy.tokens); mock_hp = zeros(Float64,num_days_history,num_tok)
-        for i in 1:num_tok mock_hp[:,i] .= rand(50:2000) .* (1 .+ cumsum((rand(num_days_history).-0.5).*0.02)) end; mock_hp
+        @error "Multi-asset historical data fetching not implemented. Cannot proceed without real price data."
+        error("Historical price data functionality not available - no fallback to mock data allowed")
     end
     opt_res = optimize_portfolio(strategy, hist_prices)
     return Dict("name"=>strategy.name, "type"=>"OptimalPortfolio", "result"=>opt_res, "action"=>"Weights optimized.")
 end
-function execute_strategy(strategy::ArbitrageStrategy) 
+function execute_strategy(strategy::ArbitrageStrategy)
     @info "Executing Arbitrage: $(strategy.name)"
     ops = find_arbitrage_opportunities(strategy)
     return Dict("name"=>strategy.name, "type"=>"Arbitrage", "opportunities"=>ops, "action"=>isempty(ops) ? "No ops." : "Ops identified.")
 end
 
 function backtest_strategy(
-    strategy::AbstractStrategy, 
-    hist_market_data::Any; 
-    initial_capital=10000.0, 
-    tx_cost_pct=0.1, 
-    risk_params::RiskManagement.RiskParameters = RiskManagement.RiskParameters(), 
+    strategy::AbstractStrategy,
+    hist_market_data::Any;
+    initial_capital=10000.0,
+    tx_cost_pct=0.1,
+    risk_params::RiskManagement.RiskParameters = RiskManagement.RiskParameters(),
     slippage_model_params::Dict = Dict("pct_per_10k_usd" => 0.05, "fixed_pct" => 0.0), # Slippage model params
     # SL/TP percentages for single-asset strategies will be fetched from strategy.optimization_params
-    start_date=nothing, 
+    start_date=nothing,
     end_date=nothing
 )::Dict{String,Any}
     # Global risk enforcement at function entry
@@ -643,7 +642,7 @@ function backtest_strategy(
     if isa(strategy,OptimalPortfolioStrategy) && !isa(prices,Matrix{Float64}) error("OptimalPortfolio expects Matrix{Float64}") end
     num_points = isa(prices,Vector) ? length(prices) : size(prices,1)
     num_points<2 && (@warn "Insufficient data."; return Dict("status"=>"Insufficient data"))
-    
+
     cash = initial_capital
     portfolio_values = [initial_capital] # Renamed for clarity
     trade_log = [] # Renamed for clarity, will store more detailed NamedTuples
@@ -652,7 +651,7 @@ function backtest_strategy(
     current_position_units = 0.0
     current_position_avg_cost_per_unit = 0.0 # Cost basis including tx fees
     active_stop_loss_price = 0.0 # Fixed stop-loss
-    active_take_profit_price = Inf 
+    active_take_profit_price = Inf
     active_trailing_stop_price = 0.0 # For trailing stop
     position_high_water_mark = 0.0 # Highest price observed since position opened (for trailing stop)
     trailing_stop_active_for_position = false
@@ -667,34 +666,34 @@ function backtest_strategy(
     # We will still log rebalance costs.
     # cur_weights = isa(strategy,OptimalPortfolioStrategy) ? zeros(length(strategy.tokens)) : nothing # Not actively used for P&L yet
 
-    for t in 2:num_points 
+    for t in 2:num_points
         # Determine current market snapshot for strategy execution
         market_snap = isa(strategy,OptimalPortfolioStrategy) ? prices[1:t,:] : prices[1:t]
-        
+
         # Ensure enough data for strategy's lookback period
-        min_lookback = if isa(strategy,MovingAverageCrossoverStrategy) strategy.long_window 
-                       elseif isa(strategy,MeanReversionStrategy) strategy.lookback_period 
+        min_lookback = if isa(strategy,MovingAverageCrossoverStrategy) strategy.long_window
+                       elseif isa(strategy,MeanReversionStrategy) strategy.lookback_period
                        elseif isa(strategy,OptimalPortfolioStrategy) 20 # Typical min lookback for covariance matrix
                        else 0 end
-        
+
         current_data_length = isa(market_snap,Vector) ? length(market_snap) : size(market_snap,1)
-        
-        current_total_value = cash + (isa(strategy,OptimalPortfolioStrategy) ? 
-                                        (isempty(trade_log) || !haskey(trade_log[end], :current_portfolio_assets_value) ? 0.0 : trade_log[end].current_portfolio_assets_value) : 
+
+        current_total_value = cash + (isa(strategy,OptimalPortfolioStrategy) ?
+                                        (isempty(trade_log) || !haskey(trade_log[end], :current_portfolio_assets_value) ? 0.0 : trade_log[end].current_portfolio_assets_value) :
                                         (current_position_units * (isa(prices,Vector) ? prices[t] : 0.0)))
-        
+
         if current_data_length < min_lookback
             push!(portfolio_values, current_total_value)
             continue
         end
-        
+
         exec_res = execute_strategy(strategy, market_snap) # Get strategy signal/weights
-        
+
         if isa(strategy,MovingAverageCrossoverStrategy) || isa(strategy,MeanReversionStrategy)
             signal = get(exec_res,"signal","HOLD")
             asset_price_at_t = isa(prices,Vector) ? prices[t] : 0.0 # Current price for decision
             asset_symbol = get(strategy, :token, DEXToken("","GENERIC_ASSET","",18,1)).symbol # Assuming strategy might have a .token field
-            
+
             # Check for SL/TP hits before processing new signals
             sl_tp_sell_triggered = false
             if current_position_units > 0 && asset_price_at_t > 0
@@ -713,7 +712,7 @@ function backtest_strategy(
 
                 # Priority of stop checks: 1. Trailing Stop, 2. Fixed Stop-Loss, 3. Take-Profit
                 action_taken_this_step = ""
-                
+
                 if trailing_stop_active_for_position && asset_price_at_t <= active_trailing_stop_price
                     action_taken_this_step = "TRAILING_STOP_SELL"
                     @info "Trailing stop triggered for $asset_symbol at $asset_price_at_t (TSL: $active_trailing_stop_price, HWM: $position_high_water_mark)"
@@ -729,16 +728,16 @@ function backtest_strategy(
                     units_to_sell = current_position_units
                     # Slippage for SL/TP/TSL hits is currently based on asset_price_at_t (market price at trigger)
                     # More advanced: could model worse slippage for panic/market orders from stops
-                    raw_exit_price_stop = asset_price_at_t 
-                    
+                    raw_exit_price_stop = asset_price_at_t
+
                     slippage_pct_per_10k_usd_stop = get(slippage_model_params, "pct_per_10k_usd", 0.0)
                     fixed_slippage_pct_stop = get(slippage_model_params, "fixed_pct", 0.0)
                     trade_value_usd_estimate_stop = units_to_sell * raw_exit_price_stop
-                    
+
                     variable_slippage_effect_stop = (trade_value_usd_estimate_stop / 10000.0) * (slippage_pct_per_10k_usd_stop / 100.0) * raw_exit_price_stop
                     fixed_slippage_effect_stop = (fixed_slippage_pct_stop / 100.0) * raw_exit_price_stop
                     total_slippage_per_unit_stop = (units_to_sell > 0) ? (variable_slippage_effect_stop + fixed_slippage_effect_stop) / units_to_sell : 0.0
-                    
+
                     effective_exit_price_stop = raw_exit_price_stop - total_slippage_per_unit_stop
                     effective_exit_price_stop = max(0.0, effective_exit_price_stop)
 
@@ -748,9 +747,9 @@ function backtest_strategy(
                     cost_of_goods_sold = current_position_avg_cost_per_unit * units_to_sell
                     pnl_realized = net_proceeds - cost_of_goods_sold
                     cash += net_proceeds
-                    
+
                     log_entry_details = Dict(
-                        :timestamp=>t, :type=>"TRADE", :action=>action_taken_this_step, :token=>asset_symbol, :units=>units_to_sell, 
+                        :timestamp=>t, :type=>"TRADE", :action=>action_taken_this_step, :token=>asset_symbol, :units=>units_to_sell,
                         :price_raw_market=>raw_exit_price_stop, :price_effective_fill=>effective_exit_price_stop,
                         :slippage_amount_per_unit=>total_slippage_per_unit_stop,
                         :gross_value=>gross_proceeds, :tx_cost=>transaction_fee, :net_value_change_cash=>net_proceeds,
@@ -780,40 +779,40 @@ function backtest_strategy(
                     end
 
                     push!(trade_log, NamedTuple(log_entry_details))
-                    
-                    current_position_units = 0.0; current_position_avg_cost_per_unit = 0.0; 
+
+                    current_position_units = 0.0; current_position_avg_cost_per_unit = 0.0;
                     active_stop_loss_price = 0.0; active_take_profit_price = Inf;
                     active_trailing_stop_price = 0.0; position_high_water_mark = 0.0; trailing_stop_active_for_position = false; current_trailing_stop_pct = 0.0;
                     sl_tp_sell_triggered = true
                 end
             end
 
-            if !sl_tp_sell_triggered 
+            if !sl_tp_sell_triggered
                 opt_params = isa(strategy, MovingAverageCrossoverStrategy) ? strategy.optimization_params : strategy.optimization_params
-                
+
                 # Slippage parameters from slippage_model_params
-                slippage_pct_per_10k_usd = get(slippage_model_params, "pct_per_10k_usd", 0.0) 
+                slippage_pct_per_10k_usd = get(slippage_model_params, "pct_per_10k_usd", 0.0)
                 fixed_slippage_pct = get(slippage_model_params, "fixed_pct", 0.0)
 
                 if signal=="BUY" && current_position_units == 0 && asset_price_at_t > 0
-                    raw_entry_price = asset_price_at_t 
+                    raw_entry_price = asset_price_at_t
                     sl_pct = get(opt_params, "stop_loss_pct", 5.0)
                     tp_pct = get(opt_params, "take_profit_pct", 10.0)
                     stop_loss_price_for_buy_signal = raw_entry_price * (1 - sl_pct / 100.0) # SL for sizing based on raw price
-                    
+
                     risk_manager.position_sizer.account_balance = cash
                     units_to_buy = RiskManagement.calculate_position_size(risk_manager.position_sizer, raw_entry_price, stop_loss_price_for_buy_signal)
-                    
+
                     if units_to_buy > 0
                         trade_value_usd_estimate = units_to_buy * raw_entry_price
-                        
+
                         # Calculate slippage per unit
                         variable_slippage_effect = (trade_value_usd_estimate / 10000.0) * (slippage_pct_per_10k_usd / 100.0) * raw_entry_price
                         fixed_slippage_effect = (fixed_slippage_pct / 100.0) * raw_entry_price
                         total_slippage_cost_per_unit = (units_to_buy > 0) ? (variable_slippage_effect + fixed_slippage_effect) / units_to_buy : 0.0
-                        
+
                         effective_entry_price = raw_entry_price + total_slippage_cost_per_unit # BUYING: price moves against us
-                        
+
                         gross_cost = units_to_buy * effective_entry_price
                         transaction_fee = gross_cost * (tx_cost_pct / 100.0)
                         net_cost_of_buy = gross_cost + transaction_fee
@@ -821,13 +820,13 @@ function backtest_strategy(
                         if cash >= net_cost_of_buy
                             cash -= net_cost_of_buy
                             current_position_units = units_to_buy
-                            current_position_avg_cost_per_unit = net_cost_of_buy / units_to_buy 
-                            
-                            active_stop_loss_price = effective_entry_price * (1 - sl_pct / 100.0) 
+                            current_position_avg_cost_per_unit = net_cost_of_buy / units_to_buy
+
+                            active_stop_loss_price = effective_entry_price * (1 - sl_pct / 100.0)
                             active_take_profit_price = effective_entry_price * (1 + tp_pct / 100.0)
-                            
+
                             # Trailing Stop Initialization
-                            current_trailing_stop_pct = get(opt_params, "trailing_stop_pct", 0.0) 
+                            current_trailing_stop_pct = get(opt_params, "trailing_stop_pct", 0.0)
                             if current_trailing_stop_pct > 0.0
                                 active_trailing_stop_price = effective_entry_price * (1 - current_trailing_stop_pct / 100.0)
                                 position_high_water_mark = effective_entry_price # Initialize HWM with entry price
@@ -839,10 +838,10 @@ function backtest_strategy(
                                 position_high_water_mark = 0.0
                             end
 
-                            push!(trade_log, (timestamp=t, type="TRADE", action="BUY", token=asset_symbol, units=units_to_buy, 
-                                             price_raw_market=raw_entry_price, price_effective_fill=effective_entry_price, 
+                            push!(trade_log, (timestamp=t, type="TRADE", action="BUY", token=asset_symbol, units=units_to_buy,
+                                             price_raw_market=raw_entry_price, price_effective_fill=effective_entry_price,
                                              slippage_amount_per_unit=total_slippage_cost_per_unit,
-                                             gross_value=gross_cost, tx_cost=transaction_fee, net_value_change_cash=(-net_cost_of_buy), 
+                                             gross_value=gross_cost, tx_cost=transaction_fee, net_value_change_cash=(-net_cost_of_buy),
                                              realized_pnl=nothing, avg_cost_basis_of_new_position=current_position_avg_cost_per_unit,
                                              sl_set_at=active_stop_loss_price, tp_set_at=active_take_profit_price,
                                              trailing_sl_pct_param = current_trailing_stop_pct, initial_trailing_sl_price = trailing_stop_active_for_position ? active_trailing_stop_price : nothing,
@@ -852,26 +851,26 @@ function backtest_strategy(
                         end
                     end
                 elseif (signal=="SELL"||(isa(strategy,MeanReversionStrategy)&&signal=="NEAR_MEAN"&&current_position_units>0)) && current_position_units > 0 && asset_price_at_t > 0
-                    units_to_sell = current_position_units 
+                    units_to_sell = current_position_units
                     raw_exit_price = asset_price_at_t
 
                     trade_value_usd_estimate = units_to_sell * raw_exit_price
                     variable_slippage_effect = (trade_value_usd_estimate / 10000.0) * (slippage_pct_per_10k_usd / 100.0) * raw_exit_price
                     fixed_slippage_effect = (fixed_slippage_pct / 100.0) * raw_exit_price
                     total_slippage_loss_per_unit = (units_to_sell > 0) ? (variable_slippage_effect + fixed_slippage_effect) / units_to_sell : 0.0
-                    
+
                     effective_exit_price = raw_exit_price - total_slippage_loss_per_unit # SELLING: price moves against us
-                    effective_exit_price = max(0.0, effective_exit_price) 
+                    effective_exit_price = max(0.0, effective_exit_price)
 
                     gross_proceeds = units_to_sell * effective_exit_price
                     transaction_fee = gross_proceeds * (tx_cost_pct / 100.0)
                     net_proceeds_from_sell = gross_proceeds - transaction_fee
-                    
+
                     cost_of_goods_sold = current_position_avg_cost_per_unit * units_to_sell
                     pnl_realized = net_proceeds_from_sell - cost_of_goods_sold
 
                     cash += net_proceeds_from_sell
-                    push!(trade_log, (timestamp=t, type="TRADE", action="SIGNAL_SELL", token=asset_symbol, units=units_to_sell, 
+                    push!(trade_log, (timestamp=t, type="TRADE", action="SIGNAL_SELL", token=asset_symbol, units=units_to_sell,
                                      price_raw_market=raw_exit_price, price_effective_fill=effective_exit_price,
                                      slippage_amount_per_unit=total_slippage_loss_per_unit,
                                      gross_value=gross_proceeds, tx_cost=transaction_fee, net_value_change_cash=net_proceeds_from_sell,
@@ -879,35 +878,35 @@ function backtest_strategy(
                                      sl_active_at_trade=active_stop_loss_price, tp_active_at_trade=active_take_profit_price,
                                      trailing_sl_active_on_sell = trailing_stop_active_for_position, trailing_sl_price_on_sell = active_trailing_stop_price, # Log state of TSL when signal sell occurs
                                      cash_balance_after_trade=cash, asset_units_after_trade=0.0))
-                    current_position_units = 0.0; current_position_avg_cost_per_unit = 0.0; 
+                    current_position_units = 0.0; current_position_avg_cost_per_unit = 0.0;
                     active_stop_loss_price = 0.0; active_take_profit_price = Inf;
                     active_trailing_stop_price = 0.0; position_high_water_mark = 0.0; trailing_stop_active_for_position = false; current_trailing_stop_pct = 0.0; # Reset all stops
                 end
             end
-            current_asset_value = current_position_units * asset_price_at_t 
+            current_asset_value = current_position_units * asset_price_at_t
             push!(portfolio_values, cash + current_asset_value)
 
         elseif isa(strategy, ArbitrageStrategy)
             @warn """
             Arbitrage strategy backtesting is initiated. This assumes:
-            1. `hist_market_data` (passed as `prices`) is a Vector where each element `prices[t]` 
+            1. `hist_market_data` (passed as `prices`) is a Vector where each element `prices[t]`
                is a snapshot of all required market data (multi-DEX, multi-pair prices/liquidity, native asset prices for gas) for that timestep.
-            2. The `find_arbitrage_opportunities` function has been refactored to accept this `prices[t]` snapshot 
+            2. The `find_arbitrage_opportunities` function has been refactored to accept this `prices[t]` snapshot
                and use it for all its data needs, instead of making live calls.
             This refactoring of `find_arbitrage_opportunities` is crucial and not part of this specific update.
             """
-            
+
             # For ArbitrageStrategy, market_snap is the data for the current timestep t
             # This data needs to be in a format that find_arbitrage_opportunities can use.
             # We assume prices[t] is this snapshot.
-            market_data_at_t = prices[t] 
+            market_data_at_t = prices[t]
 
             # TODO: Refactor find_arbitrage_opportunities to accept market_data_at_t
-            # For now, we'll call it with strategy only, and it will use its live-like calls, 
+            # For now, we'll call it with strategy only, and it will use its live-like calls,
             # which is NOT a true backtest against historical data unless its internals are changed.
-            # ops = find_arbitrage_opportunities(strategy) 
+            # ops = find_arbitrage_opportunities(strategy)
             # Ideal call: ops = find_arbitrage_opportunities(strategy, market_data_at_t)
-            
+
             # Placeholder: For the purpose of this structural update, we'll call the existing
             # find_arbitrage_opportunities. This will NOT reflect a true backtest state
             # without internal changes to find_arbitrage_opportunities.
@@ -932,7 +931,7 @@ function backtest_strategy(
                     op_path = get(best_op, "path", "unknown_path")
                     op_profit_pct = get(best_op, "profit_pct", 0.0) # Percentage
                     op_details = get(best_op, "details", "")
-                    
+
                     # est_gas_cost_usd should ideally be part of the opportunity dict and specific to that op
                     # find_arbitrage_opportunities currently calculates this.
                     # Example: est_gas_cost_usd = get(best_op, "est_gas_cost_usd", 50.0) # Default if not found
@@ -940,7 +939,7 @@ function backtest_strategy(
                     # and `total_gas_cost_usd` (which is `Est. Gas Cost USD` in details string) for spatial.
                     # We need to parse it or ensure it's consistently named.
                     # For simplicity, let's try to get it from details if not directly available.
-                    
+
                     est_gas_cost_usd = 0.0
                     if haskey(best_op, "est_gas_cost_usd")
                         est_gas_cost_usd = best_op["est_gas_cost_usd"]
@@ -961,14 +960,14 @@ function backtest_strategy(
 
 
                     trade_value_usd = strategy.max_trade_size_usd # Arbitrage attempts to use this capital
-                    
+
                     # Profit calculation based on effective prices (which includes slippage) and gas costs
                     # The profit_pct from find_arbitrage_opportunities should already be net of slippage but gross of gas.
                     # So, gross_profit_usd_from_op_pct = trade_value_usd * (op_profit_pct / 100.0)
                     # net_profit_usd = gross_profit_usd_from_op_pct - est_gas_cost_usd
                     # However, the `profit_pct` in `find_arbitrage_opportunities` is already net of estimated gas for spatial.
                     # For triangular, it's also net. Let's assume op_profit_pct is net profit.
-                    
+
                     # Re-evaluating: find_arbitrage_opportunities returns "profit_pct" which is NET of gas and slippage.
                     net_profit_usd = trade_value_usd * (op_profit_pct / 100.0)
 
@@ -1002,7 +1001,7 @@ function backtest_strategy(
 
                 if cash >= net_cost_of_buy && units_to_buy > 0
                     cash -= net_cost_of_buy
-                    
+
                     # Update position and cost basis
                     # total_cost_of_new_units = net_cost_of_buy (already includes fees)
                     # new_total_value_at_cost = (current_position_units * current_position_avg_cost_per_unit) + total_cost_of_new_units
@@ -1012,8 +1011,8 @@ function backtest_strategy(
                     current_position_units = units_to_buy
                     current_position_avg_cost_per_unit = net_cost_of_buy / units_to_buy
 
-                    push!(trade_log, (timestamp=t, action="BUY", token=asset_symbol, units=units_to_buy, price=asset_price_at_t, 
-                                     gross_value=gross_cost, tx_cost=transaction_fee, net_value_change_cash=(-net_cost_of_buy), 
+                    push!(trade_log, (timestamp=t, action="BUY", token=asset_symbol, units=units_to_buy, price=asset_price_at_t,
+                                     gross_value=gross_cost, tx_cost=transaction_fee, net_value_change_cash=(-net_cost_of_buy),
                                      realized_pnl=nothing, avg_cost_basis=current_position_avg_cost_per_unit))
                 end
             elseif (signal=="SELL" || (isa(strategy,MeanReversionStrategy) && signal=="NEAR_MEAN" && current_position_units > 0)) && current_position_units > 0 && asset_price_at_t > 0
@@ -1021,7 +1020,7 @@ function backtest_strategy(
                 gross_proceeds = units_to_sell * asset_price_at_t
                 transaction_fee = gross_proceeds * (tx_cost_pct / 100.0)
                 net_proceeds_from_sell = gross_proceeds - transaction_fee
-                
+
                 cost_of_goods_sold = current_position_avg_cost_per_unit * units_to_sell
                 pnl_realized = net_proceeds_from_sell - cost_of_goods_sold
 
@@ -1043,7 +1042,7 @@ function backtest_strategy(
             # Step 1: Simulate selling all current holdings to rebalance (simplified)
             # This needs to be more granular if we track individual asset positions and P&L
             # For now, assume 'pos_val' from previous step is liquidated
-            
+
             # Calculate value of current holdings before rebalance
             # This requires knowing current units of each asset if we were tracking them.
             # The old `pos_val` was a single float. Let's assume it represents the sum of market values.
@@ -1058,7 +1057,7 @@ function backtest_strategy(
                 trade_log[end].current_portfolio_assets_value # Value from *after* last rebalance, aged by price changes
                 # This is still an approximation. True value requires pricing each asset holding.
                 # For simplicity, let's use (portfolio_values[end] - cash) as market value of assets.
-                portfolio_values[end] - cash 
+                portfolio_values[end] - cash
             end
 
 
@@ -1069,7 +1068,7 @@ function backtest_strategy(
                                  gross_value=value_of_holdings_before_rebalance, tx_cost=sell_tx_cost, net_value_change_cash=(value_of_holdings_before_rebalance - sell_tx_cost),
                                  realized_pnl=nothing)) # PNL for portfolio sell is complex, sum of individual asset P&Ls
             end
-            
+
             # Cash available for buying new positions
             cash_for_new_buys = cash # All cash is now available
             total_value_for_reallocation = cash_for_new_buys # This is the new "total portfolio value" to allocate based on weights
@@ -1079,12 +1078,12 @@ function backtest_strategy(
                 for (idx, weight) in enumerate(target_weights)
                     token_symbol = strategy.tokens[idx].symbol
                     asset_price_now = current_asset_prices[idx]
-                    
+
                     intended_value_of_asset = total_value_for_reallocation * weight
                     # Cost to acquire this position, including transaction fee
                     buy_tx_cost_for_asset = intended_value_of_asset * (tx_cost_pct / 100.0)
                     net_cost_for_asset_buy = intended_value_of_asset + buy_tx_cost_for_asset
-                    
+
                     units_of_asset_to_buy = asset_price_now > 0 ? intended_value_of_asset / asset_price_now : 0.0
 
                     if cash >= net_cost_for_asset_buy && units_of_asset_to_buy > 0
@@ -1117,24 +1116,24 @@ function backtest_strategy(
              # If strategy type is unknown or no action taken, just carry forward portfolio value
             push!(portfolio_values, portfolio_values[end]) # Should be current_total_value if no trades
         end
-        
+
         # Portfolio-level risk check (e.g., max drawdown)
         if !RiskManagement.check_risk_limits(risk_manager, portfolio_values[end])
             @warn "Portfolio risk limit violated at step $t. Portfolio value: $(portfolio_values[end])"
             # Optionally, could halt backtest or take other actions here
         end
     end
-    
+
     final_value = portfolio_values[end]
     total_return_pct = (final_value / initial_capital - 1.0) * 100.0
-    
+
     # Calculate Sharpe Ratio (approximate, using simple daily returns)
     daily_returns = diff(log.(filter(x->x>0, portfolio_values))) # Ensure positive values for log
     sharpe_ratio = 0.0
     if !isempty(daily_returns) && length(daily_returns) > 1 && std(daily_returns) > 1e-9 # Need at least 2 returns for std
         sharpe_ratio = (mean(daily_returns) * sqrt(td_per_year)) / std(daily_returns)
     end
-    
+
     # Calculate Max Drawdown
     peak_value = initial_capital
     max_drawdown_pct = 0.0
@@ -1151,7 +1150,7 @@ function backtest_strategy(
     num_losing_trades = 0
     total_gross_profit = 0.0
     total_gross_loss = 0.0
-    
+
     pnl_generating_trades = filter(entry -> haskey(entry, :realized_pnl) && !isnothing(entry.realized_pnl), trade_log)
     total_pnl_trades = length(pnl_generating_trades)
 
@@ -1191,25 +1190,25 @@ function backtest_strategy(
                 "avg_loss_amount"=>avg_loss_amount,
                 "profit_factor"=>profit_factor,
                 "payoff_ratio"=>payoff_ratio,
-                "trade_log_preview"=>trade_log[1:min(5,length(trade_log))], 
-                "full_trade_log"=>trade_log, 
+                "trade_log_preview"=>trade_log[1:min(5,length(trade_log))],
+                "full_trade_log"=>trade_log,
                 "portfolio_value_over_time"=>portfolio_values)
 end
-export backtest_strategy 
+export backtest_strategy
 
 include("RiskManagement.jl")
 include("MovingAverageStrategy.jl")
 include("MeanReversionImpl.jl")
 
 using .RiskManagement
-export RiskParameters, PositionSizer, StopLossManager, RiskManager 
-export calculate_position_size, set_stop_loss, set_take_profit, check_risk_limits 
-export calculate_value_at_risk, calculate_expected_shortfall, calculate_kelly_criterion 
+export RiskParameters, PositionSizer, StopLossManager, RiskManager
+export calculate_position_size, set_stop_loss, set_take_profit, check_risk_limits
+export calculate_value_at_risk, calculate_expected_shortfall, calculate_kelly_criterion
 
 using .MovingAverageStrategy
-export MovingAverageCrossoverStrategy 
+export MovingAverageCrossoverStrategy
 
 using .MeanReversionImpl
-export MeanReversionStrategy 
+export MeanReversionStrategy
 
 end # module TradingStrategy

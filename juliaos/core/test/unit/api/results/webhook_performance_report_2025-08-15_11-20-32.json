@@ -1,0 +1,71 @@
+{
+  "test_timestamp": "2025-08-15 11:20:32",
+  "processing_metrics": {
+    "events_per_second": 14.48692144577985,
+    "deliveries_per_second": 28.9738428915597,
+    "total_processing_time": 4.9700000286102295
+  },
+  "performance_summary": {
+    "system_health": {
+      "retry_queue_size": 13,
+      "active_subscriptions": 5,
+      "queue_size": 0
+    },
+    "delivery_metrics": {
+      "deliveries_per_hour": 63654.22396856581,
+      "overall_success_rate": 0.9097222222222222,
+      "total_deliveries": 144,
+      "successful_deliveries": 131,
+      "failed_deliveries": 13
+    },
+    "performance_metrics": {
+      "average_response_time_ms": 59.562502635849846,
+      "p95_response_time_ms": 107.99980163574219,
+      "processing_rate_events_per_second": 8.840864440078585
+    },
+    "subscription_health": {
+      "webhook_41068": {
+        "total_delivered": 9,
+        "success_rate": 1.0,
+        "endpoint": "https://compliance.audit-firm.com/api/notifications",
+        "total_failed": 0,
+        "last_success": "2025-08-15T11:20:26.665"
+      },
+      "webhook_54625": {
+        "total_delivered": 24,
+        "success_rate": 0.8888888888888888,
+        "endpoint": "https://alerts.security-company.com/receive/blockchain",
+        "total_failed": 3,
+        "last_success": "2025-08-15T11:20:25.874"
+      },
+      "webhook_14443": {
+        "total_delivered": 9,
+        "success_rate": 1.0,
+        "endpoint": "https://slack.com/api/webhooks/ghost-wallet-alerts",
+        "total_failed": 0,
+        "last_success": "2025-08-15T11:20:26.665"
+      },
+      "webhook_88866": {
+        "total_delivered": 26,
+        "success_rate": 0.9629629629629629,
+        "endpoint": "https://api.example-exchange.com/webhooks/ghost-hunter",
+        "total_failed": 1,
+        "last_success": "2025-08-15T11:20:25.968"
+      },
+      "webhook_94131": {
+        "total_delivered": 63,
+        "success_rate": 0.875,
+        "endpoint": "https://dashboard.defi-monitor.io/webhook/alerts",
+        "total_failed": 9,
+        "last_success": "2025-08-15T11:20:28.719"
+      }
+    },
+    "uptime_seconds": 8.144
+  },
+  "test_configuration": {
+    "total_subscriptions": 5,
+    "event_types_tested": 8,
+    "priority_levels_tested": 3,
+    "events_generated": 72
+  }
+}

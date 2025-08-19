@@ -1,0 +1,111 @@
+{
+    "config_used": "balanced",
+    "julia_version": "1.11.6",
+    "test_name": "unit_analysis_risk_engine",
+    "test_type": "complete_risk_assessment",
+    "hostname": "Filipe",
+    "saved_at": "2025-08-15T10:37:03.863",
+    "results": [
+        {
+            "assessment_time": "2025-08-15T10:36:57.771",
+            "wallet_address": "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4",
+            "transaction_count": 7,
+            "final_score": 0.13492307692307692,
+            "risk_level": "LOW",
+            "components": [
+                {
+                    "score": 0.07,
+                    "weight": 0.4,
+                    "description": "Taint proximity analysis based on 7 tainted transactions",
+                    "evidence": [
+                        "low_taint_exposure"
+                    ]
+                },
+                {
+                    "score": 0.2564102564102564,
+                    "weight": 0.3,
+                    "description": "Convergence analysis: 13 nodes, 20 edges, density 0.128",
+                    "evidence": [
+                        "low_convergence_pattern"
+                    ]
+                },
+                {
+                    "score": 0.1,
+                    "weight": 0.3,
+                    "description": "Control signals analysis: 7 transactions analyzed",
+                    "evidence": [
+                        "normal_control_patterns"
+                    ]
+                }
+            ]
+        },
+        {
+            "assessment_time": "2025-08-15T10:37:00.28",
+            "wallet_address": "whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc",
+            "transaction_count": 7,
+            "final_score": 0.2107272727272727,
+            "risk_level": "LOW",
+            "components": [
+                {
+                    "score": 0.07,
+                    "weight": 0.4,
+                    "description": "Taint proximity analysis based on 7 tainted transactions",
+                    "evidence": [
+                        "low_taint_exposure"
+                    ]
+                },
+                {
+                    "score": 0.509090909090909,
+                    "weight": 0.3,
+                    "description": "Convergence analysis: 11 nodes, 28 edges, density 0.255",
+                    "evidence": [
+                        "medium_convergence_pattern"
+                    ]
+                },
+                {
+                    "score": 0.1,
+                    "weight": 0.3,
+                    "description": "Control signals analysis: 7 transactions analyzed",
+                    "evidence": [
+                        "normal_control_patterns"
+                    ]
+                }
+            ]
+        },
+        {
+            "assessment_time": "2025-08-15T10:37:02.624",
+            "wallet_address": "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM",
+            "transaction_count": 7,
+            "final_score": 0.1156923076923077,
+            "risk_level": "LOW",
+            "components": [
+                {
+                    "score": 0.07,
+                    "weight": 0.4,
+                    "description": "Taint proximity analysis based on 7 tainted transactions",
+                    "evidence": [
+                        "low_taint_exposure"
+                    ]
+                },
+                {
+                    "score": 0.19230769230769232,
+                    "weight": 0.3,
+                    "description": "Convergence analysis: 13 nodes, 15 edges, density 0.096",
+                    "evidence": [
+                        "low_convergence_pattern"
+                    ]
+                },
+                {
+                    "score": 0.1,
+                    "weight": 0.3,
+                    "description": "Control signals analysis: 7 transactions analyzed",
+                    "evidence": [
+                        "normal_control_patterns"
+                    ]
+                }
+            ]
+        }
+    ],
+    "wallets_assessed": 3,
+    "category": "analysis"
+}

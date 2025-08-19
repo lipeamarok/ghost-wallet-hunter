@@ -2,7 +2,8 @@
 module DexHandlers
 
 using HTTP, Logging, Dates
-using ..Utils # For standardized responses
+include("Utils.jl")
+using .Utils # For standardized responses
 import ..framework.JuliaOSFramework.DEX
 import ..framework.JuliaOSFramework.DEXBase
 
@@ -25,7 +26,7 @@ function _get_or_create_dex_instance(protocol::String, version::String, params::
     # Key could be protocol_version_chainId_dexName for more uniqueness.
     dex_name_param = get(params, "dex_name", protocol) # Use protocol as default dex_name if not provided
     chain_id_param = get(params, "chain_id", "1") # Default to Ethereum mainnet string
-    
+
     instance_key = "$(lowercase(protocol))-$(lowercase(version))-$(dex_name_param)-$(chain_id_param)"
 
     lock(DEX_INSTANCES_LOCK) do
@@ -46,7 +47,7 @@ function _get_or_create_dex_instance(protocol::String, version::String, params::
             :protocol => protocol, # Add protocol string
             :version => version,   # Add version string
             :chain_id => parsed_chain_id,
-            :rpc_url => get(params, "rpc_url", "https://mainnet.infura.io/v3/YOUR_KEY"), 
+            :rpc_url => get(params, "rpc_url", "https://mainnet.infura.io/v3/YOUR_KEY"),
             :router_address => get(params, "router_address", ""),
             :factory_address => get(params, "factory_address", ""),
             # private_key should NOT be passed via API for security. Wallet interactions should be separate.
@@ -58,10 +59,10 @@ function _get_or_create_dex_instance(protocol::String, version::String, params::
             :timeout => tryparse(Int, get(params, "timeout", "30")) !== nothing ? parse(Int, get(params, "timeout", "30")) : 30,
             :metadata => get(params, "metadata", Dict{String,Any}())
         )
-        
+
         try
             # DEXConfig constructor now expects protocol and version
-            config = DEXBase.DEXConfig(;dex_config_params...) 
+            config = DEXBase.DEXConfig(;dex_config_params...)
             # create_dex_instance still takes protocol and version as separate args,
             # but the config object it receives will now also contain them.
             instance = DEX.create_dex_instance(protocol, version, config)
@@ -96,10 +97,10 @@ function get_dex_pairs_handler(req::HTTP.Request, protocol::String, version::Str
     try
         pairs_list = DEXBase.get_pairs(dex_instance, limit=limit)
         result = [
-            Dict("id"=>p.id, 
+            Dict("id"=>p.id,
                  "token0"=>Dict("symbol"=>p.token0.symbol, "address"=>p.token0.address, "decimals"=>p.token0.decimals),
                  "token1"=>Dict("symbol"=>p.token1.symbol, "address"=>p.token1.address, "decimals"=>p.token1.decimals),
-                 "fee"=>p.fee, "protocol_name"=>p.protocol) 
+                 "fee"=>p.fee, "protocol_name"=>p.protocol)
             for p in pairs_list
         ]
         return Utils.json_response(Dict("protocol"=>protocol, "version"=>version, "pairs"=>result))
@@ -111,9 +112,9 @@ end
 
 function get_dex_price_handler(req::HTTP.Request, protocol::String, version::String)
     query_params = Dict(pairs(HTTP.queryparams(HTTP.URI(req.target))))
-    token0_symbol_or_addr = get(query_params, "token0", "") 
-    token1_symbol_or_addr = get(query_params, "token1", "") 
-    
+    token0_symbol_or_addr = get(query_params, "token0", "")
+    token1_symbol_or_addr = get(query_params, "token1", "")
+
     if isempty(token0_symbol_or_addr) || isempty(token1_symbol_or_addr)
         return Utils.error_response("Missing 'token0' or 'token1' (symbol or address) query parameters.", 400, error_code=Utils.ERROR_CODE_INVALID_INPUT)
     end
@@ -126,7 +127,7 @@ function get_dex_price_handler(req::HTTP.Request, protocol::String, version::Str
     try
         all_pairs = DEXBase.get_pairs(dex_instance) # This might be inefficient if many pairs
         target_pair = nothing
-        
+
         # Try to match by symbol first, then by address if symbols don't match or are ambiguous
         # This logic can be complex if symbols are not unique or if addresses are preferred.
         for p in all_pairs
@@ -151,7 +152,7 @@ function get_dex_price_handler(req::HTTP.Request, protocol::String, version::Str
         if isnothing(target_pair)
             return Utils.error_response("Pair $token0_symbol_or_addr/$token1_symbol_or_addr not found on $protocol $version.", 404, error_code=Utils.ERROR_CODE_NOT_FOUND)
         end
-        
+
         price_of_token0_in_token1 = DEXBase.get_price(dex_instance, target_pair) # This is price of target_pair.token0 in terms of target_pair.token1
 
         # Determine if we need to invert the price based on requested order
@@ -159,14 +160,14 @@ function get_dex_price_handler(req::HTTP.Request, protocol::String, version::Str
             price_of_token0_in_token1 # Requested token0 is pair's token0
         else
             # Requested token0 is pair's token1, so we need price of token1 in terms of token0
-            price_of_token0_in_token1 == 0.0 ? 0.0 : 1.0 / price_of_token0_in_token1 
+            price_of_token0_in_token1 == 0.0 ? 0.0 : 1.0 / price_of_token0_in_token1
         end
 
         return Utils.json_response(Dict(
             "protocol"=>protocol, "version"=>version,
             "base_asset"=>token0_symbol_or_addr, # What was requested as base
             "quote_asset"=>token1_symbol_or_addr, # What was requested as quote
-            "price"=>final_price, 
+            "price"=>final_price,
             "timestamp"=>string(now(UTC))
         ))
     catch e
@@ -177,8 +178,8 @@ end
 
 function get_dex_liquidity_handler(req::HTTP.Request, protocol::String, version::String)
     query_params = Dict(pairs(HTTP.queryparams(HTTP.URI(req.target))))
-    token0_symbol_or_addr = get(query_params, "token0", "") 
-    token1_symbol_or_addr = get(query_params, "token1", "") 
+    token0_symbol_or_addr = get(query_params, "token0", "")
+    token1_symbol_or_addr = get(query_params, "token1", "")
 
     if isempty(token0_symbol_or_addr) || isempty(token1_symbol_or_addr)
         return Utils.error_response("Missing 'token0' or 'token1' (symbol or address) query parameters for liquidity.", 400, error_code=Utils.ERROR_CODE_INVALID_INPUT)
@@ -203,7 +204,7 @@ function get_dex_liquidity_handler(req::HTTP.Request, protocol::String, version:
              # Check for flipped pair (though liquidity order usually doesn't matter as much as price)
             if (uppercase(p.token0.symbol) == uppercase(token1_symbol_or_addr) || lowercase(p.token0.address) == lowercase(token1_symbol_or_addr)) &&
                (uppercase(p.token1.symbol) == uppercase(token0_symbol_or_addr) || lowercase(p.token1.address) == lowercase(token0_symbol_or_addr))
-                target_pair = p 
+                target_pair = p
                 break
             end
         end
@@ -211,13 +212,13 @@ function get_dex_liquidity_handler(req::HTTP.Request, protocol::String, version:
         if isnothing(target_pair)
             return Utils.error_response("Pair $token0_symbol_or_addr/$token1_symbol_or_addr not found on $protocol $version for liquidity check.", 404, error_code=Utils.ERROR_CODE_NOT_FOUND)
         end
-        
+
         liquidity_token0, liquidity_token1 = DEXBase.get_liquidity(dex_instance, target_pair)
-        
+
         return Utils.json_response(Dict(
             "protocol"=>protocol, "version"=>version,
             "pair_id"=>target_pair.id,
-            "token0_symbol"=>target_pair.token0.symbol, 
+            "token0_symbol"=>target_pair.token0.symbol,
             "token0_liquidity"=>liquidity_token0,
             "token1_symbol"=>target_pair.token1.symbol,
             "token1_liquidity"=>liquidity_token1,
@@ -248,7 +249,7 @@ function create_dex_order_handler(req::HTTP.Request, protocol::String, version::
     if (isempty(pair_id) && (isempty(token0_str) || isempty(token1_str))) || isempty(order_type_str) || isempty(side_str) || amount <= 0
         return Utils.error_response("Missing required fields for order: (pair_id or token0/token1), order_type, side, amount.", 400, error_code=Utils.ERROR_CODE_INVALID_INPUT)
     end
-    
+
     query_params = Dict(pairs(HTTP.queryparams(HTTP.URI(req.target)))) # For dex instance config
     dex_instance = _get_or_create_dex_instance(protocol, version, query_params)
     if isnothing(dex_instance)
@@ -271,7 +272,7 @@ function create_dex_order_handler(req::HTTP.Request, protocol::String, version::
                 # Check flipped
                 if (uppercase(p.token0.symbol) == uppercase(token1_str) || lowercase(p.token0.address) == lowercase(token1_str)) &&
                    (uppercase(p.token1.symbol) == uppercase(token0_str) || lowercase(p.token1.address) == lowercase(token0_str))
-                    target_pair = p; break; 
+                    target_pair = p; break;
                 end
             end
         end
@@ -282,12 +283,12 @@ function create_dex_order_handler(req::HTTP.Request, protocol::String, version::
 
         order_type_enum = try Symbol(uppercase(order_type_str)) catch; return Utils.error_response("Invalid order_type.", 400) end
         if !(order_type_enum in instances(DEXBase.OrderType)) return Utils.error_response("Invalid order_type.", 400) end
-        
+
         side_enum = try Symbol(uppercase(side_str)) catch; return Utils.error_response("Invalid side.", 400) end
         if !(side_enum in instances(DEXBase.OrderSide)) return Utils.error_response("Invalid side.", 400) end
 
         dex_order = DEXBase.create_order(dex_instance, target_pair, DEXBase.OrderType(Int(Val(order_type_enum))), DEXBase.OrderSide(Int(Val(side_enum))), amount, price)
-        
+
         # Convert DEXOrder to Dict for JSON response
         order_dict = Dict(
             "order_id" => dex_order.id,
@@ -340,7 +341,7 @@ function get_dex_order_status_handler(req::HTTP.Request, protocol::String, versi
         # Let's assume Storage.jl returns a Dict that we need to parse into DEXOrder struct.
         # This part depends heavily on how Storage.save_default serializes the DEXOrder struct.
         # If JSON3 is used, it will be a Dict.
-        
+
         # For simplicity, let's assume the "original_order_details" is the DEXOrder struct itself,
         # and "tx_hash" is stored alongside.
         # The structure in storage would be: Dict("tx_hash"=>..., "original_order_details_dict"=>...)
@@ -374,13 +375,13 @@ function get_dex_order_status_handler(req::HTTP.Request, protocol::String, versi
     # The UniswapDEX.get_order_status will create a DEXOrder object based on the receipt.
     # It uses placeholder for original order details if not passed.
     dex_order_status_obj = DEXBase.get_order_status(dex_instance, order_id; tx_hash=tx_hash_for_order)
-    
+
     # The dex_order_status_obj contains the latest status based on the tx_hash.
     # We can supplement this with original order details if needed from cached_order_payload,
     # but for now, let's primarily return what get_order_status provides.
     # The `id` in dex_order_status_obj might be the order_id itself or a placeholder if the function creates a new one.
     # It's safer to use the passed-in order_id for the response key.
-    
+
     # Ensure the pair information in dex_order_status_obj is meaningful.
     # If it uses a dummy pair, we might want to use details from cached_order_payload if available.
     pair_info_for_response = Dict(
@@ -410,7 +411,7 @@ function get_dex_order_status_handler(req::HTTP.Request, protocol::String, versi
         "tx_hash" => dex_order_status_obj.tx_hash, # Should be the one we passed
         "metadata" => dex_order_status_obj.metadata # Contains on-chain details like gas_used
     )
-    
+
     # Supplement with original amount/price from cache if the status object has defaults (0.0)
     if order_dict["amount"] == 0.0 && !isnothing(cached_data_tuple)
         cached_payload, _ = cached_data_tuple
@@ -474,7 +475,7 @@ function associate_tx_hash_handler(req::HTTP.Request, protocol::String, version:
 
     storage_key = ORDER_CACHE_KEY_PREFIX * order_id
     cached_data_tuple = Storage.load_default(storage_key)
-    
+
     cached_info_dict = if !isnothing(cached_data_tuple)
         data_part, _ = cached_data_tuple
         isa(data_part, Dict) ? data_part : Dict() # Ensure it's a Dict
@@ -484,20 +485,20 @@ function associate_tx_hash_handler(req::HTTP.Request, protocol::String, version:
 
     # Update with new tx_hash
     cached_info_dict["tx_hash"] = tx_hash
-    
+
     # Save back to storage
     # The original_order_details part might be overwritten if not careful.
     # It's better if associate_tx_hash only *adds* or *updates* the tx_hash.
     # If original_order_details was stored as a serialized struct, it needs to be preserved.
     # For now, we assume `cached_info_dict` holds all necessary fields or we just update/add tx_hash.
-    
+
     save_success = Storage.save_default(storage_key, cached_info_dict) # Save the potentially updated dict
 
     if !save_success
         @error "Failed to save updated order cache for $order_id with new tx_hash."
         # Non-fatal for the client, but an issue for subsequent status checks if not persisted.
     end
-    
+
     @info "Associated tx_hash $tx_hash with order_id $order_id for $protocol $version."
     return Utils.json_response(Dict("message"=>"Transaction hash associated with order successfully.", "order_id"=>order_id, "tx_hash"=>tx_hash))
 end
@@ -511,18 +512,18 @@ function create_dex_order_handler(req::HTTP.Request, protocol::String, version::
     end
 
     pair_id = get(body, "pair_id", "")
-    token0_str = get(body, "token0", "") 
-    token1_str = get(body, "token1", "") 
-    order_type_str = get(body, "order_type", "") 
-    side_str = get(body, "side", "")         
+    token0_str = get(body, "token0", "")
+    token1_str = get(body, "token1", "")
+    order_type_str = get(body, "order_type", "")
+    side_str = get(body, "side", "")
     amount = get(body, "amount", 0.0)
-    price = get(body, "price", 0.0)         
+    price = get(body, "price", 0.0)
 
     if (isempty(pair_id) && (isempty(token0_str) || isempty(token1_str))) || isempty(order_type_str) || isempty(side_str) || amount <= 0
         return Utils.error_response("Missing required fields for order: (pair_id or token0/token1), order_type, side, amount.", 400, error_code=Utils.ERROR_CODE_INVALID_INPUT)
     end
-    
-    query_params = Dict(pairs(HTTP.queryparams(HTTP.URI(req.target)))) 
+
+    query_params = Dict(pairs(HTTP.queryparams(HTTP.URI(req.target))))
     dex_instance = _get_or_create_dex_instance(protocol, version, query_params)
     if isnothing(dex_instance)
         return Utils.error_response("DEX '$protocol $version' not found or failed to initialize.", 404, error_code=Utils.ERROR_CODE_NOT_FOUND)
@@ -542,7 +543,7 @@ function create_dex_order_handler(req::HTTP.Request, protocol::String, version::
                 if is_t0 && is_t1 target_pair = p; break; end
                 if (uppercase(p.token0.symbol) == uppercase(token1_str) || lowercase(p.token0.address) == lowercase(token1_str)) &&
                    (uppercase(p.token1.symbol) == uppercase(token0_str) || lowercase(p.token1.address) == lowercase(token0_str))
-                    target_pair = p; break; 
+                    target_pair = p; break;
                 end
             end
         end
@@ -553,12 +554,12 @@ function create_dex_order_handler(req::HTTP.Request, protocol::String, version::
 
         order_type_enum_val = try Val(Symbol(uppercase(order_type_str))) catch; return Utils.error_response("Invalid order_type string.", 400) end
         order_type_enum = try DEXBase.OrderType(Int(order_type_enum_val)) catch; return Utils.error_response("Invalid order_type enum value.", 400) end
-        
+
         side_enum_val = try Val(Symbol(uppercase(side_str))) catch; return Utils.error_response("Invalid side string.", 400) end
         side_enum = try DEXBase.OrderSide(Int(side_enum_val)) catch; return Utils.error_response("Invalid side enum value.", 400) end
 
         dex_order_obj = DEXBase.create_order(dex_instance, target_pair, order_type_enum, side_enum, amount, price)
-        
+
         # Store the created order details (which includes transaction_params_for_client)
         # The tx_hash will be added later by associate_tx_hash_handler
         # We need to store enough to reconstruct or represent the order.
@@ -566,7 +567,7 @@ function create_dex_order_handler(req::HTTP.Request, protocol::String, version::
         # For now, let's store a dictionary representation of the key fields of dex_order_obj.
         # This assumes Storage.save_default can handle Dicts with DEXToken/DEXPair if they are part of metadata.
         # A safer bet is to serialize them to basic dicts first.
-        
+
         # Simplified serializable version of the order for caching:
         # This is what `associate_tx_hash_handler` and `get_dex_order_status_handler` will work with.
         cached_order_payload = Dict(
@@ -597,16 +598,16 @@ function create_dex_order_handler(req::HTTP.Request, protocol::String, version::
         client_response_order_dict = Dict(
             "order_id" => dex_order_obj.id,
             "pair_id" => dex_order_obj.pair.id, # Client might use this
-            "type" => string(dex_order_obj.order_type), 
+            "type" => string(dex_order_obj.order_type),
             "side" => string(dex_order_obj.side),
             "amount" => dex_order_obj.amount,
             "price" => dex_order_obj.price,
             "status" => string(dex_order_obj.status),
             "timestamp" => string(unix2datetime(dex_order_obj.timestamp)),
-            "tx_hash" => dex_order_obj.tx_hash, 
-            "metadata" => dex_order_obj.metadata 
+            "tx_hash" => dex_order_obj.tx_hash,
+            "metadata" => dex_order_obj.metadata
         )
-        return Utils.json_response(client_response_order_dict, 201) 
+        return Utils.json_response(client_response_order_dict, 201)
     catch e
         @error "Error creating DEX order on $protocol $version" exception=(e, catch_backtrace())
         return Utils.error_response("Failed to create DEX order: $(sprint(showerror, e))", 500, error_code=Utils.ERROR_CODE_SERVER_ERROR)

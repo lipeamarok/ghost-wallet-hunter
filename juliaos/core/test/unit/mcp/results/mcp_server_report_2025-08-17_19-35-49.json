@@ -1,0 +1,46 @@
+{
+  "performance_metrics": {
+    "tool_performance": {
+      "analyze_wallet": {
+        "call_count": 1,
+        "total_time": 1.2129998207092285,
+        "avg_time": 1.2129998207092285
+      },
+      "check_compliance": {
+        "call_count": 1,
+        "total_time": 0.1679999828338623,
+        "avg_time": 0.1679999828338623
+      }
+    },
+    "system_health": {
+      "status": "healthy",
+      "memory_usage": "optimal",
+      "response_times": "within_targets"
+    },
+    "request_processing": {
+      "p95_time_ms": 828.5998344421383,
+      "total_requests": 9,
+      "average_time_ms": 175.11108186509875,
+      "max_time_ms": 1212.9998207092285
+    }
+  },
+  "test_timestamp": "2025-08-17 19:35:49",
+  "server_configuration": {
+    "name": "ghost-wallet-hunter",
+    "capabilities": [
+      "resources",
+      "tools",
+      "prompts",
+      "logging",
+      "sampling"
+    ],
+    "version": "1.0.0",
+    "protocol_version": "2024-11-05"
+  },
+  "integration_summary": {
+    "ai_prompts": 2,
+    "blockchain_tools": 4,
+    "resource_endpoints": 4,
+    "error_rate": 0.0
+  }
+}

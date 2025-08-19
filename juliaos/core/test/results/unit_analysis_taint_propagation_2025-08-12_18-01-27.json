@@ -1,0 +1,14 @@
+{
+    "contamination_results": [
+    ],
+    "julia_version": "1.11.6",
+    "test_name": "unit_analysis_taint_propagation",
+    "hostname": "Filipe",
+    "saved_at": "2025-08-12T18:01:27.493",
+    "unique_levels_detected": 0,
+    "wallets_analyzed": 4,
+    "timestamp": "2025-08-12T18:01:27.223",
+    "category": "contamination_level_calculation",
+    "contamination_distribution": {
+    }
+}

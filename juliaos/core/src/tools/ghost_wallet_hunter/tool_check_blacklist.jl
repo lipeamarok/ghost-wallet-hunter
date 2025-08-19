@@ -1,21 +1,13 @@
-using DotEnv
-DotEnv.load!()
-
-using HTTP
-using JSON3
-using Dates
-using ..CommonTypes: ToolSpecification, ToolMetadata, ToolConfig
-
 """
 Ghost Wallet Hunter - Blacklist Check Tool
 
-Esta ferramenta verifica se uma carteira está presente em listas negras conhecidas,
-incluindo bases de dados de endereços maliciosos, sancionados e suspeitos.
+This tool checks if a wallet is present in known blacklists,
+including databases of malicious, sanctioned, and suspicious addresses.
 
-Segue os padrões da documentação JuliaOS oficial para implementação de tools.
+Follows the official JuliaOS documentation standards for tool implementation.
 """
 
-# Configurações de APIs de blacklist
+# Blacklist API configurations
 const DEFAULT_CHAINALYSIS_API = get(ENV, "CHAINALYSIS_API_URL", "")
 const DEFAULT_BLOCKCYPHER_API = get(ENV, "BLOCKCYPHER_API_KEY", "")
 # const OPENAI_API_KEY = get(ENV, "OPENAI_API_KEY", "")  # REMOVED - using shared
@@ -31,35 +23,35 @@ Base.@kwdef struct ToolCheckBlacklistConfig <: ToolConfig
 end
 
 """
-Lista negra interna de endereços conhecidos maliciosos para demonstração.
-Em produção, isso seria carregado de uma base de dados externa.
+Internal blacklist of known malicious addresses for demonstration.
+In production, this would be loaded from an external database.
 """
 const INTERNAL_BLACKLIST = Set([
-    "0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",  # Exemplo de endereço suspeito
+    "0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",  # Example suspicious address
     "0x0000000000000000000000000000000000000000",  # Null address
     "0x000000000000000000000000000000000000dead",  # Burn address
 ])
 
 """
-Categorias de risco conhecidas
+Known risk categories
 """
 const RISK_CATEGORIES = Dict(
-    "SANCTIONS" => "Endereço sancionado por autoridades",
-    "MIXER" => "Serviço de mistura de criptomoedas",
-    "RANSOMWARE" => "Associado a atividade de ransomware",
-    "THEFT" => "Fundos roubados ou hackeados",
-    "TERRORISM" => "Financiamento de terrorismo",
-    "DRUGS" => "Comércio de drogas",
-    "FRAUD" => "Atividade fraudulenta",
-    "PHISHING" => "Ataques de phishing",
-    "EXCHANGE_FRAUD" => "Exchange fraudulenta",
-    "KNOWN_SCAM" => "Esquema conhecido de golpe"
+    "SANCTIONS" => "Address sanctioned by authorities",
+    "MIXER" => "Cryptocurrency mixing service",
+    "RANSOMWARE" => "Associated with ransomware activity",
+    "THEFT" => "Stolen or hacked funds",
+    "TERRORISM" => "Terrorism financing",
+    "DRUGS" => "Drug trade",
+    "FRAUD" => "Fraudulent activity",
+    "PHISHING" => "Phishing attacks",
+    "EXCHANGE_FRAUD" => "Fraudulent exchange",
+    "KNOWN_SCAM" => "Known scam scheme"
 )
 
 """
     check_internal_blacklist(wallet_address::String) -> Dict
 
-Verifica a lista negra interna.
+Checks the internal blacklist.
 """
 function check_internal_blacklist(wallet_address::String)
     is_blacklisted = lowercase(wallet_address) in lowercase.(collect(INTERNAL_BLACKLIST))
@@ -78,11 +70,11 @@ end
 """
     check_ofac_sanctions(wallet_address::String) -> Dict
 
-Simula verificação de sanções OFAC (Office of Foreign Assets Control).
-Em produção, isso se conectaria à API oficial do OFAC.
+Simulates OFAC (Office of Foreign Assets Control) sanctions check.
+In production, this would connect to the official OFAC API.
 """
 function check_ofac_sanctions(wallet_address::String)
-    # Lista simulada de endereços sancionados para demonstração
+    # Simulated list of sanctioned addresses for demonstration
     ofac_addresses = Set([
         "0x7db418b5d567a4e0e8c59ad71be1fce48f3e6107",
         "0x72a5843cc08275c8171e582972aa4fda8c397b2a"
@@ -103,8 +95,8 @@ end
 """
     check_chainalysis_reactor(wallet_address::String, config::ToolCheckBlacklistConfig) -> Dict
 
-Simula verificação com Chainalysis Reactor.
-Em produção, isso se conectaria à API real do Chainalysis.
+Simulates Chainalysis Reactor check.
+In production, this would connect to the real Chainalysis API.
 """
 function check_chainalysis_reactor(wallet_address::String, config::ToolCheckBlacklistConfig)
     if isempty(config.chainalysis_api_url)
@@ -115,8 +107,8 @@ function check_chainalysis_reactor(wallet_address::String, config::ToolCheckBlac
         )
     end
 
-    # Simulação de resposta do Chainalysis para demonstração
-    # Lista de endereços conhecidos de alto risco
+    # Simulated Chainalysis response for demonstration
+    # List of known high risk addresses
     high_risk_addresses = Set([
         "0x098b716b8aaf21512996dc57eb0615e2383e2f96",
         "0x722122df12d4e14e13ac3b6895a86e84145b6967"
@@ -167,10 +159,10 @@ end
 """
     check_elliptic_investigator(wallet_address::String) -> Dict
 
-Simula verificação com Elliptic Investigator.
+Simulates Elliptic Investigator check.
 """
 function check_elliptic_investigator(wallet_address::String)
-    # Simulação de base de dados Elliptic
+    # Simulated Elliptic database
     elliptic_flagged = Set([
         "0xa7efae728d2936e78bda97dc267687568dd593f3",
         "0xd8da6bf26964af9d7eed9e03e53415d37aa96045"
@@ -191,10 +183,10 @@ end
 """
     check_custom_threat_intelligence(wallet_address::String) -> Dict
 
-Verifica fontes customizadas de threat intelligence.
+Checks custom threat intelligence sources.
 """
 function check_custom_threat_intelligence(wallet_address::String)
-    # Base de dados de threat intelligence customizada
+    # Custom threat intelligence database
     custom_threats = Dict(
         "0x123456789abcdef0123456789abcdef012345678" => Dict(
             "category" => "PHISHING",
@@ -236,7 +228,7 @@ end
 """
     calculate_composite_risk_score(blacklist_results::Vector{Dict}) -> Dict
 
-Calcula um score de risco composto baseado em todos os resultados de blacklist.
+Calculates a composite risk score based on all blacklist results.
 """
 function calculate_composite_risk_score(blacklist_results::Vector{Dict})
     if isempty(blacklist_results)
@@ -256,7 +248,7 @@ function calculate_composite_risk_score(blacklist_results::Vector{Dict})
     categories = Set{String}()
     sources_count = length(blacklist_results)
 
-    # Pesos por fonte (mais confiáveis têm peso maior)
+    # Weights per source (more reliable sources have higher weight)
     source_weights = Dict(
         "OFAC" => 1.0,
         "Chainalysis" => 0.9,
@@ -266,13 +258,13 @@ function calculate_composite_risk_score(blacklist_results::Vector{Dict})
     )
 
     for result in blacklist_results
-        # Extrair dados com fallbacks seguros
+        # Extract data with safe fallbacks
         confidence = get(result, "confidence", 0.5)
         category = get(result, "category", "unknown")
         source = get(result, "source", "default")
         is_blacklisted = get(result, "is_blacklisted", false)
 
-        # Aplicar peso da fonte
+        # Apply source weight
         weight = get(source_weights, source, 0.5)
         weighted_confidence = confidence * weight
 
@@ -290,7 +282,7 @@ function calculate_composite_risk_score(blacklist_results::Vector{Dict})
         end
     end
 
-    # Calcular score final (média ponderada com cap no máximo)
+    # Calculate final score (weighted average capped at max)
     if sources_count > 0
         average_score = total_score / sources_count
         composite_score = min(max_score, average_score)
@@ -298,7 +290,7 @@ function calculate_composite_risk_score(blacklist_results::Vector{Dict})
         composite_score = 0.0
     end
 
-    # Determinar nível de risco
+    # Determine risk level
     risk_level = if composite_score >= 80.0
         "CRITICAL"
     elseif composite_score >= 60.0
@@ -311,7 +303,7 @@ function calculate_composite_risk_score(blacklist_results::Vector{Dict})
         "CLEAN"
     end
 
-    # Calcular confiança geral
+    # Calculate overall confidence
     overall_confidence = if sources_count > 0
         min(1.0, (high_confidence_flags + sources_count * 0.2) / sources_count)
     else
@@ -332,7 +324,7 @@ end
 """
     generate_blacklist_report(wallet_address::String, results::Vector{Dict}, risk_summary::Dict) -> String
 
-Gera um relatório detalhado dos resultados de blacklist.
+Generates a detailed report of blacklist results.
 """
 function generate_blacklist_report(wallet_address::String, results::Vector{Dict}, risk_summary::Dict)
     report = """
@@ -384,61 +376,61 @@ end
 """
     tool_check_blacklist(cfg::ToolCheckBlacklistConfig, task::Dict) -> Dict
 
-Função principal da tool que verifica uma carteira contra múltiplas listas negras.
+Main tool function that checks a wallet against multiple blacklists.
 """
 function tool_check_blacklist(cfg::ToolCheckBlacklistConfig, task::Dict)
-    # Validação de entrada
+    # Input validation
     if !haskey(task, "wallet_address") || !(task["wallet_address"] isa AbstractString)
         return Dict("success" => false, "error" => "Missing or invalid 'wallet_address' field")
     end
 
     wallet_address = task["wallet_address"]
 
-    # Validar formato do endereço Solana (base58, 32-44 chars)
+    # Validate Solana address format (base58, 32-44 chars)
     if !occursin(r"^[1-9A-HJ-NP-Za-km-z]{32,44}$", wallet_address)
         return Dict("success" => false, "error" => "Invalid Solana address format")
     end
 
     try
-        # Coletar resultados de todas as fontes de blacklist
+        # Collect results from all blacklist sources
         blacklist_results = []
 
-        # 1. Verificar lista negra interna
+        # 1. Check internal blacklist
         internal_result = check_internal_blacklist(wallet_address)
         push!(blacklist_results, internal_result)
 
-        # 2. Verificar sanções OFAC (se habilitado)
+        # 2. Check OFAC sanctions (if enabled)
         if cfg.check_ofac
             ofac_result = check_ofac_sanctions(wallet_address)
             push!(blacklist_results, ofac_result)
         end
 
-        # 3. Verificar Chainalysis
+        # 3. Check Chainalysis
         chainalysis_result = check_chainalysis_reactor(wallet_address, cfg)
         if !haskey(chainalysis_result, "status") || chainalysis_result["status"] != "unavailable"
             push!(blacklist_results, chainalysis_result)
         end
 
-        # 4. Verificar Elliptic
+        # 4. Check Elliptic
         elliptic_result = check_elliptic_investigator(wallet_address)
         push!(blacklist_results, elliptic_result)
 
-        # 5. Verificar threat intelligence customizada (se habilitado)
+        # 5. Check custom threat intelligence (if enabled)
         if cfg.check_custom_lists
             custom_result = check_custom_threat_intelligence(wallet_address)
             push!(blacklist_results, custom_result)
         end
 
-        # Calcular score de risco composto
+        # Calculate composite risk score
         risk_summary = Dict()
         if cfg.include_risk_score
             risk_summary = calculate_composite_risk_score(blacklist_results)
         end
 
-        # Gerar relatório
+        # Generate report
         detailed_report = generate_blacklist_report(wallet_address, blacklist_results, risk_summary)
 
-        # Determinar se a carteira está em alguma blacklist
+        # Determine if the wallet is in any blacklist
         is_blacklisted = any(result ->
             get(result, "is_blacklisted", false) ||
             get(result, "is_sanctioned", false) ||
@@ -448,16 +440,17 @@ function tool_check_blacklist(cfg::ToolCheckBlacklistConfig, task::Dict)
             blacklist_results
         )
 
-        # Compilar resultado final
+        # Compile final result
         result = Dict(
             "success" => true,
             "wallet_address" => wallet_address,
             "is_blacklisted" => is_blacklisted,
-            "sources_checked" => length(blacklist_results),
+            # Backward-compat field kept as array of sources actually used; prefer sources_used upstream
+            "sources_checked" => [r["source"] for r in blacklist_results if haskey(r, "source")],
             "individual_results" => blacklist_results,
             "risk_summary" => risk_summary,
             "detailed_report" => detailed_report,
-            "timestamp" => string(now()),
+            "timestamp" => string(now(UTC)),
             "recommendations" => generate_blacklist_recommendations(is_blacklisted, risk_summary)
         )
 
@@ -475,7 +468,7 @@ end
 """
     generate_blacklist_recommendations(is_blacklisted::Bool, risk_summary::Dict) -> Vector{String}
 
-Gera recomendações baseadas nos resultados de blacklist.
+Generates recommendations based on blacklist results.
 """
 function generate_blacklist_recommendations(is_blacklisted::Bool, risk_summary::Dict)
     recommendations = []
@@ -507,7 +500,7 @@ function generate_blacklist_recommendations(is_blacklisted::Bool, risk_summary::
     return recommendations
 end
 
-# Metadados e especificação da tool seguindo padrão JuliaOS
+# Tool metadata and specification following JuliaOS standard
 const TOOL_CHECK_BLACKLIST_METADATA = ToolMetadata(
     "check_blacklist",
     "Checks a wallet address against multiple blacklist databases including OFAC sanctions, Chainalysis, Elliptic, and custom threat intelligence sources to identify malicious or sanctioned addresses."

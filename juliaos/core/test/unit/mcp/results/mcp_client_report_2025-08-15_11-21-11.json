@@ -1,0 +1,146 @@
+{
+  "system_health": {
+    "client_info": {
+      "name": "Custom Blockchain AI",
+      "connection_timeout": 15,
+      "capabilities": [
+        "tools",
+        "resources",
+        "prompts",
+        "blockchain_analysis"
+      ],
+      "model": "blockchain_forensics_v1",
+      "max_tokens": 8192,
+      "vendor": "Ghost Wallet Hunter",
+      "temperature": 0.0
+    },
+    "active_connection": "conn_88866",
+    "load_balancer_config": {
+      "strategy": "round_robin",
+      "health_check_interval": 30,
+      "failover_threshold": 3
+    },
+    "performance_metrics": {
+      "average_response_time_ms": 18.699979782104492,
+      "success_rate": 1.0,
+      "successful_requests": 10,
+      "last_update": "2025-08-15T11:21:11.011",
+      "failed_requests": 0,
+      "total_requests": 10,
+      "requests_per_hour": 17892.644135188868,
+      "active_connections": 1,
+      "uptime_seconds": 2.012,
+      "error_count": 0,
+      "total_connections": 1
+    },
+    "system_status": {
+      "connection_redundancy": false,
+      "overall_health": "healthy",
+      "error_rate": 0.0
+    },
+    "recent_errors": [],
+    "connection_health": {
+      "conn_88866": {
+        "avg_response_ms": 18.699979782104492,
+        "success_rate": 1.0,
+        "session_id": "session_38fb161c",
+        "endpoint": "mcp://localhost:8080/ghost-wallet-hunter",
+        "last_heartbeat": "2025-08-15T11:21:09.031",
+        "requests": 10,
+        "state": "connected"
+      }
+    }
+  },
+  "performance_analysis": {
+    "operation_breakdown": [
+      {
+        "method": "initialize",
+        "processing_time": 0.014999866485595703,
+        "success": true,
+        "response_size": 202
+      },
+      {
+        "method": "tools/list",
+        "processing_time": 0.016000032424926758,
+        "success": true,
+        "response_size": 405
+      },
+      {
+        "method": "tools/call",
+        "processing_time": 0.013000011444091797,
+        "success": true,
+        "response_size": 208
+      },
+      {
+        "method": "tools/call",
+        "processing_time": 0.018999814987182617,
+        "success": true,
+        "response_size": 213
+      },
+      {
+        "method": "resources/list",
+        "processing_time": 0.015000104904174805,
+        "success": true,
+        "response_size": 218
+      },
+      {
+        "method": "resources/read",
+        "processing_time": 0.02500009536743164,
+        "success": true,
+        "response_size": 207
+      },
+      {
+        "method": "resources/read",
+        "processing_time": 0.029999971389770508,
+        "success": true,
+        "response_size": 197
+      },
+      {
+        "method": "prompts/list",
+        "processing_time": 0.01699995994567871,
+        "success": true,
+        "response_size": 179
+      },
+      {
+        "method": "prompts/get",
+        "processing_time": 0.019999980926513672,
+        "success": true,
+        "response_size": 187
+      },
+      {
+        "method": "tools/call",
+        "processing_time": 0.01699995994567871,
+        "success": true,
+        "response_size": 210
+      }
+    ],
+    "workload_summary": {
+      "total_operations": 10,
+      "success_rate": 1.0,
+      "max_processing_time_ms": 29.999971389770508,
+      "p95_processing_time_ms": 29.999971389770508,
+      "success_count": 10,
+      "avg_processing_time_ms": 18.699979782104492
+    }
+  },
+  "recommendations": {
+    "scaling_capacity": "suitable_for_production",
+    "reliability_status": "excellent",
+    "performance_status": "excellent"
+  },
+  "test_timestamp": "2025-08-15 11:21:11",
+  "client_configuration": {
+    "name": "Custom Blockchain AI",
+    "connection_timeout": 15,
+    "capabilities": [
+      "tools",
+      "resources",
+      "prompts",
+      "blockchain_analysis"
+    ],
+    "model": "blockchain_forensics_v1",
+    "max_tokens": 8192,
+    "vendor": "Ghost Wallet Hunter",
+    "temperature": 0.0
+  }
+}

@@ -1,196 +1,172 @@
+# JuliaOS.jl - Main module required by Project.toml as the main module
+
 module JuliaOS
 
-# ⚠️ LEGACY MODULE - Consider using JuliaOSFramework.jl instead
-# This module is maintained for backwards compatibility
-# New projects should use src/framework/JuliaOSFramework.jl
+using Logging
+using HTTP
+using JSON3
+using Dates
+using UUIDs
+using Random
 
-# Export public modules and functions for Ghost Wallet Hunter
-export initialize, create_agent, create_swarm, swarm_investigate, agent_investigate
-export Detective, investigate_wallet
+# Export main functionality
+export start_server, get_health, investigate_wallet
 
-# Export detective-specific functions
-export create_detective_agent, create_all_detective_agents, get_detective_agent_by_type
-export list_detective_agents, start_detective_investigation, initialize_detective_system
-export get_detective_system_status, cleanup_detective_system, restart_detective_system
-
-# Export detective configuration functions
-export get_detective_config, get_blockchain_config, get_investigation_config
-export validate_detective_config, create_detective_runtime_config
-
-# Export LLM integration functions
-export analyze_wallet_with_llm, generate_investigation_report, get_llm_detective_insights
-export DetectiveLLMConfig, create_detective_prompt
-
-# Constants for feature detection
-const PYTHON_WRAPPER_EXISTS = isfile(joinpath(@__DIR__, "python/python_bridge.jl"))
-const FRAMEWORK_EXISTS = isdir(joinpath(dirname(dirname(@__DIR__)), "packages/framework"))
-
-# Include base modules first
-include("utils/env_utils.jl")
-include("agents/CommonTypes.jl")
+# Include essential components
+# 1) Legacy app Config (key-path access) needed by many agent modules
 include("../config/config.jl")
-include("agents/AgentCore.jl")
-include("agents/AgentMetrics.jl")
-include("agents/Persistence.jl")
-include("agents/LLMIntegration.jl")
-include("agents/utils.jl")
-
-# Include resources BEFORE agent_management
-include("resources/Resources.jl")
-using .Resources
-
-# Now include agent_management (that depends on Resources)
-include("agents/agent_management.jl")
-include("agents/DetectiveAgents.jl")  # CORRIGIDO: usar DetectiveAgents.jl ao invés de Agents.jl
-
 using .Config
+
+# 2) New typed Configuration (env-driven)
+include("config/Configuration.jl")
+using .Configuration
+
+include("agents/CommonTypes.jl")
+using .CommonTypes
+
+# Ensure core Agent modules are loaded before optional A2A/Swarms
+include("agents/AgentCore.jl")
 using .AgentCore
+include("agents/AgentMetrics.jl")
 using .AgentMetrics
-using .Persistence
-using .LLMIntegration
-using .DetectiveAgents  # CORRIGIDO: usar DetectiveAgents ao invés de Agents
 
-# Include database after agents are loaded
-include("db/JuliaDB.jl")
-using .JuliaDB
-
-# Now include tools and strategies that depend on Resources
-include("tools/Tools.jl")
-include("strategies/Strategies.jl")
-include("agents/Triggers.jl")
-
-using .Tools
-using .Strategies
-
-# Include Ghost Wallet Hunter specific modules
 include("agents/DetectiveAgents.jl")
 using .DetectiveAgents
 
-# Try to include JuliaOS framework if it exists, otherwise use minimal implementation
-if isfile(joinpath(@__DIR__, "framework/JuliaOSFramework.jl"))
-    include("framework/JuliaOSFramework.jl")
-    using .JuliaOSFramework
-    const FRAMEWORK_AVAILABLE = true
-else
-    const FRAMEWORK_AVAILABLE = false
-    @warn "JuliaOS Framework not found, using minimal implementation"
-end
+# NEW: Public blacklist checker (real sources)
+include("security/BlacklistChecker.jl")
+using .BlacklistChecker
 
-"""
-    initialize(; storage_path::String=joinpath(homedir(), ".juliaos", "juliaos.sqlite"))
+# NEW: Metrics collection module (lightweight production implementation)
+include("monitoring/Metrics.jl")
+using .Metrics
+include("providers/ProviderPool.jl")
+using .ProviderPool
 
-Initialize the JuliaOS system for Ghost Wallet Hunter.
+# MCP core stub (Phase 2 minimal implementation)
+include("mcp/MCPCore.jl")
+using .MCPCore
 
-# Arguments
-- `storage_path::String`: Path to the storage database for the framework.
+include("api/MainServer.jl")
+using .MainServer
 
-# Returns
-- `Bool`: true if initialization was successful
-"""
-function initialize(; storage_path::String=joinpath(homedir(), ".juliaos", "juliaos.sqlite"))
-    @info "Initializing JuliaOS for Ghost Wallet Hunter..."
-
-    if FRAMEWORK_AVAILABLE
-        framework_success = initialize_framework(storage_path=storage_path)
-        if framework_success
-            @info "JuliaOS Framework initialized successfully."
-        else
-            @warn "JuliaOS Framework initialization had some issues."
+# A2A integrated singleton (optional)
+const A2A_SERVER = Ref{Any}(nothing)
+const A2A_AVAILABLE = Ref(false)
+try
+    # Default A2A to disabled unless explicitly enabled via ENV
+    if lowercase(get(ENV, "A2A_ENABLED", "false")) in ("1","true","yes","on")
+        # Avoid re-including if already defined
+        if !isdefined(@__MODULE__, :A2AProtocol)
+            include("a2a/A2AProtocol.jl")
         end
-        return framework_success
+        @eval using .A2AProtocol
+        A2A_AVAILABLE[] = true
+        @info "A2A module loaded"
     else
-        @info "Using minimal JuliaOS implementation for Ghost Wallet Hunter"
-        return true
+        @info "A2A disabled via ENV"
     end
+catch e
+    @warn "A2A module failed to load; continuing without A2A" error=e
+    A2A_AVAILABLE[] = false
 end
 
 """
-    create_agent(config::Dict)
+    start_server(host="0.0.0.0", port=10000)
 
-Create a new detective agent for Ghost Wallet Hunter.
+Start the Ghost Wallet Hunter JuliaOS server
 """
-function create_agent(config::Dict)
-    return DetectiveAgents.create_detective(config)
-end
+function start_server(host="0.0.0.0", port=10000)
+    @info "🔥 Starting Ghost Wallet Hunter JuliaOS Server"
+    @info "📡 Server: http://$host:$port"
+    @info "🔧 Using configuration: $(Configuration.get_environment())"
 
-"""
-    create_swarm(config::Dict)
-
-Create a detective squad swarm for coordinated investigation.
-"""
-function create_swarm(config::Dict)
-    @info "Creating detective squad swarm: $(config["name"])"
-
-    # Simulate swarm creation with PSO algorithm
-    swarm = Dict(
-        "id" => string(uuid4()),
-        "name" => config["name"],
-        "algorithm" => get(config, "algorithm", "PSO"),
-        "agents" => get(config, "agents", []),
-        "objective" => get(config, "objective", "maximize_detection_accuracy"),
-        "coordination_mode" => get(config, "coordination_mode", "collaborative"),
-        "status" => "active",
-        "created_at" => now()
-    )
-
-    return swarm
-end
-
-"""
-    swarm_investigate(swarm::Dict, wallet_address::String, investigation_id::String)
-
-Perform coordinated investigation using detective squad swarm.
-"""
-function swarm_investigate(swarm::Dict, wallet_address::String, investigation_id::String)
-    @info "🔍 Detective Squad investigating: $wallet_address"
-
-    # Simulate swarm coordination using PSO algorithm
-    individual_findings = []
-
-    for agent in swarm["agents"]
-        finding = DetectiveAgents.investigate_wallet(agent, wallet_address, investigation_id)
-        push!(individual_findings, finding)
+    # Optional deterministic mode for stabilizing stochastic tests
+    if lowercase(get(ENV, "JULIAOS_DETERMINISTIC", "true")) in ("1","true","yes","on")
+        seed = try parse(Int, get(ENV, "JULIAOS_SEED", "12345")) catch; 12345 end
+        Random.seed!(seed)
+        @info "Deterministic RNG seed applied" seed=seed
     end
 
-    # Combine findings using swarm intelligence
-    combined_risk_scores = [f["risk_score"] for f in individual_findings]
-    combined_confidences = [f["confidence"] for f in individual_findings]
+    # Initialize blacklist service (non-blocking freshness later handled internally)
+    try
+        @info "🛡️ Initializing public blacklist sources..."
+        BlacklistChecker.initialize_blacklist()
+    catch e
+        @warn "Blacklist initialization failed" error=e
+    end
 
-    # PSO-style optimization for final assessment
-    final_risk_score = sum(combined_risk_scores .* combined_confidences) / sum(combined_confidences)
-    final_confidence = sqrt(sum(combined_confidences.^2) / length(combined_confidences))
+    # Initialize Solana provider pool (real endpoints, warmup)
+    try
+        ProviderPool.init_solana_pool()
+    catch e
+        @warn "Solana provider pool init failed" error=e
+    end
 
-    swarm_result = Dict(
-        "swarm_id" => swarm["id"],
-        "swarm_name" => swarm["name"],
-        "algorithm" => swarm["algorithm"],
-        "individual_findings" => individual_findings,
-        "swarm_consensus" => Dict(
-            "final_risk_score" => round(final_risk_score, digits=3),
-            "final_confidence" => round(final_confidence, digits=3),
-            "consensus_method" => "PSO_weighted_average",
-            "agent_agreement" => length(individual_findings)
-        ),
-        "performance" => Dict(
-            "coordination_efficiency" => "high",
-            "julia_performance" => "optimized",
-            "swarm_algorithm" => swarm["algorithm"]
-        )
+    # Initialize A2A (integrated) if enabled and available
+    try
+        if A2A_AVAILABLE[]
+            a2a_enabled = lowercase(get(ENV, "A2A_ENABLED", "false")) in ("1","true","yes","on")
+            a2a_integrated = lowercase(get(ENV, "A2A_INTEGRATED", "true")) in ("1","true","yes","on")
+            if a2a_enabled && a2a_integrated && (A2A_SERVER[] === nothing)
+                port_a2a = try parse(Int, get(ENV, "A2A_PORT", "9100")) catch; 9100 end
+                @info "🔗 Starting A2A Protocol (integrated) on port $port_a2a"
+                server = A2AProtocol.A2AProtocolServer(port_a2a)
+                A2AProtocol.start_server!(server)
+                A2A_SERVER[] = server
+            else
+                @info "A2A disabled or already started"
+            end
+        else
+            @info "A2A module not available; skipping"
+        end
+    catch e
+        @warn "A2A initialization error: $e"
+    end
+
+    # Initialize detective squad
+    @info "🕵️ Initializing detective squad..."
+    squad = DetectiveAgents.create_detective_squad()
+    @info "✅ Detective squad ready: $(length(squad)) detectives"
+
+    # Start the main server
+    MainServer.start_server(default_host=host, default_port=port)
+end
+
+"""
+    get_health()
+
+Get system health status
+"""
+function get_health()
+    env = Configuration.get_environment()
+
+    return Dict(
+        "status" => "healthy",
+        "service" => "ghost-wallet-hunter-juliaos",
+        "version" => "2.0.0",
+        "environment" => env,
+        "timestamp" => now(),
+        "detectives_available" => DetectiveAgents.count_active_detectives()
     )
-
-    return swarm_result
 end
 
 """
-    agent_investigate(agent, wallet_address::String, investigation_id::String)
+    investigate_wallet(wallet_address::String, detective_type::String="comprehensive")
 
-Perform investigation using a single detective agent.
+Start wallet investigation using specified detective type
 """
-function agent_investigate(agent, wallet_address::String, investigation_id::String)
-    return DetectiveAgents.investigate_wallet(agent, wallet_address, investigation_id)
-end
+function investigate_wallet(wallet_address::String, detective_type::String="comprehensive")
+    @info "🔍 Starting investigation: $detective_type -> $wallet_address"
 
-using UUIDs
-using Dates
+    # Get detective squad
+    squad = DetectiveAgents.create_detective_squad()
+
+    # Start investigation
+    result = DetectiveAgents.investigate(squad, wallet_address, detective_type)
+
+    @info "✅ Investigation completed for $wallet_address"
+    return result
+end
 
 end # module JuliaOS

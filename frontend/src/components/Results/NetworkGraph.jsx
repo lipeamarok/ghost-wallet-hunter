@@ -2,14 +2,19 @@
 import React from "react";
 
 export default function NetworkGraph({ data }) {
-  // Substitua depois pelo seu componente real de grafo!
+  if (!data || !data.nodes || data.nodes.length === 0) {
+    return (
+      <div className="w-full h-[300px] md:h-[360px] rounded-2xl border border-blue-900/30 flex items-center justify-center bg-[#0b1a2c]">
+        <div className="text-blue-300/60 text-sm font-mono">No connection graph available.</div>
+      </div>
+    );
+  }
+  // Real graph implementation placeholder hook - integrate library later.
   return (
-    <div className="w-full h-[370px] md:h-[420px] bg-gradient-to-br from-[#19273d] to-[#0b1a2c] rounded-2xl shadow-inner border border-blue-900/30 flex items-center justify-center my-6">
-      <div className="text-blue-300/70 font-mono text-lg text-center select-none">
-        [ Visualização de conexões será exibida aqui ]<br />
-        <span className="text-gray-500 text-xs">
-          (network graph interativo, clique para explorar clusters)
-        </span>
+    <div className="w-full h-[300px] md:h-[360px] rounded-2xl border border-blue-900/30 bg-[#0b1a2c] relative overflow-hidden">
+      {/* Render nodes/edges when implemented */}
+      <div className="absolute inset-0 flex items-center justify-center text-blue-300/60 font-mono text-xs">
+        Graph: {data.nodes.length} nodes / {data.edges?.length || 0} edges
       </div>
     </div>
   );

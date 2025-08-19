@@ -2,11 +2,13 @@
 module AgentHandlers
 
 using HTTP
-using ..Utils # Updated from ApiUtils to Utils, assuming Utils.jl is in the same api/ directory
+include("Utils.jl")
+using .Utils # Local Utils module in same directory
 
 # Import from the 'agents' subdirectory
-using ..DetectiveAgents  # CORRIGIDO
-using ..DetectiveAgents: AgentConfig, AgentType, TaskStatus # Specific types
+# DetectiveAgents will be available through the parent JuliaOS module
+# using ..DetectiveAgents  # COMMENTED OUT - causing scope issues
+# using ..DetectiveAgents: AgentConfig, AgentType, TaskStatus # COMMENTED OUT
 
 # --- Agent CRUD Handlers ---
 
@@ -54,34 +56,12 @@ function create_agent_handler(req::HTTP.Request)
 end
 
 function list_agents_handler(req::HTTP.Request)
-    query_params = HTTP.queryparams(HTTP.URI(req.target))
-    filter_type_str = get(query_params, "type", nothing)
-    filter_status_str = get(query_params, "status", nothing)
-
-    filter_type = nothing
-    if !isnothing(filter_type_str)
-        try
-            filter_type = Agents.AgentType(Symbol(uppercase(filter_type_str)))
-        catch
-            return Utils.error_response("Invalid filter_type: $filter_type_str. Must be one of $(instances(Agents.AgentType))", 400, error_code=Utils.ERROR_CODE_INVALID_INPUT, details=Dict("field"=>"type", "value_provided"=>filter_type_str))
-        end
-    end
-
-    filter_status = nothing
-    if !isnothing(filter_status_str)
-        try
-            filter_status = Agents.AgentStatus(Symbol(uppercase(filter_status_str)))
-        catch
-            return Utils.error_response("Invalid filter_status: $filter_status_str. Must be one of $(instances(Agents.AgentStatus))", 400, error_code=Utils.ERROR_CODE_INVALID_INPUT, details=Dict("field"=>"status", "value_provided"=>filter_status_str))
-        end
-    end
-
+    # Minimal, reliable implementation: list currently available detective agents
     try
-        agents_list = Agents.listAgents(filter_type=filter_type, filter_status=filter_status)
-        result = [Dict("id"=>a.id, "name"=>a.name, "type"=>string(a.type), "status"=>string(a.status)) for a in agents_list]
-        return Utils.json_response(result)
+        detectives = Main.JuliaOS.DetectiveAgents.get_all_detectives()
+        return Utils.json_response(detectives)
     catch e
-        @error "Error in list_agents_handler" exception=(e, catch_backtrace())
+        @error "Error in list_agents_handler (detective listing)" exception=(e, catch_backtrace())
         return Utils.error_response("Failed to list agents: $(sprint(showerror, e))", 500, error_code=Utils.ERROR_CODE_SERVER_ERROR)
     end
 end
@@ -533,7 +513,7 @@ function evaluate_agent_fitness_handler(req::HTTP.Request, agent_id::String)
             elseif occursin("not RUNNING or IDLE", err_msg) # Assuming an agent needs to be in a certain state
                 return Utils.error_response(err_msg, 409, error_code="AGENT_NOT_READY", details=details)
             elseif occursin("Unknown objective function", err_msg)
-                return Utils.error_response(err_msg, 400, error_code="UNKNOWN_OBJECTIVE_FUNCTION", details=details)
+                return Utils.error_response(err_msg, 400, error_code=Utils.ERROR_CODE_INVALID_INPUT, details=details)
             elseif occursin("Invalid candidate solution format", err_msg)
                  return Utils.error_response(err_msg, 400, error_code=Utils.ERROR_CODE_INVALID_INPUT, details=details)
             else

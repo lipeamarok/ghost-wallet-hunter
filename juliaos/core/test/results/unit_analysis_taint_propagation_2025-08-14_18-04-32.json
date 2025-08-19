@@ -1,0 +1,80 @@
+{
+    "hostname": "Filipe",
+    "network_edges": 6,
+    "taint_clusters": 0,
+    "category": "taint_network_analysis",
+    "julia_version": "1.11.6",
+    "test_name": "unit_analysis_taint_propagation",
+    "network_structure": {
+        "nodes": [
+            {
+                "wallet": "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8",
+                "transaction_count": 4,
+                "node_importance": 0.4,
+                "taint_potential": "MEDIUM"
+            },
+            {
+                "wallet": "whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc",
+                "transaction_count": 4,
+                "node_importance": 0.4,
+                "taint_potential": "MEDIUM"
+            },
+            {
+                "wallet": "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4",
+                "transaction_count": 4,
+                "node_importance": 0.4,
+                "taint_potential": "MEDIUM"
+            },
+            {
+                "wallet": "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM",
+                "transaction_count": 4,
+                "node_importance": 0.4,
+                "taint_potential": "MEDIUM"
+            }
+        ],
+        "taint_clusters": [
+        ],
+        "edges": [
+            {
+                "source": "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8",
+                "taint_flow_potential": "MEDIUM",
+                "target": "whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc",
+                "strength": 0.4
+            },
+            {
+                "source": "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8",
+                "taint_flow_potential": "MEDIUM",
+                "target": "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4",
+                "strength": 0.4
+            },
+            {
+                "source": "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8",
+                "taint_flow_potential": "MEDIUM",
+                "target": "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM",
+                "strength": 0.4
+            },
+            {
+                "source": "whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc",
+                "taint_flow_potential": "MEDIUM",
+                "target": "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4",
+                "strength": 0.4
+            },
+            {
+                "source": "whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc",
+                "taint_flow_potential": "MEDIUM",
+                "target": "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM",
+                "strength": 0.4
+            },
+            {
+                "source": "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4",
+                "taint_flow_potential": "MEDIUM",
+                "target": "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM",
+                "strength": 0.4
+            }
+        ]
+    },
+    "saved_at": "2025-08-14T18:04:32.062",
+    "timestamp": "2025-08-14T18:04:31.956",
+    "network_nodes": 4,
+    "network_density": 1
+}

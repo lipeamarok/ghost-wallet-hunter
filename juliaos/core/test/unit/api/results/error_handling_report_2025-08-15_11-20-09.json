@@ -1,0 +1,36 @@
+{
+  "recommendations": [
+    "Consider improving recovery mechanisms",
+    "High escalation rate - review recovery strategies",
+    "High-performance error handling"
+  ],
+  "test_timestamp": "2025-08-15 11:20:09",
+  "error_distribution": {
+    "database_connection_errors": 8,
+    "api_request_errors": 50,
+    "validation_errors": 15,
+    "blockchain_rpc_errors": 20,
+    "resource_exhaustion_errors": 12,
+    "network_timeout_errors": 10,
+    "test_errors": 10100
+  },
+  "system_resilience": {
+    "circuit_breakers_activated": 3,
+    "sustained_load_capacity": "Inf errors/sec",
+    "memory_management": "controlled",
+    "log_size_management": "functional"
+  },
+  "recovery_metrics": {
+    "escalated_errors": 10176,
+    "recovered_errors": 39,
+    "recovery_rate": 0.0038179148311306903,
+    "total_errors": 10215
+  },
+  "fault_tolerance_metrics": {
+    "recovery_rate": 0.6,
+    "error_processing_rate_per_second": null,
+    "escalation_rate": 0.4,
+    "fault_tolerance_score": 0.6,
+    "total_faults_processed": 65
+  }
+}

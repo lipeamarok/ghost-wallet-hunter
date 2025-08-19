@@ -1,0 +1,13 @@
+{
+    "response_time": 0.3540000915527344,
+    "health_status": "ok",
+    "success": true,
+    "hostname": "Filipe",
+    "category": "analysis",
+    "status_code": 200,
+    "julia_version": "1.11.6",
+    "test_name": "rpc_health_check",
+    "rpc_url": "https://api.mainnet-beta.solana.com",
+    "saved_at": "2025-08-12T17:07:16.902",
+    "timestamp": "2025-08-12T17:07:15.886"
+}

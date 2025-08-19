@@ -1,0 +1,78 @@
+{
+    "sources_analyzed": 3,
+    "julia_version": "1.11.6",
+    "test_name": "taint_source_identification",
+    "sources_with_data": 2,
+    "hostname": "Filipe",
+    "saved_at": "2025-08-15T11:15:31.024",
+    "high_risk_sources": 2,
+    "timestamp": "2025-08-15T11:15:30.928",
+    "taint_results": [
+        {
+            "sample_transactions": [
+                {
+                    "blockTime": 1744370865,
+                    "confirmationStatus": "finalized",
+                    "err": {
+                        "InstructionError": [
+                            2,
+                            "InvalidInstructionData"
+                        ]
+                    },
+                    "memo": null,
+                    "signature": "2iTdv2RmvMaKkh75apevVbFGwNGCS2LePkNPJp3uy4zsRLtM9zkAXhNBLkudvnhvk9KQLPJQnYLqDWeMuFm8b9mo",
+                    "slot": 332748505
+                },
+                {
+                    "blockTime": 1739492783,
+                    "confirmationStatus": "finalized",
+                    "err": {
+                        "InstructionError": [
+                            1,
+                            "InvalidInstructionData"
+                        ]
+                    },
+                    "memo": null,
+                    "signature": "45RtpQ3p5977sXx1kKu4ocrL5YHqAf2J6CZytHmC9qAjfkekzpDirvBCMEpoE9eGgeNNNvx4H6tFLHZ4CCkC555a",
+                    "slot": 320488424
+                }
+            ],
+            "transaction_count": 5,
+            "source_wallet": "mv3ekLzLbnVPNxjSKvqBpU3ZeZXPQdEC3bp5MDEBG68",
+            "risk_level": "MEDIUM",
+            "taint_score": 0.5
+        },
+        {
+            "sample_transactions": [
+                {
+                    "blockTime": 1755267101,
+                    "confirmationStatus": "finalized",
+                    "err": {
+                        "InstructionError": [
+                            6,
+                            {
+                                "Custom": 6001
+                            }
+                        ]
+                    },
+                    "memo": null,
+                    "signature": "4vHheWVAkUHuaKGrjAgGGSZ6GvHzB4E6dnnn135ByZ65uf9wCioShA4mWH1Nz29rTKDMbt5wbLmEezibSk1K95Dc",
+                    "slot": 360233813
+                },
+                {
+                    "blockTime": 1755267101,
+                    "confirmationStatus": "finalized",
+                    "err": null,
+                    "memo": null,
+                    "signature": "31VfC64BTD5VNDfQrs2N6YtFJcpkS6UdC7NUN15C3sBiDjnuYyZv3em3kWCKRcnWpYuvS6ZrPm3dz9nPjsTm7aTD",
+                    "slot": 360233813
+                }
+            ],
+            "transaction_count": 5,
+            "source_wallet": "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU",
+            "risk_level": "MEDIUM",
+            "taint_score": 0.5
+        }
+    ],
+    "category": "unit_analysis_taint_propagation"
+}

@@ -1,0 +1,15 @@
+{
+    "rate_limiting": "1.0s_between_calls",
+    "test_module": "marple_agent",
+    "execution_time": "2025-08-16T19:08:08.380",
+    "hostname": "Filipe",
+    "real_data_sources": "solana_mainnet",
+    "detective_type": "miss_jane_marple",
+    "methodology": "intuitive_pattern_recognition",
+    "category": "agents",
+    "julia_version": "1.11.6",
+    "test_name": "unit_agents_marple",
+    "saved_at": "2025-08-16T19:08:08.38",
+    "wallets_tested": 4,
+    "precision_level": 0.88
+}

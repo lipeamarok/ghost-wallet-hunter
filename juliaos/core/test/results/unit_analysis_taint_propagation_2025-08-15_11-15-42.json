@@ -1,0 +1,123 @@
+{
+    "hostname": "Filipe",
+    "performance_target_met": true,
+    "tracking_sessions": [
+        {
+            "tracking_duration_seconds": 2.683000087738037,
+            "target_wallet": "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8",
+            "successful_checks": 3,
+            "total_checks": 3,
+            "tracking_efficiency": 1,
+            "tracking_details": [
+                {
+                    "sample_tx": {
+                        "blockTime": 1755267334,
+                        "confirmationStatus": "finalized",
+                        "err": null,
+                        "memo": null,
+                        "signature": "55bG3LMqf7BygE58HJ2xQYGRsrzM2xrpdhyxfEb1SvirPnVhA4KVhLDtLihjAdDknqbYU5jfS9RT4pbuoCPjyANa",
+                        "slot": 360234404
+                    },
+                    "new_taint_detected": true,
+                    "round": 1,
+                    "check_time": 1.755267336106e9,
+                    "transactions_found": 3
+                },
+                {
+                    "sample_tx": {
+                        "blockTime": 1755267335,
+                        "confirmationStatus": "finalized",
+                        "err": {
+                            "InstructionError": [
+                                2,
+                                {
+                                    "BorshIoError": ""
+                                }
+                            ]
+                        },
+                        "memo": null,
+                        "signature": "3ALf1Hecg2hmt4egWiyAmUFHu5NnG6CcSh64nh2T2BiSVTW7yuoKj8qmf1QsuKFKJc6Wz7ntcGSeS2TyAqAHqngy",
+                        "slot": 360234406
+                    },
+                    "new_taint_detected": true,
+                    "round": 2,
+                    "check_time": 1.755267337074e9,
+                    "transactions_found": 3
+                },
+                {
+                    "sample_tx": {
+                        "blockTime": 1755267336,
+                        "confirmationStatus": "finalized",
+                        "err": null,
+                        "memo": null,
+                        "signature": "3aSz4wcvHvXB48E334T3MjrQUpWAaCYYK19meMoRrR6RqDZvFBqRbpVhKfkQeCLz6dkhhAgKJ97PD6ZMNRetQ8MW",
+                        "slot": 360234409
+                    },
+                    "new_taint_detected": true,
+                    "round": 3,
+                    "check_time": 1.755267337937e9,
+                    "transactions_found": 3
+                }
+            ]
+        },
+        {
+            "tracking_duration_seconds": 2.559999942779541,
+            "target_wallet": "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM",
+            "successful_checks": 3,
+            "total_checks": 3,
+            "tracking_efficiency": 1,
+            "tracking_details": [
+                {
+                    "sample_tx": {
+                        "blockTime": 1755266316,
+                        "confirmationStatus": "finalized",
+                        "err": null,
+                        "memo": null,
+                        "signature": "3PoR63kfT9Y9uUH9S6mC8GJxoYj846UE9RmoYKTxtLKqQfq7cp3Xb3ERQ1EjKZiQgPrGpiZXz3SpK38u7aXUWoQT",
+                        "slot": 360231820
+                    },
+                    "new_taint_detected": true,
+                    "round": 1,
+                    "check_time": 1.755267339099e9,
+                    "transactions_found": 3
+                },
+                {
+                    "sample_tx": {
+                        "blockTime": 1755266316,
+                        "confirmationStatus": "finalized",
+                        "err": null,
+                        "memo": null,
+                        "signature": "3PoR63kfT9Y9uUH9S6mC8GJxoYj846UE9RmoYKTxtLKqQfq7cp3Xb3ERQ1EjKZiQgPrGpiZXz3SpK38u7aXUWoQT",
+                        "slot": 360231820
+                    },
+                    "new_taint_detected": true,
+                    "round": 2,
+                    "check_time": 1.75526733995e9,
+                    "transactions_found": 3
+                },
+                {
+                    "sample_tx": {
+                        "blockTime": 1755266316,
+                        "confirmationStatus": "finalized",
+                        "err": null,
+                        "memo": null,
+                        "signature": "3PoR63kfT9Y9uUH9S6mC8GJxoYj846UE9RmoYKTxtLKqQfq7cp3Xb3ERQ1EjKZiQgPrGpiZXz3SpK38u7aXUWoQT",
+                        "slot": 360231820
+                    },
+                    "new_taint_detected": true,
+                    "round": 3,
+                    "check_time": 1.755267340806e9,
+                    "transactions_found": 3
+                }
+            ]
+        }
+    ],
+    "category": "realtime_taint_tracking",
+    "julia_version": "1.11.6",
+    "detection_efficiency": 1,
+    "test_name": "unit_analysis_taint_propagation",
+    "sessions_completed": 2,
+    "saved_at": "2025-08-15T11:15:42.044",
+    "timestamp": "2025-08-15T11:15:41.944",
+    "average_tracking_time": 2.621500015258789
+}

@@ -1,0 +1,10 @@
+{
+    "julia_version": "1.11.6",
+    "error": "HTTP.Exceptions.StatusError(429, \"POST\", \"/\", HTTP.Messages.Response:\n\"\"\"\nHTTP/1.1 429 Too Many Requests\r\naccess-control-max-age: 86400\r\ncontent-type: application/json\r\nretry-after: 10\r\ncontent-length: 107\r\ncache-control: no-cache\r\naccess-control-allow-origin: *\r\naccess-control-allow-methods: POST, GET, OPTIONS\r\nx-rpc-node: ash2\r\nx-ratelimit-tier: free\r\nx-ratelimit-method-limit: 2\r\nx-ratelimit-method-remaining: -1\r\nx-ratelimit-rps-limit: 100\r\nx-ratelimit-rps-remaining: 92\r\nx-ratelimit-endpoint-limit: unlimited\r\nx-ratelimit-endpoint-remaining: -4747\r\nx-ratelimit-conn-limit: 40\r\nx-ratelimit-conn-remaining: 39\r\nx-ratelimit-connrate-limit: 40\r\nx-ratelimit-connrate-remaining: 39\r\nx-ratelimit-pubsub-limit: 5\r\nx-ratelimit-pubsub-remaining: 5\r\nconnection: close\r\n\r\n {\"jsonrpc\":\"2.0\",\"error\":{\"code\": 429,\"message\":\"Too many requests for a specific RPC call\"}, \"id\": 1 } \r\n\"\"\")",
+    "execution_time": 1.0820000171661377,
+    "success": false,
+    "test_name": "batch_transaction_fetch",
+    "hostname": "Filipe",
+    "saved_at": "2025-08-12T16:52:59.989",
+    "category": "analysis"
+}

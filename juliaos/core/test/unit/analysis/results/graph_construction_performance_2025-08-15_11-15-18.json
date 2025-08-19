@@ -1,0 +1,15 @@
+{
+    "total_wallets": 3,
+    "construction_time_seconds": 4.063000202178955,
+    "nodes_created": 15,
+    "hostname": "Filipe",
+    "total_transactions": 15,
+    "performance_target_met": true,
+    "category": "analysis",
+    "successful_wallets": 3,
+    "julia_version": "1.11.6",
+    "test_name": "graph_construction_performance",
+    "saved_at": "2025-08-15T11:15:18.086",
+    "rpc_method": "getSignaturesForAddress",
+    "timestamp": "2025-08-15T11:15:17.574"
+}

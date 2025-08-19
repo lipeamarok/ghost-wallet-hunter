@@ -12,6 +12,8 @@ import { useInvestigation } from '../hooks/index.js';
 import Header from '../components/Layout/Header.jsx';
 import ThreeBackground from '../components/Background/ThreeBackground.jsx';
 import BlockchainTravel from '../components/Loading/BlockchainTravel.jsx';
+import ProgressDashboard from '../components/Investigation/ProgressDashboard.jsx';
+import { DISABLE_LEGACY_PROGRESS } from '../config/environment.js';
 
 const InvestigationPage = () => {
   const { investigationId } = useParams();
@@ -19,25 +21,19 @@ const InvestigationPage = () => {
   const location = useLocation();
 
   const [isInvestigationActive, setIsInvestigationActive] = useState(true);
+  const [hasShownMinimumDuration, setHasShownMinimumDuration] = useState(false);
 
   // Get investigation data from navigation state
   const investigationData = location.state?.investigationData;
   const walletAddress = location.state?.walletAddress;
   const fallbackMode = location.state?.fallbackMode;
+  const quickCompletion = location.state?.quickCompletion; // Flag for quick completion
 
   const investigation = useInvestigation({
     autoConnect: true,
     onComplete: (results) => {
-      console.log('Investigation completed:', results);
       setIsInvestigationActive(false);
-      // Navigate to results page
-      navigate(`/results/${investigationId || results.id}`, {
-        state: {
-          investigationId: investigationId || results.id,
-          walletAddress: walletAddress,
-          results: results
-        }
-      });
+      // Auto-navigation disabled - use View Results button instead
     }
   });
 
@@ -45,7 +41,7 @@ const InvestigationPage = () => {
   useEffect(() => {
     // Try to connect using ID from URL params first, then from state
     const idToConnect = investigationId || investigationData?.id;
-    
+
     if (idToConnect && !investigation.hasActiveInvestigation) {
       // Try to connect to existing investigation
       investigation.connectToInvestigation(idToConnect);
@@ -65,19 +61,72 @@ const InvestigationPage = () => {
     }
   };
 
-  const handleViewResults = async () => {
-    try {
-      const results = await investigation.getResults();
+  const handleViewResults = () => {
+    const currentInvestigation = investigation.currentInvestigation;
+    const results = currentInvestigation?.results;
+
+    // EMERGENCY FIX: Use results from location state if hook state is missing
+    const emergencyResults = location.state?.lastInvestigationResult;
+    const finalResults = results || emergencyResults;
+
+    console.log('🔍 DETAILED NAVIGATION DEBUG:', {
+      hasCurrentInvestigation: !!currentInvestigation,
+      currentInvestigationKeys: currentInvestigation ? Object.keys(currentInvestigation) : 'none',
+      hasResults: !!results,
+      hasEmergencyResults: !!emergencyResults,
+      finalResultsSource: results ? 'hook' : emergencyResults ? 'location' : 'none',
+      resultsKeys: finalResults ? Object.keys(finalResults) : 'none',
+      resultsType: typeof finalResults,
+      currentInvestigationStatus: currentInvestigation?.status,
+      emergencyResultsKeys: emergencyResults ? Object.keys(emergencyResults) : 'none'
+    });
+
+    // Get the investigation ID from multiple sources
+    const resultInvestigationId = investigationId ||
+                                  investigation.currentInvestigation?.id ||
+                                  finalResults?.investigation_id ||
+                                  finalResults?.id ||
+                                  emergencyResults?.investigationId;
+
+    if (resultInvestigationId && finalResults) {
+      // Navigate with results to avoid API call
+      console.log('🚀 Navigating with results:', {
+        investigationId: resultInvestigationId,
+        hasResults: !!finalResults,
+        resultKeys: Object.keys(finalResults || {}),
+        resultsSource: results ? 'hook' : 'emergency',
+        resultsPreview: {
+          summary: !!finalResults.summary,
+          detectives: !!finalResults.detectives,
+          individual_results: !!finalResults.individual_results
+        }
+      });
+
+      navigate(`/results/${resultInvestigationId}`, {
+        state: {
+          investigationId: resultInvestigationId,
+          walletAddress: walletAddress,
+          results: finalResults
+        }
+      });
+    } else if (resultInvestigationId) {
+      // Navigate without results (will trigger API call)
+      console.log('⚠️ Navigating WITHOUT results - API call will be triggered');
+      navigate(`/results/${resultInvestigationId}`, {
+        state: {
+          investigationId: resultInvestigationId,
+          walletAddress: walletAddress
+        }
+      });
+    } else {
+      console.error('❌ No investigation ID available for manual navigation');
+      // Fallback navigation
       navigate('/results', {
         state: {
-          investigationId: investigation.currentInvestigation?.id,
           walletAddress: walletAddress,
           results: results
         }
       });
-    } catch (error) {
-      console.error('Failed to get results:', error);
-      alert('Failed to get results: ' + error.message);
     }
   };
 
@@ -103,8 +152,10 @@ const InvestigationPage = () => {
   }
 
   const currentInvestigation = investigation.currentInvestigation || investigationData;
-  const isCompleted = investigation.isInvestigationCompleted;
+  const isCompleted = !!(currentInvestigation?.results?.consolidated || currentInvestigation?.results?.normalized || currentInvestigation?.progress?.overall === 100);
   const isFailed = investigation.isInvestigationFailed;
+
+  // Removed auto-redirect - let the investigation hook handle the redirection timing
 
   return (
     <div className="min-h-screen relative text-white">
@@ -169,45 +220,22 @@ const InvestigationPage = () => {
             </div>
           </div>
 
-          {/* Progress Overview */}
-          <div className="bg-gray-900/80 backdrop-blur-sm rounded-lg border border-gray-700 p-6 mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-blue-400">📊 Investigation Progress</h2>
-              <div className="text-sm text-gray-400">
-                Started: {currentInvestigation?.startTime?.toLocaleString() || 'Just now'}
-              </div>
-            </div>
+          {/* Progress Dashboard - Real-time Updates */}
+          {!isCompleted && (
+            <ProgressDashboard
+              investigation={investigation}
+              isPolling={investigation.isLoadingStatus || !investigation.webSocketConnected}
+            />
+          )}
 
-            {/* Progress Bar */}
-            <div className="w-full bg-gray-700 rounded-full h-3 mb-4">
-              <div
-                className="bg-gradient-to-r from-blue-500 to-purple-600 h-3 rounded-full transition-all duration-500"
-                style={{ width: `${currentInvestigation?.progress?.overall || 15}%` }}
-              ></div>
+          {/* Immediate Results Placeholder (in case redirect not yet processed) */}
+          {isCompleted && currentInvestigation?.results && (
+            <div className="bg-gray-900/80 backdrop-blur-sm rounded-lg border border-gray-700 p-6 mb-6">
+              <h2 className="text-lg font-semibold text-green-400 mb-2">✅ Investigation Completed</h2>
+              <p className="text-gray-300 text-sm mb-4">Redirecting to results...</p>
+              <pre className="text-xs max-h-64 overflow-auto p-3 bg-black/40 rounded border border-gray-700 whitespace-pre-wrap">{JSON.stringify((currentInvestigation.results.consolidated || currentInvestigation.results)?.summary || currentInvestigation.results, null, 2)}</pre>
             </div>
-
-            {/* Service Status */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="text-center">
-                <div className="text-sm text-gray-400">Backend</div>
-                <div className="text-lg font-semibold text-green-400">
-                  {currentInvestigation?.services?.backend || 'Active'}
-                </div>
-              </div>
-              <div className="text-center">
-                <div className="text-sm text-gray-400">A2A Swarm</div>
-                <div className="text-lg font-semibold text-yellow-400">
-                  {currentInvestigation?.services?.a2a || 'Coordinating'}
-                </div>
-              </div>
-              <div className="text-center">
-                <div className="text-sm text-gray-400">Julia Core</div>
-                <div className="text-lg font-semibold text-purple-400">
-                  {currentInvestigation?.services?.julia || 'Analyzing'}
-                </div>
-              </div>
-            </div>
-          </div>
+          )}
 
           {/* Real-time Updates */}
           {investigation.recentUpdates && investigation.recentUpdates.length > 0 && (

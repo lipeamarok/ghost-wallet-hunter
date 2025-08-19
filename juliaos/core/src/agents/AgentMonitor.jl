@@ -46,6 +46,25 @@ const SNAPSHOT_LOCK = ReentrantLock()
 Checks the health of a single agent.
 Returns a Dict with health information for this agent.
 """
+function _check_agent_health(agent_dict::Dict{String, Any})::Dict{String, Any}
+    # Handle Dict representation of agent (from DetectiveAgents compatibility layer)
+    agent_id = get(agent_dict, "id", "unknown")
+
+    # Basic health check for detective agents
+    health_info = Dict{String, Any}(
+        "agent_id" => agent_id,
+        "status" => get(agent_dict, "status", "unknown"),
+        "is_stalled" => false, # Detective agents don't use traditional stalling concept
+        "last_activity" => now(),
+        "health_score" => 1.0,
+        "memory_usage_mb" => 0.0,
+        "task_queue_size" => 0
+    )
+
+    return health_info
+end
+
+# Original function for AgentCore.Agent objects (if needed)
 function _check_agent_health(agent::Agent)::Dict{String, Any}
     # This function assumes the caller might not hold agent.lock,
     # so it should rely on functions like getAgentStatus that handle locking.
@@ -108,11 +127,12 @@ function _perform_health_check()
         # _check_agent_health primarily uses getAgentStatus(agent_instance.id)
         # which fetches the current state of the agent.
         report = _check_agent_health(agent_instance)
-        agent_health_reports[agent_instance.id] = report
+        agent_id = get(agent_instance, "id", "unknown") # Get ID from Dict
+        agent_health_reports[agent_id] = report
 
-        if report["status"] == string(DetectiveAgents.RUNNING) # Compare with string representation
+        if report["status"] == "active" # Detective agents use "active" status
             num_agents_running += 1
-        elseif report["status"] == string(DetectiveAgents.ERROR)
+        elseif report["status"] == "error"
             num_agents_error += 1
         end
         if report["is_stalled"]
@@ -120,21 +140,22 @@ function _perform_health_check()
         end
 
         # Auto-restart logic (optional)
-        if (report["status"] == string(DetectiveAgents.ERROR) || report["is_stalled"]) && get_config("agent.auto_restart", false)
-            @warn "Auto-restarting agent $(agent_instance.name) ($(agent_instance.id)) due to status: $(report["status"]), stalled: $(report["is_stalled"])"
+        if (report["status"] == "error" || report["is_stalled"]) && get_config("agent.auto_restart", false)
+            agent_name = get(agent_instance, "name", "unknown")
+            @warn "Auto-restarting agent $agent_name ($agent_id) due to status: $(report["status"]), stalled: $(report["is_stalled"])"
             try
                 # Ensure stopAgent is called first if it's stalled but not stopped.
                 # startAgent should handle the logic of starting a stopped/errored agent.
-                DetectiveAgents.stopAgent(agent_instance.id) # Attempt to gracefully stop if needed
-                success = DetectiveAgents.startAgent(agent_instance.id) # startAgent handles status checks
+                DetectiveAgents.stopAgent(agent_id) # Attempt to gracefully stop if needed
+                success = DetectiveAgents.startAgent(agent_id) # startAgent handles status checks
                 if success
-                    @info "Agent $(agent_instance.name) restarted successfully."
-                    # AgentMetrics.record_metric(agent_instance.id, "agent_auto_restarts", 1; type=AgentMetrics.COUNTER)
+                    @info "Agent $agent_name restarted successfully."
+                    # AgentMetrics.record_metric(agent_id, "agent_auto_restarts", 1; type=AgentMetrics.COUNTER)
                 else
-                    @error "Failed to auto-restart agent $(agent_instance.name)."
+                    @error "Failed to auto-restart agent $agent_name."
                 end
             catch e
-                @error "Exception during auto-restart of agent $(agent_instance.name)" exception=(e, catch_backtrace())
+                @error "Exception during auto-restart of agent $agent_name" exception=(e, catch_backtrace())
             end
         end
     end

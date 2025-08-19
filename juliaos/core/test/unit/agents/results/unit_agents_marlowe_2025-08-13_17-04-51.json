@@ -1,0 +1,15 @@
+{
+    "rate_limiting": "1.0s_between_calls",
+    "test_module": "marlowe_agent",
+    "execution_time": "2025-08-13T17:04:51.490",
+    "hostname": "Filipe",
+    "real_data_sources": "solana_mainnet",
+    "detective_type": "philip_marlowe",
+    "methodology": "noir_corruption_investigation",
+    "category": "agents",
+    "julia_version": "1.11.6",
+    "cases_investigated": 4,
+    "test_name": "unit_agents_marlowe",
+    "saved_at": "2025-08-13T17:04:51.592",
+    "precision_level": 0.9
+}

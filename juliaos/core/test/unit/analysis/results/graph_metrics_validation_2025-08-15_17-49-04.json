@@ -1,0 +1,24 @@
+{
+    "metrics": {
+        "network_activity_score": 0.4,
+        "temporal_clustering": 0,
+        "node_count": 8,
+        "time_spread_seconds": 0,
+        "avg_slot_density": 8,
+        "confirmation_distribution": {
+            "finalized": 8
+        },
+        "unique_slots": 1
+    },
+    "wallet_type": "wrapped_sol_token",
+    "hostname": "Filipe",
+    "category": "analysis",
+    "reference_wallet": "So11111111111111111111111111111111111111112",
+    "julia_version": "1.11.6",
+    "test_name": "graph_metrics_validation",
+    "transaction_base": 8,
+    "saved_at": "2025-08-15T17:49:04.968",
+    "rpc_method": "getSignaturesForAddress",
+    "timestamp": "2025-08-15T17:49:04.895",
+    "all_metrics_valid": true
+}

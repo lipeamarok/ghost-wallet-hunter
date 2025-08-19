@@ -1,0 +1,23 @@
+{
+    "rate_limiting": "1.0s_between_calls",
+    "test_module": "F4-F6_risk_engine",
+    "execution_time": "2025-08-14T18:05:13.382",
+    "configurations_tested": [
+        "conservative",
+        "balanced",
+        "aggressive",
+        "custom"
+    ],
+    "hostname": "Filipe",
+    "components_tested": [
+        "taint_proximity",
+        "convergence",
+        "control_signals"
+    ],
+    "real_data_sources": "solana_mainnet",
+    "category": "analysis",
+    "julia_version": "1.11.6",
+    "test_name": "unit_analysis_risk_engine_complete",
+    "saved_at": "2025-08-14T18:05:13.384",
+    "wallets_analyzed": 3
+}

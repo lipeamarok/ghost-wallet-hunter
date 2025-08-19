@@ -1,0 +1,42 @@
+{
+    "ownership_analysis": [
+        {
+            "wallet_pair": [
+                "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8",
+                "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4"
+            ],
+            "likely_same_owner": false,
+            "timing_correlation": 0.5155369554181233,
+            "relationship_score": 0.57753348351939,
+            "shared_interactions": 2
+        },
+        {
+            "wallet_pair": [
+                "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8",
+                "whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc"
+            ],
+            "likely_same_owner": true,
+            "timing_correlation": 0.3934164927124977,
+            "relationship_score": 0.7749552214687848,
+            "shared_interactions": 5
+        },
+        {
+            "wallet_pair": [
+                "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4",
+                "whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc"
+            ],
+            "likely_same_owner": false,
+            "timing_correlation": 0.6633879758291673,
+            "relationship_score": 0.6684331841967601,
+            "shared_interactions": 2
+        }
+    ],
+    "julia_version": "1.11.6",
+    "test_name": "unit_analysis_entity_clustering",
+    "strong_relationships": 3,
+    "pairs_analyzed": 3,
+    "hostname": "Filipe",
+    "saved_at": "2025-08-15T10:23:49.814",
+    "timestamp": "2025-08-15T10:23:49.813",
+    "category": "same_owner_detection"
+}

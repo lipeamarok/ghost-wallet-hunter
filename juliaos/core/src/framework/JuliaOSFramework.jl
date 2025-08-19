@@ -85,7 +85,7 @@ try
 
     # Make Agent modules available in correct order
     using .Config
-    using .AgentCore
+    using .AgentCore: Agent as CoreAgent, AgentStatus, AgentType # Remove AgentState - not exported
     using .CommonTypes
     using .Persistence
     using .AgentMetrics
@@ -162,6 +162,13 @@ function create_detective_agent(detective_type::String)
         @error "❌ Failed to create detective agent '$detective_type': $e"
         return nothing
     end
+end
+
+"""
+Get all detective agents that have been created.
+"""
+function get_all_detective_agents()
+    return DetectiveAgents.get_all_detectives()
 end
 
 """

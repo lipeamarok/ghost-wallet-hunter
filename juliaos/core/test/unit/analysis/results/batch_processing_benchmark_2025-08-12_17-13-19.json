@@ -1,0 +1,12 @@
+{
+    "julia_version": "1.11.6",
+    "average_time_per_wallet": 1.6053333282470703,
+    "execution_time": 4.815999984741211,
+    "wallets_processed": 3,
+    "test_type": "batch_processing_benchmark",
+    "test_name": "batch_processing_benchmark",
+    "hostname": "Filipe",
+    "saved_at": "2025-08-12T17:13:19.384",
+    "wallet_count": 3,
+    "category": "analysis"
+}

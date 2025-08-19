@@ -1,0 +1,14 @@
+{
+    "dependencies_loaded": [
+        "HTTP",
+        "JSON3",
+        "Statistics"
+    ],
+    "julia_version": "1.11.6",
+    "status": "success",
+    "test_name": "unit_analysis_entity_clustering",
+    "hostname": "Filipe",
+    "saved_at": "2025-08-12T19:15:10.08",
+    "timestamp": "2025-08-12T19:15:09.166",
+    "category": "module_setup"
+}

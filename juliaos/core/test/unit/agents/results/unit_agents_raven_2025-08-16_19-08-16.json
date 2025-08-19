@@ -1,0 +1,13 @@
+{
+    "tests_passed": true,
+    "agent_type": "The_Raven",
+    "performance_metrics": {
+        "precision_target": "0.91",
+        "avg_analysis_time": "< 3s",
+        "dark_pattern_accuracy": "> 90%"
+    },
+    "real_data_validated": true,
+    "test_timestamp": "2025-08-16T19:08:15.943",
+    "specialization": "dark_pattern_detection",
+    "precision_achieved": 0.91
+}

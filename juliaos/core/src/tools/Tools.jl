@@ -2,6 +2,7 @@ module Tools
 
 export TOOL_REGISTRY
 
+include("../agents/CommonTypes.jl") # ensure CommonTypes available before referencing
 include("core/tool_example_adder.jl")
 include("core/tool_ping.jl")
 include("core/tool_llm_chat.jl")
@@ -19,7 +20,7 @@ include("ghost_wallet_hunter/tool_check_blacklist.jl")
 include("ghost_wallet_hunter/tool_risk_assessment.jl")
 include("ghost_wallet_hunter/tool_detective_swarm.jl")
 
-using ..CommonTypes: ToolSpecification
+using .CommonTypes: ToolSpecification
 
 const TOOL_REGISTRY = Dict{String, ToolSpecification}()
 

@@ -1,0 +1,76 @@
+{
+    "sources_analyzed": 3,
+    "julia_version": "1.11.6",
+    "test_name": "taint_source_identification",
+    "sources_with_data": 2,
+    "hostname": "Filipe",
+    "saved_at": "2025-08-15T10:19:03.234",
+    "high_risk_sources": 2,
+    "timestamp": "2025-08-15T10:19:03.106",
+    "taint_results": [
+        {
+            "sample_transactions": [
+                {
+                    "blockTime": 1744370865,
+                    "confirmationStatus": "finalized",
+                    "err": {
+                        "InstructionError": [
+                            2,
+                            "InvalidInstructionData"
+                        ]
+                    },
+                    "memo": null,
+                    "signature": "2iTdv2RmvMaKkh75apevVbFGwNGCS2LePkNPJp3uy4zsRLtM9zkAXhNBLkudvnhvk9KQLPJQnYLqDWeMuFm8b9mo",
+                    "slot": 332748505
+                },
+                {
+                    "blockTime": 1739492783,
+                    "confirmationStatus": "finalized",
+                    "err": {
+                        "InstructionError": [
+                            1,
+                            "InvalidInstructionData"
+                        ]
+                    },
+                    "memo": null,
+                    "signature": "45RtpQ3p5977sXx1kKu4ocrL5YHqAf2J6CZytHmC9qAjfkekzpDirvBCMEpoE9eGgeNNNvx4H6tFLHZ4CCkC555a",
+                    "slot": 320488424
+                }
+            ],
+            "transaction_count": 5,
+            "source_wallet": "mv3ekLzLbnVPNxjSKvqBpU3ZeZXPQdEC3bp5MDEBG68",
+            "risk_level": "MEDIUM",
+            "taint_score": 0.5
+        },
+        {
+            "sample_transactions": [
+                {
+                    "blockTime": 1755263912,
+                    "confirmationStatus": "finalized",
+                    "err": null,
+                    "memo": null,
+                    "signature": "3iYUAzcNHteqsJzvXkNVemrAzFfDdWBS2TvJBCR3S1irDgCURgZ3bmFoJrm2MhktRPGjTqnUcPCvp1WSJxL5vkru",
+                    "slot": 360225714
+                },
+                {
+                    "blockTime": 1755263911,
+                    "confirmationStatus": "finalized",
+                    "err": {
+                        "InstructionError": [
+                            11,
+                            "InvalidAccountData"
+                        ]
+                    },
+                    "memo": null,
+                    "signature": "4TNGM7AqmawUZan825SwKm7JifSaKh6mhnsyFRBN7xQbaqq3wEhfQ4u1P7ukyXrePTkduKhojQve927Dv9h6rgY7",
+                    "slot": 360225713
+                }
+            ],
+            "transaction_count": 5,
+            "source_wallet": "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU",
+            "risk_level": "MEDIUM",
+            "taint_score": 0.5
+        }
+    ],
+    "category": "unit_analysis_taint_propagation"
+}

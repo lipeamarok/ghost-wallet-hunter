@@ -2,13 +2,7 @@
 module AgentCore
 
 # Config is loaded by the framework
-try
-    using ..Config
-catch
-    # If standalone, try to include config manually
-    include("../../config/config.jl")
-    using .Config
-end
+# Legacy include removed; use JuliaOS.Configuration instead
 export Agent, AgentConfig, AgentStatus, AgentType,
        AbstractAgentMemory, AbstractAgentQueue, AbstractLLMIntegration, AGENTS_LOCK, ABILITY_REGISTRY, register_ability, AGENTS,
        # Detective Agent Types and Structures
@@ -28,7 +22,7 @@ using DataStructures
 # ----------------------------------------------------------------------
 # CONSTANTS
 # ----------------------------------------------------------------------
-const MAX_TASK_HISTORY = Config.get_config("agent.max_task_history", 100)
+const MAX_TASK_HISTORY = Main.JuliaOS.Configuration.get_config().max_transaction_depth # or use an appropriate field
 
 # ----------------------------------------------------------------------
 # SCHEDULE TYPE

@@ -15,19 +15,19 @@ const IS_PRODUCTION = ENV_MODE === 'production';
 const API_URLS = {
   development: {
     // Local development URLs
-    BACKEND: import.meta.env.VITE_BACKEND_URL || 'http://localhost:8001',
-    A2A: import.meta.env.VITE_A2A_URL || 'http://localhost:9100',
-    JULIA: import.meta.env.VITE_JULIA_URL || 'http://localhost:10000',
-    WEBSOCKET: import.meta.env.VITE_WS_URL || 'ws://localhost:8001'
+    JULIA: import.meta.env.VITE_JULIA_URL || import.meta.env.VITE_JULIAOS_URL || 'http://localhost:10000',
+    WEBSOCKET: import.meta.env.VITE_WS_URL || 'ws://localhost:10000'
   },
   production: {
     // Production URLs (Render deployment)
-    BACKEND: import.meta.env.VITE_BACKEND_URL || 'https://ghost-wallet-hunter.onrender.com',
-    A2A: import.meta.env.VITE_A2A_URL || 'https://a2a-6woy.onrender.com',
-    JULIA: import.meta.env.VITE_JULIA_URL || 'https://juliaos-core.onrender.com',
-    WEBSOCKET: import.meta.env.VITE_WS_URL || 'wss://ghost-wallet-hunter.onrender.com'
+    JULIA: import.meta.env.VITE_JULIA_URL || import.meta.env.VITE_JULIAOS_URL || 'https://juliaos-core.onrender.com',
+    WEBSOCKET: import.meta.env.VITE_WS_URL || 'wss://juliaos-core.onrender.com'
   }
 };
+
+// Add feature flag for Julia-only investigation pipeline
+const USE_JULIA_FRONTEND = import.meta.env.VITE_USE_JULIA_FRONTEND !== 'false';
+const DISABLE_LEGACY_PROGRESS = import.meta.env.VITE_DISABLE_LEGACY_PROGRESS === 'true';
 
 // App configuration
 export const APP_CONFIG = {
@@ -39,7 +39,9 @@ export const APP_CONFIG = {
 
   // Feature flags
   ENABLE_WEBSOCKETS: import.meta.env.VITE_ENABLE_WEBSOCKETS !== 'false', // Default enabled, can be disabled via env
-  WEBSOCKET_AUTO_CONNECT: IS_PRODUCTION || import.meta.env.VITE_WS_AUTO_CONNECT === 'true' // Auto-connect in production, manual in dev
+  WEBSOCKET_AUTO_CONNECT: IS_PRODUCTION || import.meta.env.VITE_WS_AUTO_CONNECT === 'true', // Auto-connect in production, manual in dev
+  USE_JULIA_FRONTEND,
+  DISABLE_LEGACY_PROGRESS
 };
 
 // Get current environment URLs
@@ -51,11 +53,11 @@ export const CURRENT_URLS = getCurrentURLs();
 // Export environment flags and mode
 export { IS_DEVELOPMENT, IS_PRODUCTION };
 export const ENVIRONMENT = APP_CONFIG;
+export { USE_JULIA_FRONTEND };
+export { DISABLE_LEGACY_PROGRESS };
 
 // Export individual URLs for convenience
 export const {
-  BACKEND: BACKEND_URL,
-  A2A: A2A_URL,
   JULIA: JULIA_URL,
   WEBSOCKET: WEBSOCKET_URL
 } = CURRENT_URLS;
@@ -73,8 +75,6 @@ export default {
   APP_CONFIG,
   CURRENT_URLS,
   getCurrentURLs,
-  BACKEND_URL,
-  A2A_URL,
   JULIA_URL,
   WEBSOCKET_URL,
   IS_DEVELOPMENT,

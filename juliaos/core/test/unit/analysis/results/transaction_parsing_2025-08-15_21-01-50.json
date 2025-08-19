@@ -1,0 +1,38 @@
+{
+    "wallet_type": "whale",
+    "hostname": "Filipe",
+    "category": "analysis",
+    "parsed_count": 3,
+    "julia_version": "1.11.6",
+    "wallet": "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU",
+    "test_name": "transaction_parsing",
+    "saved_at": "2025-08-15T21:01:50.652",
+    "rpc_method": "getTransaction",
+    "parsing_details": [
+        {
+            "block_time": 1755302475,
+            "instructions_count": 4,
+            "signature": "5uDzgMCriP72HJkvnoqw9E3uKBU4RN3ELRoLRn4FmLuVASCQRqKvRza28bLBpbfySa49pxwPFiwTqn9H7PaBdM4e",
+            "accounts_count": 10,
+            "success": true,
+            "slot": 360323883
+        },
+        {
+            "block_time": 1755302475,
+            "instructions_count": 4,
+            "signature": "5SYpnx73KsDYxJeyAbtesZ9ynQovAbmsWyuhJs43EQQKhQzMtotme9UkbB4CrTPAWCUwaBJUwXjUCXoWLRdpoEqq",
+            "accounts_count": 11,
+            "success": true,
+            "slot": 360323883
+        },
+        {
+            "block_time": 1755301945,
+            "instructions_count": 6,
+            "signature": "2QFrvKHmHWBLpRb5raKVSNgUDj2JfKmK7c214Ggyjifn9fMoGRWJENH6pTu6WEHCrXnb28prD2QURgZtHzeySBg5",
+            "accounts_count": 8,
+            "success": true,
+            "slot": 360322536
+        }
+    ],
+    "timestamp": "2025-08-15T21:01:50.524"
+}

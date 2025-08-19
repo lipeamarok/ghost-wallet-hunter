@@ -6,13 +6,28 @@ using HTTP
 using JSON3
 using StructTypes
 using Dates  # Add Dates module for timestamp functionality
-# These are sibling modules within the 'api' directory
-using ..AgentHandlers
-# using ..MetricsHandlers
-# using ..LlmHandlers # Use LlmHandlers as per screenshot and updated file
-# using ..SwarmHandlers # Added SwarmHandlers
-# using ..PriceFeedHandlers # Added PriceFeedHandlers
-# using ..DexHandlers # Added DexHandlers
+
+# Include and use local modules in same directory
+include("AgentHandlers.jl")
+using .AgentHandlers
+
+include("MetricsHandlers.jl")
+using .MetricsHandlers
+
+include("LlmHandlers.jl")
+using .LlmHandlers
+
+# TEMPORARILY COMMENTED - SwarmHandlers has framework dependencies
+# include("SwarmHandlers.jl")
+# using .SwarmHandlers
+
+# TEMPORARILY COMMENTED - PriceFeedHandlers has framework dependencies
+# include("PriceFeedHandlers.jl")
+# using .PriceFeedHandlers
+
+# TEMPORARILY COMMENTED - DexHandlers has framework dependencies
+# include("DexHandlers.jl")
+# using .DexHandlers
 # using ..BlockchainHandlers # Added BlockchainHandlers
 # using ..TradingHandlers # Added TradingHandlers
 
@@ -42,7 +57,7 @@ function register_routes()
 
     # Create test router group
     test_router = router(BASE_PATH * "/test", tags=["Test"])
-    
+
     # Test routes
     @get test_router("/hello") function(req)
         return Dict("message" => "Hello, World!")
@@ -59,14 +74,14 @@ function register_routes()
     @post test_router("/post") function(req)
         # Deserialize JSON from request body to TestRequest struct
         request_data = JSON3.read(req.body, TestRequest)
-        
+
         # Create response object
         response = TestResponse(
             "Hello, $(request_data.name)!",
             request_data,
             string(Dates.now())
         )
-        
+
         # Automatically serialize to JSON and return
         return response
     end
@@ -130,19 +145,19 @@ function register_routes()
     # @post BASE_PATH * "/swarms/{swarm_id::String}/stop" SwarmHandlers.stop_swarm_handler   # Stop a swarm
     # @post BASE_PATH * "/swarms/{swarm_id::String}/agents" SwarmHandlers.add_agent_to_swarm_handler # Add an agent to a swarm
     # @delete BASE_PATH * "/swarms/{swarm_id::String}/agents/{agent_id::String}" SwarmHandlers.remove_agent_from_swarm_handler # Remove an agent from a swarm
-    
+
     # # Swarm Shared State
     # @get BASE_PATH * "/swarms/{swarm_id::String}/state/{key::String}" SwarmHandlers.get_swarm_shared_state_handler # Get a value from swarm's shared state
     # @post BASE_PATH * "/swarms/{swarm_id::String}/state/{key::String}" SwarmHandlers.update_swarm_shared_state_handler # Update a value in swarm's shared state
-    
+
     # # Swarm Metrics
     # @get BASE_PATH * "/swarms/{swarm_id::String}/metrics" SwarmHandlers.get_swarm_metrics_handler # Get metrics for a specific swarm
-    
+
     # # Swarm Task Management
     # @post BASE_PATH * "/swarms/{swarm_id::String}/tasks" SwarmHandlers.allocate_task_handler # Allocate a new task to the swarm
     # @post BASE_PATH * "/swarms/{swarm_id::String}/tasks/{task_id::String}/claim" SwarmHandlers.claim_task_handler # Agent claims a task
     # @post BASE_PATH * "/swarms/{swarm_id::String}/tasks/{task_id::String}/complete" SwarmHandlers.complete_task_handler # Agent completes a task
-    
+
     # # Swarm Coordination
     # @post BASE_PATH * "/swarms/{swarm_id::String}/electleader" SwarmHandlers.elect_leader_handler # Trigger leader election
     # # TODO: Add routes for getting task lists, specific task details for swarms.
@@ -164,7 +179,7 @@ function register_routes()
     # @get BASE_PATH * "/dex/protocols" DexHandlers.list_dex_protocols_handler # List available DEX protocols
     # # Get pairs for a specific DEX protocol and version (e.g., uniswap/v3)
     # # Query params can specify chain_id, rpc_url, dex_name for specific instance config
-    # @get BASE_PATH * "/dex/{protocol::String}/{version::String}/pairs" DexHandlers.get_dex_pairs_handler 
+    # @get BASE_PATH * "/dex/{protocol::String}/{version::String}/pairs" DexHandlers.get_dex_pairs_handler
     # # Get price for a pair on a specific DEX
     # # Query params: token0, token1 (symbols or addresses), chain_id, rpc_url, dex_name
     # @get BASE_PATH * "/dex/{protocol::String}/{version::String}/price" DexHandlers.get_dex_price_handler
@@ -215,7 +230,7 @@ function register_routes()
     # # ----------------------------------------------------------------------
     # @get BASE_PATH * "/trading/strategies/types" TradingHandlers.list_strategy_types_handler # List available types of strategies
     # # Configure a new strategy instance (type and params in body, name is auto-generated or in body)
-    # @post BASE_PATH * "/trading/strategies" TradingHandlers.configure_strategy_handler 
+    # @post BASE_PATH * "/trading/strategies" TradingHandlers.configure_strategy_handler
     # # List all configured strategies
     # @get BASE_PATH * "/trading/strategies" TradingHandlers.list_configured_strategies_handler
     # # Get details of a specific configured strategy
@@ -229,6 +244,117 @@ function register_routes()
     # # Trigger a backtest for a configured strategy (name in path, backtest params in body)
     # @post BASE_PATH * "/trading/strategies/{strategy_name::String}/backtest" TradingHandlers.backtest_strategy_handler
     # # TODO: Consider if more granular update routes are needed, e.g., for specific parameters.
+
+    # === Blacklist routes ===
+    blacklist_router = router(BASE_PATH * "/blacklist", tags=["Blacklist"])
+
+    @get blacklist_router("/stats") function(req)
+        try
+            stats = Main.JuliaOS.BlacklistChecker.get_stats()
+            return HTTP.Response(200, JSON3.write(stats))
+        catch e
+            return HTTP.Response(500, JSON3.write(Dict("error" => "Failed to get blacklist stats", "details" => string(e))))
+        end
+    end
+
+    # NEW: list configured sources
+    @get blacklist_router("/sources") function(req)
+        try
+            sources = Main.JuliaOS.BlacklistChecker.get_sources()
+            return HTTP.Response(200, JSON3.write(sources))
+        catch e
+            return HTTP.Response(500, JSON3.write(Dict("error" => "Failed to get sources", "details" => string(e))))
+        end
+    end
+
+    # NEW: force refresh (synchronous)
+    @post blacklist_router("/refresh") function(req)
+        try
+            t0 = time()
+            Main.JuliaOS.BlacklistChecker.update_blacklists!()
+            stats = Main.JuliaOS.BlacklistChecker.get_stats()
+            stats["refresh_duration_seconds"] = round(time() - t0, digits=2)
+            return HTTP.Response(200, JSON3.write(stats))
+        catch e
+            return HTTP.Response(500, JSON3.write(Dict("error" => "Failed to refresh blacklist", "details" => string(e))))
+        end
+    end
+
+    # GET with query params: address|wallet|wallet_address
+    @get blacklist_router("/check") function(req, address::String="", wallet::String="", wallet_address::String="")
+        addr = !isempty(strip(address)) ? address : (!isempty(strip(wallet)) ? wallet : strip(wallet_address))
+        if isempty(addr)
+            return HTTP.Response(400, JSON3.write(Dict(
+                "error" => "address is required",
+                "accepted_keys" => ["address","wallet","wallet_address"],
+            )))
+        end
+        try
+            res = Main.JuliaOS.BlacklistChecker.check_address(addr)
+            return HTTP.Response(200, JSON3.write(res))
+        catch e
+            return HTTP.Response(500, JSON3.write(Dict("error" => "Blacklist check failed", "details" => string(e))))
+        end
+    end
+
+    # POST with JSON body { address | wallet | wallet_address }
+    @post blacklist_router("/check") function(req)
+        try
+            data = JSON3.read(String(req.body))
+            addr = haskey(data, "address") ? data["address"] : (haskey(data, "wallet") ? data["wallet"] : (haskey(data, "wallet_address") ? data["wallet_address"] : nothing))
+            if addr === nothing || !(addr isa AbstractString) || isempty(strip(addr))
+                return HTTP.Response(400, JSON3.write(Dict(
+                    "error" => "address is required",
+                    "accepted_keys" => ["address","wallet","wallet_address"],
+                )))
+            end
+            res = Main.JuliaOS.BlacklistChecker.check_address(addr)
+            return HTTP.Response(200, JSON3.write(res))
+        catch e
+            return HTTP.Response(500, JSON3.write(Dict("error" => "Blacklist check failed", "details" => string(e))))
+        end
+    end
+
+    # === Tools routes ===
+    tools_router = router(BASE_PATH * "/tools", tags=["Tools"])
+
+    # Frontend-compatible investigation endpoint
+    @post tools_router("/investigate_wallet") function(req)
+        try
+            # Read request data
+            data = JSON3.read(String(req.body))
+            wallet_address = get(data, "wallet_address", "")
+
+            if isempty(strip(wallet_address))
+                return HTTP.Response(400, ["Content-Type" => "application/json"],
+                    JSON3.write(Dict("error" => "wallet_address is required")))
+            end
+
+            @info "🔍 Tools endpoint - Starting investigation" wallet=wallet_address
+
+            # Use comprehensive investigation by default to get all 7 detectives
+            detective_type = get(data, "investigation_type", "comprehensive")
+            if detective_type == "comprehensive" || detective_type == "multi"
+                # Use multi-detective for comprehensive results
+                squad = Main.JuliaOS.DetectiveAgents.create_detective_squad()
+                result = Main.JuliaOS.DetectiveAgents.investigate(squad, wallet_address, "comprehensive")
+            else
+                # Single detective investigation
+                agent_id = get(data, "agent_id", "poirot")
+                result = Main.JuliaOS.investigate_wallet(wallet_address, agent_id)
+            end
+
+            @info "✅ Tools endpoint - Investigation completed"
+
+            return HTTP.Response(200, ["Content-Type" => "application/json"],
+                JSON3.write(result))
+
+        catch e
+            @error "Tools investigate_wallet error" error=e
+            return HTTP.Response(500, ["Content-Type" => "application/json"],
+                JSON3.write(Dict("error" => "Investigation failed", "details" => string(e))))
+        end
+    end
 
     @info "API routes registered with Oxygen under $BASE_PATH."
 end

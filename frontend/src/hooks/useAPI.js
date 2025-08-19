@@ -289,10 +289,17 @@ export const useAPIQuery = (apiFunction, params = [], options = {}) => {
   const dependencyKey = JSON.stringify([enabled, ...normalizedParams]);
 
   const apiHook = useAPI(apiFunction, {
-    immediate: enabled,
+    immediate: false, // Disable immediate execution, we'll handle it manually
     dependencies: enabled ? [dependencyKey] : [], // Only pass dependencies if enabled
     ...restOptions
   });
+
+  // Manual execution effect for immediate enabled calls
+  useEffect(() => {
+    if (enabled && normalizedParams.length > 0 && normalizedParams.every(param => param !== null && param !== undefined && param !== '')) {
+      apiHook.execute(...normalizedParams);
+    }
+  }, [enabled, dependencyKey, apiHook.execute]);
 
   // Polling effect
   useEffect(() => {

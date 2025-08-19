@@ -1,0 +1,20 @@
+{
+    "hostname": "Filipe",
+    "network_edges": 0,
+    "taint_clusters": 0,
+    "category": "taint_network_analysis",
+    "julia_version": "1.11.6",
+    "test_name": "unit_analysis_taint_propagation",
+    "network_structure": {
+        "nodes": [
+        ],
+        "taint_clusters": [
+        ],
+        "edges": [
+        ]
+    },
+    "saved_at": "2025-08-12T18:01:48.042",
+    "timestamp": "2025-08-12T18:01:47.68",
+    "network_nodes": 0,
+    "network_density": 0
+}

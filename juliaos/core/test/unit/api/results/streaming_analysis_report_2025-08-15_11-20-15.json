@@ -1,0 +1,57 @@
+{
+  "performance_metrics": {
+    "active_monitored_wallets": 5,
+    "total_alerts_generated": 7,
+    "buffer_utilization": 0.127,
+    "processing_rate_tps": 126978.92920143028,
+    "elapsed_time_seconds": 0.025,
+    "processed_transactions": 127,
+    "average_latency_ms": 0.007875322356937439,
+    "alert_rate_per_hour": 7000.0
+  },
+  "wallet_analysis": {
+    "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA": {
+      "pattern_count": 25,
+      "risk_score": 4.6,
+      "pattern_variance": 0.003983333333333332
+    },
+    "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM": {
+      "pattern_count": 26,
+      "risk_score": 13.599999999999998,
+      "pattern_variance": 0.07235384615384613
+    },
+    "5Q544fKrFoe6tsEbD7S8EmxGTJYAKtTVhAW5Q5pge4j1": {
+      "pattern_count": 25,
+      "risk_score": 4.5,
+      "pattern_variance": 0.0041666666666666675
+    },
+    "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": {
+      "pattern_count": 25,
+      "risk_score": 4.65,
+      "pattern_variance": 0.006900000000000001
+    },
+    "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU": {
+      "pattern_count": 26,
+      "risk_score": 12.0,
+      "pattern_variance": 0.04598461538461538
+    }
+  },
+  "system_performance": {
+    "memory_efficiency": "optimized",
+    "throughput_tps": 126978.92920143028,
+    "latency_ms": 0.007875322356937439,
+    "total_processing_time": 1.755267614191e9
+  },
+  "test_timestamp": "2025-08-15 11:20:14",
+  "alert_summary": {
+    "severity_distribution": {
+      "high": 2,
+      "medium": 5
+    },
+    "alert_types": {
+      "suspicious_pattern": 5,
+      "high_value_transaction": 2
+    },
+    "total_alerts": 7
+  }
+}

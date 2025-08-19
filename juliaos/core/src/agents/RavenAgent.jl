@@ -10,6 +10,9 @@ using Logging
 
 # Import the analysis tool
 include("../tools/ghost_wallet_hunter/tool_analyze_wallet.jl")
+include("../tools/ghost_wallet_hunter/tool_check_blacklist.jl")
+include("../tools/ghost_wallet_hunter/tool_risk_assessment.jl")
+include("../tools/ghost_wallet_hunter/tool_detective_swarm.jl")
 
 export RavenDetective, create_raven_agent, investigate_raven_style
 
@@ -76,15 +79,18 @@ function investigate_raven_style(wallet_address::String, investigation_id::Strin
     try
         # Configure analysis tool for dark investigation
         config = ToolAnalyzeWalletConfig(
-            max_transactions = 1000,
+            max_transactions = 120,
             analysis_depth = "deep",
             include_ai_analysis = false,
-            rate_limit_delay = 1.1  # Deliberate, ominous pace
+            rate_limit_delay = 0.65  # Faster initial pass
         )
 
         # Execute real blockchain analysis
         task = Dict("wallet_address" => wallet_address)
         wallet_data = tool_analyze_wallet(config, task)
+        if !wallet_data["success"] && occursin("MethodError(convert", String(get(wallet_data, "error", "")))
+            wallet_data = tool_analyze_wallet(ToolAnalyzeWalletConfig(max_transactions=30, analysis_depth="basic", include_ai_analysis=false, rate_limit_delay=0.25), task)
+        end
 
         if !wallet_data["success"]
             return Dict(
@@ -93,7 +99,9 @@ function investigate_raven_style(wallet_address::String, investigation_id::Strin
                 "methodology" => "dark_investigation",
                 "risk_score" => 0,
                 "confidence" => 0,
-                "status" => "failed"
+                "status" => "failed",
+                "phase" => get(wallet_data, "phase", "unknown"),
+                "stacktrace" => get(wallet_data, "stacktrace", "")
             )
         end
 
@@ -122,14 +130,15 @@ function investigate_raven_style(wallet_address::String, investigation_id::Strin
                 "ominous_patterns" => ominous_patterns,
                 "cryptic_interpretation" => cryptic_interpretation,
                 "total_transactions" => tx_count,
-                "risk_level" => risk_assessment["risk_level"]
+                "risk_level" => risk_assessment["risk_level"],
+                "rpc_metrics" => get(wallet_data, "rpc_metrics", Dict()),
             ),
             "conclusion" => conclusion,
             "risk_score" => risk_score,
             "confidence" => confidence,
             "real_blockchain_data" => true,
             "investigation_id" => investigation_id,
-            "timestamp" => string(now()),
+            "timestamp" => Dates.format(now(UTC), dateformat"yyyy-mm-ddTHH:MM:SS.sssZ"),
             "status" => "completed"
         )
 

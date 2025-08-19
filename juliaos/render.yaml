@@ -1,28 +1,100 @@
-# JuliaOS Deploy - MINIMAL VERSION
+# 🔥 GHOST WALLET HUNTER - JULIAOS UNIFIED DEPLOYMENT
+# Arquitetura simplificada: Frontend + JuliaOS (Backend Python ELIMINADO)
+
 services:
+  # 🔥 SERVIÇO ÚNICO - JULIAOS UNIFIED (Core + A2A integrado)
   - type: web
-    name: ghost-wallet-hunter-juliaos
+    name: ghost-juliaos-unified
     runtime: docker
-    plan: standard  # 🚀 2GB RAM - NO MORE LIMITATIONS!
+    plan: standard  # 2GB RAM para performance máxima
     dockerfilePath: ./docker/Dockerfile
     rootDir: juliaos
+    buildCommand: |
+      # Install Julia latest stable
+      curl -fsSL https://install.julialang.org | sh -s -- --yes
+      export PATH="$HOME/.julialang/bin:$PATH"
+
+      # Navigate to core and install dependencies
+      cd core
+      julia --project=. -e "using Pkg; Pkg.instantiate()"
+      julia --project=. -e "using Pkg; Pkg.precompile()"
+
+      # Verify installation
+      julia --project=. -e "println(\"✅ JuliaOS Core ready for Ghost Wallet Hunting!\")"
+    startCommand: |
+      export PATH="$HOME/.julialang/bin:$PATH"
+      cd core
+      julia --project=. --threads=auto src/main.jl
     envVars:
+      # === JULIA CORE SETTINGS ===
       - key: JULIA_VERSION
         value: "1.11.6"
-      - key: ENVIRONMENT
-        value: production
-      - key: PORT
-        value: "8052"
-      - key: A2A_PORT
-        value: "9100"
-      - key: JULIA_NUM_THREADS
-        value: "4"
-      - key: JULIA_NUM_GC_THREADS
-        value: "2"
+      - key: JULIA_PORT
+        value: "10000"
+      - key: JULIA_THREADS
+        value: "auto"
+      - key: JULIA_OPTIMIZE
+        value: "3"
       - key: JULIA_DEPOT_PATH
         value: "/app/.julia"
       - key: JULIA_PROJECT
-        value: "/app"
+        value: "/app/core"
+
+      # === GHOST WALLET HUNTER ===
+      - key: GHOST_MODE
+        value: "production"
+      - key: GHOST_VERSION
+        value: "2.0.0"
+      - key: BLOCKCHAIN_NETWORK
+        value: "solana-mainnet"
+      - key: SOLANA_RPC_URL
+        value: "https://api.mainnet-beta.solana.com"
+
+      # === A2A PROTOCOL (INTEGRADO) ===
+      - key: A2A_ENABLED
+        value: "true"
+      - key: A2A_INTEGRATED
+        value: "true"
+      - key: A2A_PORT
+        value: "9100"
+
+      # === DETECTIVE SQUAD ===
+      - key: DETECTIVE_SQUAD_ENABLED
+        value: "true"
+      - key: SWARM_INTELLIGENCE
+        value: "true"
+
+      # === MONITORING ===
+      - key: LOG_LEVEL
+        value: "info"
+      - key: METRICS_ENABLED
+        value: "true"
+      - key: PERFORMANCE_MONITORING
+        value: "true"
+
+      # === FRONTEND INTEGRATION ===
+      - key: FRONTEND_DIRECT_ACCESS
+        value: "true"
+      - key: BACKEND_BRIDGE_DISABLED
+        value: "true"
+      - key: CORS_ORIGINS
+        value: "*"
+
+      # === REDIS CACHE ===
+      - key: REDIS_URL
+        value: ${{ghost-redis.REDIS_URL}}
+
     healthCheckPath: /health
     autoDeploy: true
     branch: main
+
+  # 📊 REDIS - Cache e Message Queue
+  - type: redis
+    name: ghost-redis
+    plan: starter
+    region: oregon
+    maxmemoryPolicy: allkeys-lru
+    ipAllowList: []
+
+# 🚫 BACKEND PYTHON: COMPLETAMENTE ELIMINADO
+# ✅ ARQUITETURA FINAL: Frontend → JuliaOS Unified → Redis

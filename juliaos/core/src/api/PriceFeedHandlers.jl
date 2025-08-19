@@ -2,7 +2,8 @@
 module PriceFeedHandlers
 
 using HTTP, Logging, Dates # Added Dates
-using ..Utils # For standardized responses
+include("Utils.jl")
+using .Utils # For standardized responses
 import ..framework.JuliaOSFramework.PriceFeed
 import ..framework.JuliaOSFramework.PriceFeedBase
 
@@ -16,12 +17,12 @@ function _get_or_create_feed_instance(provider_name::String, params::Dict)::Unio
     # This is a placeholder for a more robust feed instance management.
     # It creates a new instance on every call if not cached, which is not ideal for production.
     # A better system would pre-configure feeds or have a more persistent cache.
-    
+
     lock(DEFAULT_PRICE_FEEDS_LOCK) do
         # Construct a more specific cache key based on relevant config parameters
         # Relevant params might include chain_id, rpc_url (for chainlink), api_key (for others)
         # This helps differentiate instances of the same provider type with different configs.
-        
+
         # Extract key parameters for cache key generation
         # Ensure consistent types for cache key components (e.g., string for chain_id)
         chain_id_str = string(get(params, "chain_id", provider_name == "chainlink" ? "1" : "default_chain"))
@@ -41,7 +42,7 @@ function _get_or_create_feed_instance(provider_name::String, params::Dict)::Unio
         !isempty(api_key_param) && push!(cache_key_parts, "apikeyhash:" * string(hash(api_key_param))) # Hash API key
         !isempty(rpc_url_param) && push!(cache_key_parts, "rpcurl:" * rpc_url_param)
         !isempty(base_url_param) && push!(cache_key_parts, "baseurl:" * base_url_param)
-        
+
         cache_key = join(cache_key_parts, "_")
 
         if haskey(DEFAULT_PRICE_FEEDS, cache_key) && !isnothing(DEFAULT_PRICE_FEEDS[cache_key])
@@ -54,7 +55,7 @@ function _get_or_create_feed_instance(provider_name::String, params::Dict)::Unio
         @debug "Creating new price feed instance for key: $cache_key"
         # Default config parameters if not provided in request
         # These should ideally come from a secure application configuration file for production.
-        
+
         # Use extracted params for consistency, falling back to defaults if they were empty
         final_rpc_url = !isempty(rpc_url_param) ? rpc_url_param : (provider_name == "chainlink" ? "https://mainnet.infura.io/v3/YOUR_INFURA_KEY" : "")
         final_chain_id_parsed = tryparse(Int, chain_id_str)
@@ -63,13 +64,13 @@ function _get_or_create_feed_instance(provider_name::String, params::Dict)::Unio
         config_name_param = get(params, "config_name", provider_name * "_" * chain_id_str) # More unique default name
 
         config_dict = Dict{Symbol, Any}(
-            :name => config_name_param, 
+            :name => config_name_param,
             :api_key => api_key_param, # Already extracted
             :base_url => base_url_param, # Already extracted
             :rpc_url => final_rpc_url,
             :chain_id => final_chain_id
         )
-        
+
         # Handle cache_duration separately as it's not part of the cache key logic directly
         cache_duration_param = get(params, "cache_duration", "60") # Default to string "60"
         parsed_cache_duration = tryparse(Int, string(cache_duration_param)) # Ensure it's string before parse
@@ -91,7 +92,7 @@ function _get_or_create_feed_instance(provider_name::String, params::Dict)::Unio
                 final_config_params[k] = v
             end
         end
-        
+
         try
             config_obj = PriceFeedBase.PriceFeedConfig(;final_config_params...)
             instance = PriceFeed.create_price_feed(provider_name, config_obj)
@@ -118,12 +119,12 @@ end
 
 function get_feed_info_handler(req::HTTP.Request, provider_name::String)
     query_params = Dict(pairs(HTTP.queryparams(HTTP.URI(req.target)))) # Convert to Dict{String,String}
-    
+
     feed_instance = _get_or_create_feed_instance(provider_name, query_params)
     if isnothing(feed_instance)
         return Utils.error_response("Price feed provider '$provider_name' not found or failed to initialize.", 404, error_code=Utils.ERROR_CODE_NOT_FOUND, details=Dict("provider_name"=>provider_name))
     end
-    
+
     try
         info = PriceFeedBase.get_price_feed_info(feed_instance)
         return Utils.json_response(info)
@@ -222,14 +223,14 @@ function get_historical_prices_handler(req::HTTP.Request, provider_name::String)
     end
 
     try
-        price_data_obj = PriceFeedBase.get_historical_prices(feed_instance, base_asset, quote_asset; 
-                                                            interval=interval, limit=limit, 
+        price_data_obj = PriceFeedBase.get_historical_prices(feed_instance, base_asset, quote_asset;
+                                                            interval=interval, limit=limit,
                                                             start_time=start_time_dt, end_time=end_time_dt)
-        
+
         # Convert PriceData object to a JSON-friendly Dict
         points_list = [
-            Dict("timestamp"=>string(p.timestamp), "price"=>p.price, "volume"=>p.volume, 
-                 "open"=>p.open, "high"=>p.high, "low"=>p.low, "close"=>p.close) 
+            Dict("timestamp"=>string(p.timestamp), "price"=>p.price, "volume"=>p.volume,
+                 "open"=>p.open, "high"=>p.high, "low"=>p.low, "close"=>p.close)
             for p in price_data_obj.points
         ]
         result = Dict(

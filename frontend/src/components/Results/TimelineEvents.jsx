@@ -20,35 +20,21 @@ const colorByType = {
   other: "border-gray-500"
 };
 
-export default function TimelineEvents({
-  events = [
-    {
-      type: "blacklist",
-      date: "2025-07-30 21:14",
-      text: "Recebimento de 10 SOL de endereço em blacklist"
-    },
-    {
-      type: "mixer",
-      date: "2025-07-30 22:01",
-      text: "Transferência para mixer detectado"
-    },
-    {
-      type: "cluster",
-      date: "2025-07-31 08:24",
-      text: "Cluster de 5 wallets conectadas em menos de 2h"
-    },
-    {
-      type: "exchange",
-      date: "2025-07-31 09:18",
-      text: "Envio para exchange não verificada"
-    }
-  ]
-}) {
+export default function TimelineEvents({ events }) {
+  const list = (events || []).filter(Boolean);
+  if (list.length === 0) {
+    return (
+      <div className="w-full mt-7 mb-5">
+        <div className="font-bold text-gray-200 mb-3 text-lg">🗓️ Relevant Events</div>
+        <div className="text-xs text-gray-500">No relevant derived events.</div>
+      </div>
+    );
+  }
   return (
     <div className="w-full mt-7 mb-5">
-      <div className="font-bold text-gray-200 mb-3 text-lg">🗓️ Eventos Relevantes</div>
+      <div className="font-bold text-gray-200 mb-3 text-lg">🗓️ Relevant Events</div>
       <div className="flex flex-col gap-4">
-        {events.map((ev, i) => (
+        {list.map((ev, i) => (
           <div
             key={i}
             className={`flex items-start gap-3 border-l-4 pl-4 py-2 bg-[#111c2b99] rounded-md shadow-sm ${colorByType[ev.type] || "border-gray-500"}`}

@@ -1,0 +1,170 @@
+{
+  "recommendations": {
+    "optimization_suggestions": [
+      null,
+      "Review error handling"
+    ],
+    "scalability_ready": false,
+    "performance_status": "excellent"
+  },
+  "performance_analysis": {
+    "endpoint_breakdown": [
+      {
+        "status": 200,
+        "processing_time": 0.1700000762939453,
+        "response_size": 774,
+        "endpoint": "/api/v1/wallet/analyze",
+        "cached": false
+      },
+      {
+        "status": 200,
+        "processing_time": 0.31800007820129395,
+        "response_size": 773,
+        "endpoint": "/api/v1/wallet/analyze",
+        "cached": false
+      },
+      {
+        "status": 200,
+        "processing_time": 0.31999993324279785,
+        "response_size": 994,
+        "endpoint": "/api/v1/pattern/detect",
+        "cached": false
+      },
+      {
+        "status": 200,
+        "processing_time": 0.41900014877319336,
+        "response_size": 1000,
+        "endpoint": "/api/v1/pattern/detect",
+        "cached": false
+      },
+      {
+        "status": 200,
+        "processing_time": 0.0,
+        "response_size": 670,
+        "endpoint": "/api/v1/monitoring/status",
+        "cached": false
+      },
+      {
+        "status": 200,
+        "processing_time": 0.0,
+        "response_size": 672,
+        "endpoint": "/api/v1/monitoring/status",
+        "cached": false
+      },
+      {
+        "status": 200,
+        "processing_time": 0.0,
+        "response_size": 0,
+        "endpoint": "/api/v1/wallet/analyze",
+        "cached": true
+      },
+      {
+        "status": 400,
+        "processing_time": 0.0,
+        "response_size": 0,
+        "endpoint": "/api/v1/wallet/analyze",
+        "cached": false
+      },
+      {
+        "status": 200,
+        "processing_time": 0.45600008964538574,
+        "response_size": 998,
+        "endpoint": "/api/v1/pattern/detect",
+        "cached": false
+      },
+      {
+        "status": 200,
+        "processing_time": 0.0,
+        "response_size": 702,
+        "endpoint": "/api/v1/monitoring/status",
+        "cached": false
+      }
+    ],
+    "request_summary": {
+      "success_rate": 0.9,
+      "avg_response_time_ms": 168.30003261566162,
+      "successful_requests": 9,
+      "total_requests": 10,
+      "requests_per_minute": 288.32292167227297
+    }
+  },
+  "websocket_metrics": {
+    "active_connections": 0,
+    "average_latency_ms": 0.0,
+    "total_messages_sent": 0
+  },
+  "test_timestamp": "2025-08-15 21:04:14",
+  "session_management": {
+    "active_sessions": 1,
+    "session_config": {
+      "rate_limit_per_minute": 60,
+      "websocket_ping_interval": 10,
+      "max_concurrent_requests": 50,
+      "timeout_minutes": 30,
+      "cache_ttl_seconds": 300
+    }
+  },
+  "monitoring_data": {
+    "system_status": {
+      "status": "operational",
+      "uptime_seconds": 2.089,
+      "version": "1.0.0",
+      "last_update": "2025-08-15T21:04:14.007Z"
+    },
+    "performance_metrics": {
+      "average_response_time_ms": 168.30003261566162,
+      "success_rate": 0.9,
+      "requests_per_minute": 288.32292167227297,
+      "error_rate": 0.09999999999999998
+    },
+    "backend_health": {
+      "julia_server": "healthy",
+      "blockchain_rpc": "healthy",
+      "python_backend": "healthy",
+      "database": "healthy"
+    },
+    "recent_alerts": [
+      {
+        "message": "Suspicious pattern detected in wallet cluster",
+        "alert_id": "alert_1024",
+        "severity": "low",
+        "timestamp": "2025-08-15T20:48:14.007Z"
+      }
+    ],
+    "active_sessions": 1,
+    "websocket_connections": 0,
+    "cache_statistics": {
+      "hit_rate": 0.82,
+      "total_entries": 2,
+      "memory_usage_mb": 160
+    }
+  },
+  "handler_configuration": {
+    "host": "0.0.0.0",
+    "cors_enabled": true,
+    "port": 3000,
+    "compression": true,
+    "max_request_size": "10MB"
+  },
+  "cache_performance": {
+    "cache_policies": {
+      "wallet_analysis": {
+        "ttl": 300,
+        "max_size": 1000
+      },
+      "compliance_checks": {
+        "ttl": 180,
+        "max_size": 2000
+      },
+      "pattern_results": {
+        "ttl": 600,
+        "max_size": 500
+      },
+      "risk_assessments": {
+        "ttl": 240,
+        "max_size": 1500
+      }
+    },
+    "total_entries": 2
+  }
+}

@@ -1,0 +1,13 @@
+{
+    "test_module": "analysis_core",
+    "execution_timestamp": "2025-08-16T17:02:44.314",
+    "wallet_database_size": 32,
+    "hostname": "Filipe",
+    "environment": "real_solana_mainnet",
+    "category": "analysis",
+    "julia_version": "1.11.6",
+    "test_name": "analysis_core_summary",
+    "rpc_connectivity": true,
+    "saved_at": "2025-08-16T17:02:44.394",
+    "test_status": "completed"
+}

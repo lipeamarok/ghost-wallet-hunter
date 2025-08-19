@@ -16,9 +16,10 @@ export {
 
 export {
   useInvestigation,
-  useInvestigationResults,
   useInvestigationStats
 } from './useInvestigation.js';
+
+export { useInvestigationResults } from './useInvestigationResults.js';
 
 export {
   useWebSocket,

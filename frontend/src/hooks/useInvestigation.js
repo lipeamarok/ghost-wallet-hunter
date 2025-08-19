@@ -50,7 +50,6 @@ export const useInvestigation = (options = {}) => {
   // API hooks for investigation operations
   const startMutation = useAPIMutation(investigationService.startInvestigation, {
     onSuccess: (result) => {
-      // Handle both possible field names from different backend responses
       const investigationId = result.investigation_id || result.investigationId || result.id;
 
       if (!investigationId) {
@@ -59,16 +58,59 @@ export const useInvestigation = (options = {}) => {
         return;
       }
 
-      setCurrentInvestigation({
-        id: investigationId,
-        status: result.status || 'running',
-        services: result.services || {},
-        startTime: new Date(),
-        progress: { overall: 0 },
-        data: result // Store the full response
+      const isImmediatelyCompleted = result.status === 'completed';
+
+      console.log('🔧 HOOK DEBUG - Setting currentInvestigation:', {
+        investigationId,
+        resultKeys: Object.keys(result),
+        hasDetectives: !!result.detectives,
+        hasIndividualResults: !!result.individual_results,
+        resultStructure: {
+          detectives: result.detectives ? 'exists' : 'missing',
+          individual_results: result.individual_results ? 'exists' : 'missing',
+          summary: result.summary ? 'exists' : 'missing'
+        }
       });
 
-      // Small delay to ensure investigation is properly registered before any status queries
+      const investigationData = {
+        id: investigationId,
+        shortId: result.shortId,
+        status: result.status || (isImmediatelyCompleted ? 'completed' : 'running'),
+        services: result.services || {},
+        startTime: new Date(),
+        completedAt: isImmediatelyCompleted ? new Date() : null,
+        progress: result.progress || { overall: isImmediatelyCompleted ? 100 : 0 },
+        data: result,
+        // FIXED: Results come directly in the result object, not in result.results
+        results: result.detectives || result.individual_results || result.summary || result.results ? result : null
+      };
+
+      console.log('🔧 HOOK DEBUG - Investigation data to set:', {
+        hasResults: !!investigationData.results,
+        resultsKeys: investigationData.results ? Object.keys(investigationData.results) : 'none'
+      });
+
+      setCurrentInvestigation(investigationData);
+
+      if (isImmediatelyCompleted) {
+        // Add to history cache
+        setInvestigationHistory(prev => [{ id: investigationId, status: 'completed', walletAddress: result.walletAddress, completedAt: new Date() }, ...prev]);
+      }
+
+      // If investigation already completed (Julia fast-path), skip websockets & polling
+      if (isImmediatelyCompleted) {
+        if (onComplete) {
+          const consolidated = result.results?.consolidated || result.results || result;
+          if (consolidated && !consolidated.id) {
+            consolidated.id = investigationId;
+            consolidated.investigationId = investigationId;
+          }
+          onComplete(consolidated);
+        }
+        return; // Skip websocket connect
+      }
+
+      // Delayed connect only for running investigations
       setTimeout(() => {
         if (autoConnect && investigationId) {
           connectToInvestigation(investigationId);
@@ -76,7 +118,7 @@ export const useInvestigation = (options = {}) => {
       }, 100);
 
       if (IS_DEVELOPMENT) {
-        console.log('✅ Investigation started:', investigationId);
+        console.log('✅ Investigation started:', investigationId, { immediate: isImmediatelyCompleted });
       }
     },
     onError: (error) => {
@@ -100,8 +142,9 @@ export const useInvestigation = (options = {}) => {
   const shouldEnablePolling = Boolean(investigationId) &&
                              !webSocketConnected &&
                              shouldPoll &&
-                             pollingInterval !== null && // Extra check to ensure polling is explicitly enabled
-                             isInvestigationActive; // Only poll for active investigations
+                             pollingInterval !== null &&
+                             isInvestigationActive &&
+                             currentInvestigation?.status !== 'completed';
 
   if (IS_DEVELOPMENT && investigationId) {
     console.log('🔄 Status polling check:', {
@@ -178,6 +221,14 @@ export const useInvestigation = (options = {}) => {
       throw new Error('No investigation ID provided');
     }
 
+    // Fast-path: if synchronous Julia investigation already has results cached, return them
+    if (currentInvestigation?.results) {
+      if (IS_DEVELOPMENT) {
+        console.log('⚡ Returning cached investigation results (synchronous mode)');
+      }
+      return currentInvestigation.results;
+    }
+
     return resultsQuery.execute(targetId);
   }, [currentInvestigation, resultsQuery]);
 
@@ -204,7 +255,7 @@ export const useInvestigation = (options = {}) => {
       }
 
       if (onComplete && statusUpdate.status === INVESTIGATION_STATUS.COMPLETED) {
-        onComplete(statusUpdate);
+        onComplete(statusUpdate.results?.consolidated || statusUpdate.results || statusUpdate);
       }
 
       return updated;
@@ -303,6 +354,81 @@ export const useInvestigation = (options = {}) => {
     return investigationService.getActive();
   }, []);
 
+  // Polling for async investigations
+  const POLL_INTERVAL_MS = 2500;
+  const [pollTimer, setPollTimer] = useState(null);
+
+  const mergePartial = useCallback((prev, incoming) => {
+    if (!prev) return incoming;
+    const merged = { ...prev, ...incoming };
+    // Merge progress
+    merged.progress = { ...(prev.progress || {}), ...(incoming.progress || {}) };
+    // Merge agents details
+    if (prev.agents || incoming.agents) {
+      merged.agents = {
+        ...(prev.agents || {}),
+        ...(incoming.agents || {}),
+        details: [
+          ...((prev.agents && prev.agents.details) || []),
+          ...((incoming.agents && incoming.agents.details) || [])
+        ].filter((v, i, a) => a.findIndex(x => x.agent === v.agent) === i)
+      };
+    }
+    // Merge individual results
+    const prevInd = (prev.results?.raw?.individual_results) || [];
+    const incInd = (incoming.results?.raw?.individual_results) || [];
+    const combinedInd = [...prevInd];
+    incInd.forEach(r => {
+      const idx = combinedInd.findIndex(x => x.agent === r.agent);
+      if (idx >= 0) combinedInd[idx] = { ...combinedInd[idx], ...r };
+      else combinedInd.push(r);
+    });
+    merged.results = {
+      raw: { individual_results: combinedInd },
+      normalized: incoming.results?.normalized || prev.results?.normalized || null
+    };
+    return merged;
+  }, []);
+
+  const poll = useCallback(async (investigationId) => {
+    try {
+      const [statusResp, resultsResp] = await Promise.all([
+        juliaService.getInvestigationStatus(investigationId),
+        juliaService.getInvestigationResults(investigationId)
+      ]);
+      setInvestigation(prev => mergePartial(prev, {
+        id: investigationId,
+        status: statusResp.status,
+        progress: statusResp.progress,
+        agents: statusResp.agents,
+        results: resultsResp.results || resultsResp,
+        version: statusResp.version || resultsResp.version
+      }));
+      if (statusResp.status !== 'running' && pollTimer) {
+        clearInterval(pollTimer);
+        setPollTimer(null);
+      }
+    } catch (e) {
+      console.error('Polling error', e);
+    }
+  }, [mergePartial, pollTimer]);
+
+  const start = useCallback(async (wallet, opts = {}) => {
+    setLoading(true); setError(null);
+    try {
+      const resp = await startInvestigation(wallet, { ...opts, synchronous: opts.synchronous ?? false });
+      setInvestigation(resp);
+      if (!resp.synchronous && resp.status === 'running') {
+        // start polling
+        const id = resp.id;
+        if (pollTimer) { clearInterval(pollTimer); }
+        const t = setInterval(() => poll(id), POLL_INTERVAL_MS);
+        setPollTimer(t);
+      }
+    } catch (e) { setError(e); }
+    finally { setLoading(false); }
+  }, [poll, pollTimer]);
+
   // Cleanup effect
   useEffect(() => {
     return () => {
@@ -348,7 +474,7 @@ export const useInvestigation = (options = {}) => {
     // Computed states
     hasActiveInvestigation: !!currentInvestigation,
     isInvestigationRunning: currentInvestigation?.status === INVESTIGATION_STATUS.RUNNING,
-    isInvestigationCompleted: currentInvestigation?.status === INVESTIGATION_STATUS.COMPLETED,
+    isInvestigationCompleted: !!(currentInvestigation?.results?.consolidated || currentInvestigation?.results?.normalized || (currentInvestigation?.progress?.overall === 100)),
     isInvestigationFailed: currentInvestigation?.status === INVESTIGATION_STATUS.FAILED,
 
     // Progress information

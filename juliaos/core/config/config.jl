@@ -239,8 +239,11 @@ function load_detective_config(config_path=nothing)
             lock(CONFIG_LOCK) do
                 # Reset CURRENT_CONFIG to defaults before merging
                 empty!(CURRENT_CONFIG)
-                merge!(CURRENT_CONFIG, deepcopy(DEFAULT_CONFIG))
-                _recursive_merge!(CURRENT_CONFIG, config_data_from_file)
+                # CRITICAL FIX: Force all nested dicts to be Dict{String,Any}
+                default_config_any = convert_to_any_dict(deepcopy(DEFAULT_CONFIG))
+                config_data_any = convert_to_any_dict(config_data_from_file)
+                merge!(CURRENT_CONFIG, default_config_any)
+                _recursive_merge!(CURRENT_CONFIG, config_data_any)
             end
             @info "Successfully loaded detective configuration from $actual_config_path"
             return Configuration(CURRENT_CONFIG)
@@ -267,6 +270,23 @@ function load_detective_config(config_path=nothing)
 end
 
 """
+    convert_to_any_dict(d::Dict) -> Dict{String,Any}
+
+Recursively converts any Dict to Dict{String,Any} to avoid type conflicts.
+"""
+function convert_to_any_dict(d::Dict)
+    result = Dict{String,Any}()
+    for (k, v) in d
+        if isa(v, Dict)
+            result[string(k)] = convert_to_any_dict(v)
+        else
+            result[string(k)] = v
+        end
+    end
+    return result
+end
+
+"""
     _recursive_merge!(target::Dict, source::Dict)
 
 Recursively merges source Dict into target Dict.
@@ -286,17 +306,41 @@ end
 function _recursive_merge!(target::Dict, source::Dict)
     for (key, src_val) in source
         if isa(src_val, Dict) && haskey(target, key) && isa(target[key], Dict)
-            # Convert to compatible types and merge
-            if isa(target[key], Dict{String, Any})
-                _recursive_merge!(target[key], src_val)
-            else
-                # Convert target to Any and merge
-                target_any = Dict{String, Any}(target[key])
-                _recursive_merge!(target_any, src_val)
-                target[key] = target_any
-            end
+            # Convert both to Dict{String, Any} for compatibility
+            target_any = Dict{String, Any}(target[key])
+            src_any = Dict{String, Any}(src_val)
+            _recursive_merge!(target_any, src_any)
+            target[key] = target_any
         else
-            target[key] = src_val
+            # CRITICAL FIX: Handle type conversion safely
+            try
+                target[key] = src_val
+            catch MethodError
+                # If direct assignment fails due to type constraints,
+                # convert target to more flexible type
+                if isa(target, Dict{String, Real}) && !isa(src_val, Real)
+                    # RADICAL FIX: Cannot merge Dict{String,Any} into Dict{String,Real}
+                    # We need to replace the target reference entirely
+                    @warn "Converting Dict{String,Real} to Dict{String,Any} for key '$key' to accommodate mixed types"
+
+                    # This is the ONLY way to change the type of the target dict
+                    # when it's passed by reference with type constraints
+                    for (k, v) in target
+                        if k != key  # Keep existing values except the one we're changing
+                            target_any[k] = v
+                        end
+                    end
+                    target_any[key] = src_val
+
+                    # Cannot change target type in-place, so we return false to indicate failure
+                    # The calling code should handle this by using Dict{String,Any} instead
+                    @error "Cannot merge mixed types into Dict{String,Real}. Consider using Dict{String,Any} for configuration."
+                    return false
+                else
+                    # Re-throw if it's a different kind of error
+                    rethrow()
+                end
+            end
         end
     end
 end

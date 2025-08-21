@@ -14,7 +14,7 @@ module ThreadOptimizer
 using Base.Threads
 const MIN_COMPUTE_DEFAULT = 4
 const MIN_INTERACTIVE_DEFAULT = 1
-function ensure_threads(; auto::Bool=false)
+function ensure_threads(; auto::Bool=true)
     thread_spec = get(ENV, "JULIA_NUM_THREADS", "")
     compute_threads = nthreads()
     has_interactive = occursin(",", thread_spec)

@@ -1,52 +1,49 @@
-# 🚀 Ghost Wallet Hunter - Julia Core Service (FULL VERSION - 2GB)
+# 🚀 Ghost Wallet Hunter - Optimized Julia Service for Render.com
 FROM julia:1.11-bullseye
 
-WORKDIR /app
-
-# 📦 Install ALL system dependencies (no more restrictions!)
+# � Install system dependencies (minimal set for performance)
 RUN apt-get update && apt-get install -y \
     curl \
+    ca-certificates \
     postgresql-client \
     libpq-dev \
     build-essential \
     git \
-    ca-certificates \
-    python3 \
-    python3-pip \
-    python3-dev \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
-# 📁 Copy Julia project structure completely
-COPY core/ ./
+# 📁 Set working directory
+WORKDIR /app
 
-# 💪 Use FULL Project.toml with ALL dependencies (no more minimal!)
-# Project.toml already has everything: Flux, PyCall, LibPQ, etc.
+# � Copy Project.toml and Manifest.toml first (Docker layer caching)
+COPY core/Project.toml core/Manifest.toml ./
 
-# ⚡ Install Julia dependencies with AGGRESSIVE MEMORY OPTIMIZATION!
+# 📦 Install Julia dependencies (cached layer if Project.toml unchanged)
 RUN julia --project=. -e '\
-    ENV["JULIA_PKG_PRECOMPILE_AUTO"] = "0"; \
     using Pkg; \
     Pkg.instantiate(); \
-    println("✅ Dependencies installed WITHOUT precompilation!"); \
-    println("All compilation will happen during runtime - saves 1.5GB+ memory");'
+    Pkg.precompile(); \
+    println("✅ Julia dependencies installed and precompiled!");'
 
-# Set environment variables for MEMORY-OPTIMIZED performance
+# 📁 Copy all source code
+COPY core/ ./
+
+# 🌐 Environment variables optimized for Render
 ENV HOST=0.0.0.0
 ENV PORT=10000
 ENV JULIA_DEPOT_PATH=/app/.julia
 ENV JULIA_PROJECT=/app
 ENV JULIA_THREADS=auto
 ENV JULIA_NUM_GC_THREADS=1
-ENV JULIA_PKG_PRECOMPILE_AUTO=0
-ENV JULIA_COPY_STACKS=1
+ENV GHOST_MODE=production
+ENV RENDER=true
 
-# Health check com timeout maior para permitir compilação
-HEALTHCHECK --interval=45s --timeout=15s --start-period=60s --retries=5 \
+# 🩺 Health check optimized for Render's requirements
+HEALTHCHECK --interval=30s --timeout=10s --start-period=45s --retries=3 \
     CMD curl -f http://localhost:${PORT}/health || exit 1
 
-# Expose port (Render default)
+# 🔌 Expose port
 EXPOSE 10000
 
-# 🚀 QUICK START: Bind porta imediatamente, depois carrega sistema completo
-CMD ["julia", "--project=.", "quick_start.jl"]
+# 🚀 Start Ghost Wallet Hunter
+CMD ["julia", "--project=.", "--threads=auto", "src/main.jl"]
